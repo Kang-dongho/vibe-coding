@@ -655,40 +655,33 @@
         transition: max-height .32s ease, opacity .22s ease, margin-top .32s ease;
       }
       a.card.mini:hover .mdesc,
-      a.card.mini:focus-visible .mdesc {
+      a.card.mini:focus-visible .mdesc,
+      div.card.mini.plan:hover .mdesc {
         max-height: 9em;
         opacity: 1;
         margin-top: 0;
       }
     }
 
-    /* ── 다음 지도(로드맵) — 준비 중인 덱 ───── */
+    /* ── 다음 지도(로드맵) — 보드와 같은 카드, 준비 중인 덱은 점선 ───── */
     .tracks.roadmap { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     @media (max-width: 1100px) { .tracks.roadmap { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 620px) { .tracks.roadmap { grid-template-columns: 1fr; } }
-    .track-goal { font-size: .8rem; color: var(--fg-soft); margin: -.3rem .15rem .1rem; line-height: 1.45; }
     .th-vibe .tno { color: #FF8FA3; }
     .th-vibe .tline { background: linear-gradient(90deg, rgba(255,143,163,.45), transparent); }
-    .card.plan {
+    div.card.mini.plan {
       position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center;
-      gap: .35rem .7rem; padding: .8rem .95rem; border-radius: 13px;
-      background: rgba(230,236,249,.025); border: 1px dashed rgba(190,200,224,.28);
+      gap: .4rem .75rem; padding: .85rem 1rem; border-radius: 13px; overflow: hidden;
+      background: rgba(230,236,249,.02); border: 1px dashed rgba(190,200,224,.3); color: inherit; cursor: default;
     }
-    .card.plan.star { border-style: solid; border-color: rgba(255,212,107,.45); background: rgba(255,212,107,.04); }
-    .card.plan .emoji { font-size: 1.25rem; grid-column: 1; grid-row: 1; opacity: .9; }
-    .card.plan .mini-main { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: .28rem; min-width: 0; }
-    .card.plan h3 { font-size: .93rem; line-height: 1.35; }
-    .card.plan .sym { font-size: .78rem; color: var(--fg-soft); line-height: 1.4; }
-    .card.plan .badge {
-      position: absolute; top: .55rem; right: .6rem; font-family: var(--mono); font-size: .62rem; letter-spacing: .06em;
-      color: #8E96AB; border: 1px solid rgba(142,150,171,.35); border-radius: 999px; padding: .05rem .45rem;
-    }
-    .card.plan.star .badge { color: #FFE29A; border-color: rgba(255,212,107,.5); }
-    .card.plan .pri { font-weight: 700; color: #FFE29A; margin-right: .45rem; }
-    .card.plan .kw { font-family: var(--mono); font-size: .7rem; color: #A9B1C6; line-height: 1.4; margin-top: -.1rem; }
+    div.card.mini.plan .emoji { opacity: .7; }
+    div.card.mini.plan h3 { color: var(--fg-soft); }
     .roadmap-order { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .6rem; }
-    .roadmap-order .step { font-family: var(--mono); font-size: .78rem; color: var(--fg); border: 1px solid var(--line);
-      border-radius: 999px; padding: .25rem .7rem; background: var(--bg-1); }
+    .roadmap-order a.step { font-family: var(--mono); font-size: .78rem; color: var(--fg); border: 1px solid var(--line);
+      border-bottom: 1px solid var(--line); border-radius: 999px; padding: .25rem .7rem; background: var(--bg-1); text-decoration: none; }
+    .roadmap-order a.step:hover { border-color: rgba(155,130,255,.55); }
+    .roadmap-order span.step { font-family: var(--mono); font-size: .78rem; color: var(--fg-soft); border: 1px dashed var(--line);
+      border-radius: 999px; padding: .25rem .7rem; }
     .roadmap-order .arr { color: var(--accent-2); }
 
     /* ── 핵심 경로 3단계 ───── */
@@ -1106,184 +1099,180 @@
   </section>
 
   <section class="reveal" id="roadmap">
-    <h2 class="sec">다음 지도 — 입문에서 심화까지 <span class="hint">준비 중인 덱 · ★ 먼저 만들 것</span></h2>
-    <p class="path-note" style="margin:-.4rem 0 1.1rem;">지금 시리즈는 <b>AI와 일하는 법</b>을 다룹니다. 여기서부터는 <b>AI가 만든 걸 이해하고, 오래 쓰는 법</b>입니다. 카드 맨 아래 줄은 이 덱이 필요해지는 순간입니다.</p>
+    <h2 class="sec">다음 지도 — 입문에서 심화까지 <span class="hint">AI가 만든 걸 이해하고, 오래 쓰는 법 · 점선은 준비 중</span></h2>
+
     <div class="tracks roadmap">
       <div class="track">
         <div class="track-head th-start"><span class="tno">01</span>입문<span class="tline"></span></div>
-        <p class="track-goal">AI가 만든 걸 읽을 수 있게</p>
-        <div class="card plan star">
+        <a class="card mini" href="architecture/">
           <span class="emoji">🧱</span>
           <span class="mini-main">
-            <h3>프로그램의 구조 한 장</h3>
-            <span class="kw"><b class="pri">★ 먼저</b>프론트 · 백엔드 · API · DB</span>
+            <h3>프로그램의 구조 한 장 — 프론트 · 백엔드 · API · DB</h3>
             <span class="sym">AI에게 어디를 고쳐 달라고 할지 모르겠다</span>
           </span>
-        </div>
-        <div class="card plan star">
+          <p class="mdesc">식당으로 보는 네 층(홀 · 주문서 · 주방 · 창고), 버튼 하나를 눌렀을 때 0.3초 따라가기, Streamlit과 FastAPI + React의 차이, F12 개발자 도구, 증상으로 고칠 층 찾기.</p>
+        </a>
+        <a class="card mini" href="errors/">
           <span class="emoji">🧾</span>
           <span class="mini-main">
-            <h3>에러 메시지 읽는 법</h3>
-            <span class="kw"><b class="pri">★ 먼저</b>아래에서부터, 줄 번호부터</span>
+            <h3>에러 메시지 읽는 법 — 아래에서부터, 줄 번호부터</h3>
             <span class="sym">빨간 글씨가 뜨면 통째로 복사해서 붙인다</span>
           </span>
-        </div>
-        <div class="card plan">
+          <p class="mdesc">Traceback 해부(결론 · 내 줄 · 지나온 길), 흔한 에러 10가지, KeyError · 한글 CSV 인코딩 · NoneType 사례, AI에게 넘기는 다섯 칸 템플릿.</p>
+        </a>
+        <div class="card mini plan">
           <span class="emoji">⌨️</span>
           <span class="mini-main">
-            <h3>터미널 생존 키트</h3>
-            <span class="kw">경로 · 환경변수 · PATH</span>
+            <h3>터미널 생존 키트 — 경로 · 환경변수 · PATH</h3>
             <span class="sym">"명령을 찾을 수 없음"이 무슨 뜻인지 모르겠다</span>
           </span>
+          <p class="mdesc">준비 중 — 현재 폴더와 경로, cd · ls, 환경변수와 PATH, 명령을 못 찾는 이유.</p>
         </div>
-        <div class="card plan">
+        <div class="card mini plan">
           <span class="emoji">🐍</span>
           <span class="mini-main">
-            <h3>파이썬 환경 관리</h3>
-            <span class="kw">venv · pip · requirements.txt</span>
+            <h3>파이썬 환경 관리 — venv · pip · requirements.txt</h3>
             <span class="sym">어제는 됐는데 오늘은 안 된다</span>
           </span>
+          <p class="mdesc">준비 중 — 가상환경, 패키지 설치와 버전 고정, 사내 미러, "어제는 됐는데"의 원인.</p>
         </div>
-        <div class="card plan">
+        <div class="card mini plan">
           <span class="emoji">📄</span>
           <span class="mini-main">
-            <h3>파일 형식 기초</h3>
-            <span class="kw">CSV · JSON · YAML · 인코딩</span>
+            <h3>파일 형식 기초 — CSV · JSON · YAML · 인코딩</h3>
             <span class="sym">한글이 깨지고 경로가 안 맞는다</span>
           </span>
+          <p class="mdesc">준비 중 — 표 · 설정 · 데이터 파일의 차이, 인코딩, 경로의 \와 /.</p>
         </div>
       </div>
       <div class="track">
         <div class="track-head th-deep"><span class="tno">02</span>중급<span class="tline"></span></div>
-        <p class="track-goal">혼자 쓰는 도구에서 쓸 만한 도구로</p>
-        <div class="card plan star">
+        <a class="card mini" href="sql/">
           <span class="emoji">🗄️</span>
           <span class="mini-main">
-            <h3>SQL과 데이터베이스 입문</h3>
-            <span class="kw"><b class="pri">★ 먼저</b>엑셀 표에서 테이블로</span>
+            <h3>SQL과 데이터베이스 입문 — 엑셀 표에서 테이블로</h3>
             <span class="sym">엑셀 파일이 너무 많고 무거워졌다</span>
           </span>
-        </div>
-        <div class="card plan star">
+          <p class="mdesc">필터 = WHERE, 피벗 = GROUP BY, VLOOKUP = JOIN. 실행 순서, JOIN 뒤 행이 불어나는 함정과 NULL, AI가 쓴 쿼리 검산 3종, 읽기 전용 원칙, 엑셀을 SQLite로.</p>
+        </a>
+        <a class="card mini" href="data-viz/">
           <span class="emoji">📊</span>
           <span class="mini-main">
-            <h3>데이터 분석과 시각화</h3>
-            <span class="kw"><b class="pri">★ 먼저</b>pandas · 믿을 수 있는 차트</span>
+            <h3>데이터 분석과 시각화 — pandas와 믿을 수 있는 차트</h3>
             <span class="sym">그래프는 나왔는데 믿어도 될지 모르겠다</span>
           </span>
-        </div>
-        <div class="card plan">
+          <p class="mdesc">첫 5분 들여다보기, 질문으로 차트 고르기, 평균이 숨기는 두 덩어리, 차트가 거짓말하는 다섯 가지, 관리도, AI 분석 결과 검산.</p>
+        </a>
+        <div class="card mini plan">
           <span class="emoji">🔌</span>
           <span class="mini-main">
-            <h3>API 이해하고 만들기</h3>
-            <span class="kw">REST · JSON · 상태 코드</span>
+            <h3>API 이해하고 만들기 — REST · JSON · 상태 코드</h3>
             <span class="sym">다른 프로그램과 데이터를 주고받아야 한다</span>
           </span>
+          <p class="mdesc">준비 중 — GET · POST, JSON 응답, 상태 코드, FastAPI로 엔드포인트 하나, /docs로 시험하기.</p>
         </div>
-        <div class="card plan">
+        <div class="card mini plan">
           <span class="emoji">🤖</span>
           <span class="mini-main">
-            <h3>사내 LLM API 부르기</h3>
-            <span class="kw">채팅창 밖, 내 코드에서 LLM 쓰기</span>
+            <h3>사내 LLM API를 코드에서 부르기</h3>
             <span class="sym">채팅창 말고 내 프로그램이 LLM을 쓰게 하고 싶다</span>
           </span>
+          <p class="mdesc">준비 중 — 프롬프트 템플릿, 구조화된 출력(JSON), 비용 · 속도 · 실패 처리.</p>
         </div>
-        <div class="card plan">
+        <div class="card mini plan">
           <span class="emoji">🖥️</span>
           <span class="mini-main">
-            <h3>화면 만들기 실전</h3>
-            <span class="kw">Streamlit · React, 언제 무엇을</span>
+            <h3>화면 만들기 실전 — Streamlit과 React</h3>
             <span class="sym">Streamlit으로 시작했는데 한계가 보인다</span>
           </span>
+          <p class="mdesc">준비 중 — 언제 무엇을 쓰나, 화면 상태, 컴포넌트 나누기, 옮겨 가는 순서.</p>
         </div>
       </div>
       <div class="track">
         <div class="track-head th-hands"><span class="tno">03</span>심화<span class="tline"></span></div>
-        <p class="track-goal">팀이 쓰고, 오래 버티게</p>
-        <div class="card plan star">
+        <a class="card mini" href="refactor/">
           <span class="emoji">🧹</span>
           <span class="mini-main">
-            <h3>커진 코드 관리하기</h3>
-            <span class="kw"><b class="pri">★ 먼저</b>리팩터링 · 폴더 구조</span>
+            <h3>커진 코드 관리하기 — 리팩터링 · 폴더 구조</h3>
             <span class="sym">AI가 만든 3,000줄을 아무도 못 건드린다</span>
           </span>
-        </div>
-        <div class="card plan">
+          <p class="mdesc">기능과 정리를 섞지 않기, 위험 신호 여섯 가지, 골든 출력 안전망, 복붙 · 마법의 숫자 정리 예시, 폴더와 의존 방향, AI 리팩터링의 함정.</p>
+        </a>
+        <div class="card mini plan">
           <span class="emoji">🐳</span>
           <span class="mini-main">
-            <h3>Docker</h3>
-            <span class="kw">K8S 앞 단계 · 상자에 담기</span>
+            <h3>Docker — K8S 앞 단계, 상자에 담기</h3>
             <span class="sym">다른 서버에서는 돌아가지 않는다</span>
           </span>
+          <p class="mdesc">준비 중 — 이미지와 컨테이너, Dockerfile, 사내 레지스트리 · 미러, docker compose.</p>
         </div>
-        <div class="card plan">
+        <div class="card mini plan">
           <span class="emoji">📈</span>
           <span class="mini-main">
-            <h3>로그와 모니터링</h3>
-            <span class="kw">밤에 죽었을 때 볼 것</span>
+            <h3>로그와 모니터링 — 밤에 죽었을 때 볼 것</h3>
             <span class="sym">멈췄는데 이유를 모른다</span>
           </span>
+          <p class="mdesc">준비 중 — 무엇을 남길지, 로그 레벨, 알림, 아침에 원인 찾기.</p>
         </div>
-        <div class="card plan">
+        <div class="card mini plan">
           <span class="emoji">🚀</span>
           <span class="mini-main">
-            <h3>자동 배포 (CI/CD)</h3>
-            <span class="kw">커밋하면 테스트 · 배포까지</span>
+            <h3>자동 배포(CI/CD) — 커밋하면 테스트 · 배포까지</h3>
             <span class="sym">배포할 때마다 같은 일을 손으로 반복한다</span>
           </span>
+          <p class="mdesc">준비 중 — 파이프라인의 단계, 테스트 자동화, 배포와 되돌리기.</p>
         </div>
-        <div class="card plan">
+        <div class="card mini plan">
           <span class="emoji">⏱️</span>
           <span class="mini-main">
-            <h3>성능 기초</h3>
-            <span class="kw">재고 · 캐시하고 · 10배 상상하기</span>
+            <h3>성능 기초 — 재고, 캐시하고, 10배를 상상하기</h3>
             <span class="sym">데이터가 늘자 너무 느려졌다</span>
           </span>
+          <p class="mdesc">준비 중 — 어디가 느린지 재는 법, 캐시, 데이터가 10배일 때.</p>
         </div>
       </div>
       <div class="track">
         <div class="track-head th-vibe"><span class="tno">04</span>바이브 코딩만의 주제<span class="tline"></span></div>
-        <p class="track-goal">AI와 오래 일하는 사람의 고민</p>
-        <div class="card plan star">
+        <a class="card mini" href="review/">
           <span class="emoji">👀</span>
           <span class="mini-main">
-            <h3>사람이 리뷰하는 법</h3>
-            <span class="kw"><b class="pri">★ 먼저</b>비개발자의 승인 체크리스트</span>
+            <h3>사람이 리뷰하는 법 — 비개발자의 승인 체크리스트</h3>
             <span class="sym">AI가 고친 diff를 무엇을 보고 승인할지 모르겠다</span>
           </span>
-        </div>
-        <div class="card plan">
+          <p class="mdesc">diff 읽는 법, 크기 신호, 다섯 질문(범위 · 삭제 · 비밀 · 증거 · 되돌리기), 문제가 숨은 diff 예시, 빨간 깃발, 설명 · 독립 리뷰 · 반려 문장.</p>
+        </a>
+        <div class="card mini plan">
           <span class="emoji">🚧</span>
           <span class="mini-main">
-            <h3>기술 부채와 한계선</h3>
-            <span class="kw">"개발자를 불러야 할 때"</span>
+            <h3>기술 부채와 "개발자를 불러야 할 때"</h3>
             <span class="sym">고칠수록 다른 곳이 망가진다</span>
           </span>
+          <p class="mdesc">준비 중 — 바이브 코딩의 한계선, 넘기 전에 보이는 신호, 넘길 때 정리할 것.</p>
         </div>
-        <div class="card plan">
+        <div class="card mini plan">
           <span class="emoji">📝</span>
           <span class="mini-main">
-            <h3>요구사항 쓰기</h3>
-            <span class="kw">기능 명세 · 화면 흐름 · 완료 기준</span>
+            <h3>요구사항 쓰기 — 기능 명세 · 화면 흐름 · 완료 기준</h3>
             <span class="sym">다 만들고 나서야 원하던 게 아니었다는 걸 안다</span>
           </span>
+          <p class="mdesc">준비 중 — 만들기 전에 쓰는 한 장, 화면 흐름, 완료 기준.</p>
         </div>
-        <div class="card plan">
+        <div class="card mini plan">
           <span class="emoji">💥</span>
           <span class="mini-main">
-            <h3>실패 사례집</h3>
-            <span class="kw">망가진 사례를 하네스 여섯 칸으로</span>
+            <h3>실패 사례집 — 망가진 사례를 하네스 여섯 칸으로</h3>
             <span class="sym">남들은 어디서 막혔는지 알고 싶다</span>
           </span>
+          <p class="mdesc">준비 중 — 실제로 망가진 사례와 원인을 하네스 여섯 칸으로 분류.</p>
         </div>
       </div>
     </div>
-    <div class="path-note roadmap-order" style="margin-top:1.2rem;"><b>추천 순서</b>
-      <span class="step">① 구조 · 에러 읽기</span><span class="arr">→</span>
-      <span class="step">② SQL · 데이터 분석</span><span class="arr">→</span>
-      <span class="step">③ 코드 관리 · 리뷰</span><span class="arr">→</span>
-      <span class="step">④ Docker</span><span class="arr">→</span>
-      <a href="k8s/">☸️ K8S 첫걸음</a>
+    <div class="path-note roadmap-order"><b>추천 순서</b>
+      <a class="step" href="architecture/">① 구조 한 장</a><a class="step" href="errors/">에러 읽기</a><span class="arr">→</span>
+      <a class="step" href="sql/">② SQL</a><a class="step" href="data-viz/">데이터 분석</a><span class="arr">→</span>
+      <a class="step" href="refactor/">③ 코드 관리</a><a class="step" href="review/">리뷰</a><span class="arr">→</span>
+      <span class="step">④ Docker (준비 중)</span><span class="arr">→</span>
+      <a class="step" href="k8s/">☸️ K8S 첫걸음</a>
     </div>
   </section>
 
@@ -2392,6 +2381,12 @@
     { ico: "🎬", label: "바이브 코딩으로 슬라이드 자료 만들기", meta: "making-slides/", run: function () { location.href = "making-slides/"; } },
     { ico: "🔌", label: "내 도구가 혼자 돌게 — 연결 · 예약 실행 · 팀 공유", meta: "automation/", run: function () { location.href = "automation/"; } },
     { ico: "☸️", label: "K8S 첫걸음 — 내 도구를 팀이 쓰는 서버로", meta: "k8s/", run: function () { location.href = "k8s/"; } },
+    { ico: "🧱", label: "프로그램의 구조 한 장 — 프론트 · 백엔드 · API · DB", meta: "architecture/", run: function () { location.href = "architecture/"; } },
+    { ico: "🧾", label: "에러 메시지 읽는 법 — 아래에서부터, 줄 번호부터", meta: "errors/", run: function () { location.href = "errors/"; } },
+    { ico: "🗄️", label: "SQL과 데이터베이스 입문 — 엑셀 표에서 테이블로", meta: "sql/", run: function () { location.href = "sql/"; } },
+    { ico: "📊", label: "데이터 분석과 시각화 — pandas와 믿을 수 있는 차트", meta: "data-viz/", run: function () { location.href = "data-viz/"; } },
+    { ico: "🧹", label: "커진 코드 관리하기 — 리팩터링 · 폴더 구조", meta: "refactor/", run: function () { location.href = "refactor/"; } },
+    { ico: "👀", label: "사람이 리뷰하는 법 — 비개발자의 승인 체크리스트", meta: "review/", run: function () { location.href = "review/"; } },
     { ico: "🎮", label: "나만의 게임 만들기 (어린이 × 부모)", meta: "forChildren/", run: function () { location.href = "forChildren/"; } },
     { ico: "🐑", label: "herdr — 에이전트를 무리로", meta: "herdr/", run: function () { location.href = "herdr/"; } },
     { ico: "🗺️", label: "AI 업계 지도 — 2026.11", meta: "ai-map/", run: function () { location.href = "ai-map/"; } },

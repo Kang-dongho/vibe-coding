@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>에러 메시지 읽는 법 — 아래에서부터, 줄 번호부터 | 바이브 코딩 세미나</title>
+  <meta name="description" content="빨간 글씨를 통째로 붙여 넣기 전에 30초. Traceback을 아래에서부터 읽고, 내 코드의 줄 번호를 찾고, 흔한 에러 10가지의 뜻을 알면 AI가 한 번에 고칩니다. 공정 데이터 사례 3개와 실습." />
+  <meta name="keywords" content="에러 메시지, Traceback, 파이썬 에러, KeyError, UnicodeDecodeError, 디버깅, 바이브 코딩" />
+  <meta name="author" content="Kang-dongho" />
+  <meta name="theme-color" content="#06080F" />
+  <!-- 형식: geniuskey/vibe-coding (CC BY-NC 4.0) 덱 구조 재사용 · 이 덱의 내용은 추가 작성분 -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOUI4MkZGIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMkJFQUQwIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgeD0iMS41IiB5PSIxLjUiIHdpZHRoPSIyOSIgaGVpZ2h0PSIyOSIgcng9IjgiIGZpbGw9IiMwRTEyMjAiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTkgMTFsNiA1LTYgNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTE3IDIxaDYiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPgo=" />
+  <link rel="stylesheet" href="../vendor/reveal/reveal.css">
+  <link rel="stylesheet" href="../vendor/fonts/pretendard.css">
+  <style>
+    :root {
+      --bg-0: #06080F;
+      --bg-1: #0E1220;
+      --bg-2: #161B30;
+      --fg: #FFFFFF;
+      --fg-dim: #E2E6F0;
+      --fg-soft: #B8BFD0;
+      --accent: #9B82FF;
+      --accent-2: #2BEAD0;
+      --accent-3: #FF7A95;
+      --accent-4: #FFD46B;
+      --danger: #FF4D5E;
+    }
+
+    html { color-scheme: dark; }
+    html, body { background: var(--bg-0) !important; }
+    /* gradient mesh background — 원본 데크와 동일한 분위기 */
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(124,92,255,0.13), transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(0,224,199,0.10), transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(255,94,126,0.04), transparent 60%);
+    }
+    body::after {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(124,92,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,92,255,0.05) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 75%);
+    }
+    .reveal { background: transparent; position: relative; z-index: 1; }
+
+    .reveal { font-family: 'Pretendard', system-ui, sans-serif; color: #FFFFFF; }
+    .reveal .slides { text-align: left; }
+    .reveal section { padding: 16px 52px; box-sizing: border-box; height: 100%; word-break: keep-all; }
+
+    /* HARD RULE: every text descendant defaults to pure white. */
+    .reveal section,
+    .reveal section p,
+    .reveal section li,
+    .reveal section span,
+    .reveal section em,
+    .reveal section strong,
+    .reveal section h1,
+    .reveal section h2,
+    .reveal section h3,
+    .reveal section h4 {
+      color: #FFFFFF;
+    }
+
+    .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+      font-family: 'Pretendard', system-ui, sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: none;
+      margin: 0 0 0.4em 0;
+      line-height: 1.15;
+      color: #FFFFFF !important;
+      text-shadow:
+        0 1px 0 rgba(0,0,0,0.85),
+        0 2px 4px rgba(0,0,0,0.55);
+    }
+    .reveal section p,
+    .reveal section li {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.75);
+    }
+    .reveal .quote, .reveal .quote * {
+      text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+    }
+    .reveal .grad {
+      text-shadow: none !important; /* background-clip:text 위 그림자는 그라데이션을 탁하게 만든다 */
+    }
+    .reveal h1 { font-size: 4.2rem; }
+    .reveal h2 { font-size: 2.9rem; }
+    .reveal h3 { font-size: 2.0rem; }
+    .reveal p, .reveal li { font-size: 1.45rem; line-height: 1.6; }
+
+    .reveal a { color: #5BFFE0 !important; }
+
+    /* Toolbar — fixed top-right */
+    .dl-toolbar {
+      position: fixed;
+      top: 16px; right: 16px;
+      z-index: 9999;
+      display: flex;
+      gap: 8px;
+    }
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: rgba(20, 22, 44, 0.85);
+      border: 1px solid rgba(155, 130, 255, 0.5);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #E6D9FF !important;
+      text-decoration: none !important;
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      white-space: nowrap;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .dl-btn:hover {
+      opacity: 1;
+      transform: translateY(-2px);
+      background: rgba(124, 92, 255, 0.4);
+      border-color: rgba(91, 255, 224, 0.7);
+    }
+    .dl-btn:focus-visible,
+    .transition-select:focus-visible {
+      opacity: 1;
+      outline: 2px solid #5BFFE0;
+      outline-offset: 2px;
+    }
+    .transition-select {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 14px;
+      background: rgba(20, 22, 44, 0.85);
+      border: 1px solid rgba(155, 130, 255, 0.5);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #E6D9FF !important;
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .transition-select:hover { opacity: 1; transform: translateY(-2px); }
+    .transition-select option { background: #14162C; color: #E1D9FF; }
+    #tocSelect { width: 340px; max-width: 340px; }
+    @media (max-width: 760px) {
+      .dl-toolbar { top: 8px; right: 8px; left: 8px; gap: 6px; justify-content: flex-end; }
+      #tocSelect { flex: 1 1 auto; width: auto; min-width: 0; max-width: 340px; text-overflow: ellipsis; }
+      .dl-toolbar .dl-btn { flex: none; padding: 7px 11px; }
+      .dl-toolbar .dl-btn > span:not([aria-hidden]) {
+        position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+      }
+      .dl-toolbar .dl-btn > span[aria-hidden] { font-size: 0.95rem; }
+    }
+    /* 전체화면을 못 쓰는 브라우저(iOS Safari 등)에서는 버튼을 숨긴다 */
+    .no-fullscreen #fullscreenBtn { display: none; }
+
+    .reveal .slide-number {
+      color: #E6D9FF;
+      right: auto;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      background: rgba(20, 22, 44, 0.6);
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .reveal .controls { color: #B5A1FF; }
+    .reveal .controls[data-controls-layout="edges"] .navigate-left,
+    .reveal .controls[data-controls-layout="edges"] .navigate-right {
+      top: auto;
+      bottom: 8px;
+      margin-top: 0;
+    }
+    .reveal .controls[data-controls-layout="edges"] .navigate-left { left: 20px; }
+    .reveal .controls[data-controls-layout="edges"] .navigate-right { right: 20px; }
+    .reveal .controls .controls-arrow { opacity: 0.55; transition: opacity 0.3s ease; }
+    .reveal .controls .controls-arrow:hover { opacity: 1; }
+    .reveal .progress { color: #B5A1FF; }
+
+    /* utility */
+    .reveal .accent  { color: #B5A1FF !important; }
+    .reveal .accent2 { color: #5BFFE0 !important; }
+    .reveal .accent3 { color: #FF94AC !important; }
+    .reveal .accent4 { color: #FFE08A !important; }
+    .reveal .muted   { color: #E6D9FF !important; }
+    .reveal .danger  { color: #FF8A96 !important; }
+    .reveal em       { color: #FFE08A !important; font-style: italic; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .center { text-align: center; }
+    .stack { display: flex; flex-direction: column; gap: 1.2rem; }
+    .row { display: flex; gap: 2rem; align-items: center; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .small { font-size: 1.18rem; }
+    .tiny  { font-size: 1.0rem; }
+    .reveal p.small, .reveal li.small, .reveal span.small { font-size: 1.18rem; }
+    .reveal p.tiny, .reveal span.tiny { font-size: 1.0rem; }
+    .vfill { height: 100%; display: flex; flex-direction: column; justify-content: center; }
+    /* flex 컨테이너에서 chip이 가로로 늘어나지 않도록 */
+    .vfill > .chip { align-self: flex-start; }
+    .vfill.center > .chip { align-self: center; }
+
+    /* gradient text (정적) */
+    .reveal .grad, .reveal section .grad {
+      background: linear-gradient(120deg, #B5A1FF 0%, #5BFFE0 50%, #FF94AC 100%) !important;
+      background-size: 100% 100% !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      color: transparent !important;
+      font-weight: 800;
+      filter: drop-shadow(0 0 22px rgba(155,130,255,0.28));
+    }
+
+    .chip {
+      display:inline-block; padding: .35em 1em;
+      border-radius: 6px; font-family: 'JetBrains Mono', monospace;
+      font-size: .95rem; color: #FFFFFF !important;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: #2A2150;
+      border: 1px solid rgba(155, 130, 255, 0.8);
+      margin-bottom: 1.5rem;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 0.35em 0.9em;
+      border-radius: 999px;
+      background: #2A2150;
+      border: 1px solid rgba(155,130,255,0.8);
+      color: #E1D9FF !important;
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .pill.green { background: #0D3D38; border-color: rgba(43,234,208,0.85); color: #C5FFF5 !important; }
+    .pill.pink  { background: #4A1A26; border-color: rgba(255,122,149,0.85); color: #FFD0DA !important; }
+    .pill.amber { background: #463817; border-color: rgba(255,212,107,0.85); color: #FFEFC2 !important; }
+
+    /* card — glassmorphism */
+    .card {
+      background: linear-gradient(160deg, rgba(40, 30, 80, 0.55), rgba(20, 50, 60, 0.45));
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(155,130,255,0.45);
+      border-radius: 18px;
+      padding: 1.6rem 1.8rem;
+      box-shadow:
+        0 30px 60px -20px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.10);
+      transition: border-color .25s ease-out;
+    }
+    .card:hover { border-color: rgba(155,130,255,0.9); }
+    .card h3 { font-size: 1.5rem; margin: 0 0 0.8rem 0; color: #FFFFFF !important; }
+    .card p { font-size: 1.15rem; line-height: 1.6; margin: 0; color: #E8ECF5 !important; }
+    .card p + p { margin-top: 0.5rem; }
+    .card.bad  { border-color: rgba(255,122,149,0.55); background: linear-gradient(160deg, rgba(80,25,45,0.5), rgba(45,18,35,0.45)); }
+    .card.good { border-color: rgba(43,234,208,0.6); background: linear-gradient(160deg, rgba(15,60,55,0.55), rgba(12,42,48,0.45)); }
+
+    .quote {
+      font-size: 1.7rem;
+      line-height: 1.5;
+      padding: 1.4rem 1.8rem;
+      border-left: 4px solid #2BEAD0;
+      background: #131829;
+      border-radius: 0 12px 12px 0;
+      color: #FFFFFF !important;
+      font-style: italic;
+    }
+    .quote * { color: #FFFFFF !important; }
+    .quote .grad { color: transparent !important; }
+
+    .big {
+      font-size: 7.5rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    /* code / chat block */
+    pre.code {
+      background: #131829;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 14px;
+      padding: 1.1rem 1.3rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.02rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #FFFFFF;
+      margin: 0;
+      white-space: pre-wrap;
+      font-variant-ligatures: none;
+    }
+    .code .kw { color: var(--accent); font-weight: 600; }
+    .code .st { color: var(--accent-2); }
+    .code .cm { color: #E6D9FF; font-style: italic; }
+    .code .nm { color: var(--accent-4); }
+    pre.code.bad  { border-color: rgba(255,122,149,0.55); }
+    pre.code.good { border-color: rgba(43,234,208,0.6); }
+
+    kbd.key {
+      display: inline-block;
+      padding: 0.2em 0.65em;
+      margin: 0 0.1em;
+      border-radius: 7px;
+      background: #201A3D;
+      border: 1px solid rgba(155,130,255,0.6);
+      border-bottom: 3px solid rgba(155,130,255,0.6);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.92em;
+      font-weight: 700;
+      color: #E1D9FF;
+    }
+
+    /* ========= 순서를 돕는 짧은 등장 — 300ms ease-out, 한 장 안에서 최대 0.3s 지연 ========= */
+    .autoshow { opacity: 0; }
+    section.present .autoshow { animation: asFadeUp .32s cubic-bezier(.2,.7,.3,1) forwards; }
+    section.present .autoshow.fade-in { animation-name: asFadeIn; }
+    @keyframes asFadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+    @keyframes asFadeIn { from { opacity:0; } to { opacity:1; } }
+    .autoshow:nth-child(2) { animation-delay: .06s; }
+    .autoshow:nth-child(3) { animation-delay: .12s; }
+    .autoshow:nth-child(4) { animation-delay: .18s; }
+    .autoshow:nth-child(5) { animation-delay: .24s; }
+    .autoshow:nth-child(n+6) { animation-delay: .3s; }
+
+    /* ========= 리스트 유틸 ========= */
+    .list-clean { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .55rem; }
+    .list-clean li { font-size: 1.22rem !important; line-height: 1.5; }
+
+    /* ========= 사다리(단계 목록) ========= */
+    .ladder { display: flex; flex-direction: column; gap: .45rem; }
+    .ladder .rung {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .55rem 1.2rem; border-radius: 10px;
+      border: 1px solid rgba(155,130,255,0.35);
+      background: rgba(40,30,80,0.28);
+      font-size: 1.18rem; font-weight: 700;
+    }
+    .ladder .rung .no {
+      font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1rem;
+      color: #B5A1FF !important; width: 1.6em; flex: 0 0 auto;
+    }
+    .ladder .rung .w {
+      margin-left: auto; font-family: 'JetBrains Mono', monospace;
+      font-size: .9rem; color: #C9D2E4 !important; white-space: nowrap; padding-left: 1rem;
+    }
+
+    /* ========= 4단계 루프 ========= */
+    .loop-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; }
+    .loop-step {
+      display: flex; flex-direction: column; gap: .25rem; align-items: flex-start;
+      padding: .7rem .9rem; border-radius: 12px;
+      border: 1px solid rgba(190,200,224,0.4);
+      background: rgba(230,236,249,0.06);
+    }
+    .loop-step .no { font-family: 'JetBrains Mono', monospace; font-size: .8rem; font-weight: 800; color: #B5A1FF !important; }
+    .loop-step .nm2 { font-size: 1.12rem; font-weight: 800; }
+    .loop-step.hot { border-color: rgba(43,234,208,.65); background: rgba(43,234,208,.08); }
+    .loop-step.hot .no { color: #5BFFE0 !important; }
+
+    /* ========= SVG 글자 가독성 ========= */
+    .reveal section svg text { paint-order: stroke fill; stroke: #06080F; stroke-width: 1.2px; stroke-linejoin: round; }
+
+    /* ========= 슬라이드 하단 레퍼런스 링크 ========= */
+    .slide-refs {
+      position: absolute; left: 56px; bottom: 12px; z-index: 3;
+      display: flex; gap: 1.1rem; align-items: center; flex-wrap: wrap;
+      max-width: 40%;
+      font-family: 'JetBrains Mono', monospace; font-size: .78rem;
+      opacity: .8;
+    }
+    .slide-refs .rl { color: #9BA6C0 !important; font-weight: 800; letter-spacing: .12em; }
+    .slide-refs a {
+      color: #8FF5E2 !important; text-decoration: none !important;
+      border-bottom: 1px dotted rgba(91,255,224,.45); white-space: nowrap;
+    }
+    .slide-refs a:hover { color: #5BFFE0 !important; border-bottom-color: #5BFFE0; }
+
+    /* ========= 참고자료 슬라이드 ========= */
+    .ref-col h3 { font-size: 1.3rem; }
+    .ref-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
+    .ref-col li { font-size: 1.02rem !important; line-height: 1.45; }
+    .ref-col li a { font-weight: 700; }
+    .ref-col li .rd { display: block; font-size: .88rem; color: #B8BFD0 !important; }
+
+    /* ========= 실습 박스 — 배우는 것 · 완료 기준 · 막히면 ========= */
+    .lab-learn { font-size: 1.12rem !important; color: #E2E6F0 !important; margin: 0 0 .7rem; }
+    .lab-learn b { color: #C5FFF5 !important; }
+    .done-box, .stuck-box {
+      border-radius: 12px; padding: .7rem 1rem .8rem;
+      display: flex; flex-direction: column; gap: .3rem;
+    }
+    .done-box  { border: 1.5px solid rgba(43,234,208,.75); background: rgba(13,61,56,.45); }
+    .stuck-box { border: 1px dashed rgba(255,212,107,.6); background: rgba(70,56,23,.18); }
+    .done-box .bx-t, .stuck-box .bx-t {
+      font-family: 'JetBrains Mono', monospace; font-size: .85rem; font-weight: 800; letter-spacing: .05em; margin: 0;
+    }
+    .done-box .bx-t  { color: #8FF5E2 !important; }
+    .stuck-box .bx-t { color: #FFE08A !important; }
+    .done-box p, .stuck-box p, .done-box li, .stuck-box li { font-size: 1rem !important; line-height: 1.45; margin: 0; color: #E8ECF5 !important; }
+    .done-box ul, .stuck-box ul { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: .2rem; }
+
+    /* ========= 보안 약속 (시리즈 공통) ========= */
+    .promise-list { display: flex; flex-direction: column; gap: .6rem; }
+    .promise {
+      display: grid; grid-template-columns: 2.4rem 1fr; gap: .2rem 1rem; align-items: baseline;
+      padding: .75rem 1.2rem; border-radius: 14px;
+      border: 1px solid rgba(255,122,149,.55); background: rgba(80,25,45,.32);
+    }
+    .promise .pn { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 900; color: #FF94AC !important; grid-row: span 2; }
+    .promise b { font-size: 1.28rem; line-height: 1.4; }
+    .promise span.why { font-size: 1rem; color: #D6DCEA !important; line-height: 1.45; }
+    .plus-one {
+      margin-top: .7rem; padding: .6rem 1.1rem; border-radius: 12px;
+      border: 1px dashed rgba(155,130,255,.6); background: rgba(40,30,80,.3);
+      font-size: 1.05rem;
+    }
+    .plus-one .po-t { font-family: 'JetBrains Mono', monospace; font-size: .82rem; font-weight: 800; color: #CBBDFF !important; margin-right: .6rem; }
+
+    /* ========= security 전용 시그니처 컴포넌트 ========= */
+    /* ① 데이터 흐름 지도 — 내 상자에서 외부 모델로 나가는 경로 */
+    .flowmap { display:flex; align-items:stretch; gap:0; justify-content:center; margin:.6rem 0; flex-wrap:nowrap; }
+    .flow-node {
+      flex:1 1 0; min-width:0; padding:1rem .9rem; border-radius:14px;
+      border:1px solid rgba(155,130,255,.4); background:rgba(230,236,249,.05);
+      display:flex; flex-direction:column; gap:.3rem; text-align:center;
+    }
+    .flow-node h4 { font-size:1.15rem; font-weight:800; margin:0; }
+    .flow-node p { font-size:.98rem; color:#D6DCEA !important; margin:0; }
+    .flow-node.mine { border-color:rgba(43,234,208,.7); background:rgba(43,234,208,.08); }
+    .flow-node.out  { border-color:rgba(255,122,149,.7); background:rgba(255,122,149,.08); }
+    .flow-arrow { flex:0 0 auto; align-self:center; padding:0 .5rem; font-size:1.7rem; color:#FFD46B; }
+    .flow-arrow small { display:block; font-size:.72rem; color:#9BA6C0; letter-spacing:.03em; }
+
+    /* ② 신뢰 경계선 — 내가 쓴 것 vs 외부에서 온 것 */
+    .trustzone { display:grid; grid-template-columns:1fr auto 1fr; align-items:stretch; gap:0; margin:.5rem 0; }
+    .tz-side { padding:1rem 1.1rem; border-radius:14px; display:flex; flex-direction:column; gap:.5rem; }
+    .tz-side.trusted { border:1px solid rgba(43,234,208,.55); background:rgba(43,234,208,.06); }
+    .tz-side.untrusted { border:1px solid rgba(255,122,149,.55); background:rgba(255,122,149,.06); }
+    .tz-side h4 { margin:0; font-size:1.18rem; font-weight:800; }
+    .tz-side .tz-item { font-size:1rem; color:#E2E6F0 !important; }
+    .tz-fence {
+      width:0; border-left:3px dashed rgba(255,212,107,.8); margin:0 1.2rem;
+      position:relative;
+    }
+    .tz-fence::after {
+      content:"🚧 신뢰 경계"; position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%) rotate(90deg); white-space:nowrap;
+      font-family:'JetBrains Mono',monospace; font-size:.78rem; font-weight:800;
+      color:#FFD46B !important; background:var(--bg-0); padding:.2rem .5rem;
+    }
+
+    /* ③ 프롬프트 인젝션 무대 — 숨은 지시가 도구를 움직인다 */
+    .inj-stage { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:center; gap:0; margin:.5rem 0; }
+    .inj-card {
+      padding:.9rem 1rem; border-radius:14px; border:1px solid rgba(155,130,255,.4);
+      background:rgba(230,236,249,.05); text-align:center; display:flex; flex-direction:column; gap:.35rem;
+    }
+    .inj-card .inj-ico { font-size:2rem; line-height:1; }
+    .inj-card h4 { margin:0; font-size:1.08rem; font-weight:800; }
+    .inj-card p { margin:0; font-size:.92rem; color:#D6DCEA !important; }
+    .inj-card.hidden-cmd { border-color:rgba(255,122,149,.75); background:rgba(255,122,149,.1); }
+    .inj-card.boom { border-color:var(--danger); background:rgba(255,77,94,.12); }
+    .inj-flow { flex:0 0 auto; text-align:center; padding:0 .4rem; }
+    .inj-flow .a { font-size:1.6rem; color:#FF7A95; }
+    .inj-flow small { display:block; font-size:.72rem; color:#9BA6C0; }
+
+    /* 삼각 위험(치명적 3요소) 배지 */
+    .triad { display:flex; gap:.8rem; justify-content:center; flex-wrap:wrap; margin-top:.5rem; }
+    .triad .tbadge {
+      padding:.55rem 1rem; border-radius:999px; font-weight:800; font-size:1.02rem;
+      border:1px solid rgba(255,122,149,.6); background:rgba(255,122,149,.09);
+    }
+
+    /* ④ 권한 다이얼 — plan · manual · auto(기본) · bypass */
+    .permrow { display:flex; align-items:stretch; gap:.7rem; justify-content:center; flex-wrap:nowrap; margin:.5rem 0; }
+    .perm-step {
+      flex:1 1 0; min-width:0; padding:.85rem .8rem; border-radius:14px; text-align:center;
+      border:1px solid rgba(190,200,224,.35); background:rgba(230,236,249,.05);
+      display:flex; flex-direction:column; gap:.3rem;
+    }
+    .perm-step h4 { margin:0; font-size:1.06rem; font-weight:800; }
+    .perm-step p { margin:0; font-size:.9rem; color:#D6DCEA !important; }
+    .perm-step.p1 { border-color:rgba(43,234,208,.6); }
+    .perm-step.p2 { border-color:rgba(155,130,255,.6); }
+    .perm-step.p3 { border-color:rgba(255,212,107,.6); }
+    .perm-step.p4 { border-color:rgba(255,122,149,.65); background:rgba(255,122,149,.08); }
+    .perm-step.is-default { box-shadow:0 0 0 2px rgba(255,212,107,.85); }
+    .perm-default { align-self:center; font-size:.7rem; font-weight:800; padding:.1rem .5rem; border-radius:999px; background:rgba(255,212,107,.18); color:#FFE08A !important; }
+    .perm-gauge { font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.05em; color:#9BA6C0 !important; }
+
+    /* 데이터 등급 매트릭스 */
+    .gov-table { width:100%; border-collapse:collapse; font-size:1rem; }
+    .gov-table th, .gov-table td { border:1px solid rgba(155,130,255,.25); padding:.55rem .7rem; text-align:center; }
+    .gov-table th { font-family:'JetBrains Mono',monospace; font-size:.86rem; color:#B5A1FF !important; letter-spacing:.04em; }
+    .gov-table td.yes { color:#8FF0E2 !important; font-weight:800; }
+    .gov-table td.no  { color:#FF9FB0 !important; font-weight:800; }
+    .gov-table td.ask { color:#FFE29A !important; font-weight:800; }
+
+    @media (max-width: 1100px) {
+      .flowmap, .permrow { flex-wrap:wrap; }
+      .inj-stage, .trustzone { grid-template-columns:1fr; }
+      .tz-fence { display:none; }
+    }
+
+    /* 실습 배지 · 프롬프트 카드 (github 덱과 같은 모양) */
+    .chip.live { background: #0D3D38; border-color: rgba(43,234,208,0.85); color: #C5FFF5 !important; }
+    .chip.warn { background: #4A1A26; border-color: rgba(255,122,149,0.85); color: #FFD0DA !important; }
+    .prompt-card {
+      background: linear-gradient(160deg, rgba(38,30,82,0.72), rgba(16,22,44,0.72));
+      border: 1.5px solid rgba(155,130,255,0.65); border-radius: 16px;
+      padding: .9rem 1.15rem 1rem; margin: 0;
+    }
+    .prompt-card .pc-label {
+      font-family: 'JetBrains Mono', monospace; font-size: .88rem; font-weight: 800; letter-spacing: .06em;
+      color: #CBBDFF !important; margin-bottom: .45rem;
+    }
+    .prompt-card pre.code {
+      margin: 0; border: 0; background: rgba(6,8,15,0.55);
+      font-family: 'Pretendard', system-ui, sans-serif; font-size: 1.12rem; font-weight: 600; line-height: 1.55;
+      white-space: pre-wrap; word-break: keep-all;
+    }
+
+    /* ========= fallbacks: overview / print / reduced-motion ========= */
+    .reveal.overview .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+    .reveal.overview .slides section {
+      display: block !important;
+      cursor: pointer;
+      outline: 1px solid rgba(181, 161, 255, 0.28);
+      outline-offset: -1px;
+      border-radius: 6px;
+    }
+    .reveal.overview .slides section:hover { outline: 2px solid #B5A1FF; }
+    .reveal.overview .slides section.present { outline: 3px solid #5BFFE0; }
+    @media print {
+      .reveal .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .dl-toolbar { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .reveal .fragment { transition: none !important; }
+      .card, .dl-btn, .transition-select, .copy-btn { transition: none !important; }
+    }
+  </style>
+  <style>
+    /* ===== 추가 덱 공통 (harness · k8s) ===== */
+    .credit { font-size: .82rem !important; color: #8E96AB !important; margin-top: 1.4rem; }
+    .credit a { color: #B8A6FF !important; }
+
+    /* 표 */
+    .xt { width: 100%; border-collapse: collapse; font-size: 1.02rem; margin-top: .4rem; }
+    .xt th { text-align: left; padding: .5rem .75rem; font: 800 .82rem/1.2 'JetBrains Mono', monospace; letter-spacing: .06em;
+      color: #2BEAD0 !important; border-bottom: 1.5px solid rgba(43,234,208,.45); }
+    .xt td { padding: .55rem .75rem; border-bottom: 1px solid rgba(155,130,255,.22); vertical-align: top; color: #E2E6F0 !important; line-height: 1.45; }
+    .xt td:first-child { font-weight: 700; color: #fff !important; }
+    .xt td .mono, .xt td.mono { font-size: .92em; }
+    .xt tr.hl td { background: rgba(255,212,107,.07); }
+
+    /* 하네스 지도: 모델 + 6칸 */
+    .hmap { display: grid; grid-template-columns: 260px 1fr; gap: 1.4rem; align-items: stretch; margin-top: .5rem; }
+    .hmodel { border: 2px solid #9B82FF; border-radius: 18px; background: rgba(155,130,255,.13);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 1rem; }
+    .hmodel .ico { font-size: 3.4rem; line-height: 1; }
+    .hmodel b { font-size: 1.7rem; margin-top: .4rem; }
+    .hmodel span { font-size: .98rem; color: #B8BFD0 !important; margin-top: .3rem; }
+    .hcells { border: 2px dashed rgba(43,234,208,.75); border-radius: 18px; padding: .9rem; background: rgba(43,234,208,.05);
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; position: relative; }
+    .hcells::before { content: "HARNESS · 내가 고칠 수 있는 부분"; position: absolute; top: -.75rem; left: 1rem; padding: 0 .5rem;
+      background: #0B0F1C; font: 800 .78rem/1.5 'JetBrains Mono', monospace; letter-spacing: .08em; color: #2BEAD0; }
+    .hcell { border: 1px solid rgba(155,130,255,.4); border-radius: 12px; padding: .65rem .8rem; background: rgba(6,8,15,.6); }
+    .hcell b { display: block; font-size: 1.15rem; }
+    .hcell span { display: block; font-size: .9rem; color: #B8BFD0 !important; margin-top: .2rem; line-height: 1.4; }
+    .hcell.on { border-color: #FFD46B; background: rgba(255,212,107,.10); }
+    .hcell.on b { color: #FFD46B !important; }
+
+    /* 한 칸 상세 장 공통 머리 */
+    .slot-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; align-items: start; margin-top: .4rem; }
+    .mini6 { display: inline-grid; grid-template-columns: repeat(6, auto); gap: .25rem; margin-left: .6rem; vertical-align: middle; }
+    .mini6 i { width: .7rem; height: .7rem; border-radius: 3px; background: rgba(155,130,255,.35); display: inline-block; }
+    .mini6 i.on { background: #FFD46B; box-shadow: 0 0 8px #FFD46B; }
+
+    /* 층 (프롬프트 → 컨텍스트 → 하네스) */
+    .layers { display: flex; flex-direction: column; gap: .55rem; margin-top: .5rem; }
+    .layer { display: grid; grid-template-columns: 220px 1fr 1fr; gap: 1rem; align-items: center; padding: .7rem 1rem;
+      border-radius: 14px; border: 1px solid rgba(155,130,255,.35); background: rgba(6,8,15,.5); }
+    .layer b { font-size: 1.2rem; }
+    .layer span { font-size: .98rem; color: #B8BFD0 !important; }
+    .layer.l3 { border-color: rgba(43,234,208,.7); background: rgba(43,234,208,.07); }
+    .layer.l3 b { color: #2BEAD0 !important; }
+
+    /* 래칫 흐름 */
+    .ratchet { display: flex; align-items: stretch; gap: .6rem; margin-top: .6rem; }
+    .ratchet .st { flex: 1; border: 1px solid rgba(155,130,255,.4); border-radius: 14px; padding: .8rem .9rem; background: rgba(6,8,15,.55); }
+    .ratchet .st b { display: block; font-size: 1.12rem; }
+    .ratchet .st span { display: block; font-size: .92rem; color: #B8BFD0 !important; margin-top: .25rem; line-height: 1.45; }
+    .ratchet .ar { align-self: center; color: #2BEAD0; font-size: 1.6rem; }
+    .ratchet .st.end { border-color: #2BEAD0; background: rgba(43,234,208,.08); }
+
+    /* 요청 경로 (k8s) */
+    .reqflow { display: flex; align-items: stretch; gap: .5rem; margin-top: .6rem; }
+    .rq { flex: 1; text-align: center; border-radius: 14px; border: 1px solid rgba(155,130,255,.45); padding: .8rem .5rem; background: rgba(6,8,15,.6); }
+    .rq .ico { font-size: 1.9rem; line-height: 1.2; }
+    .rq b { display: block; font-size: 1.2rem; }
+    .rq span { display: block; font-size: .9rem; color: #B8BFD0 !important; line-height: 1.4; margin-top: .2rem; }
+    .rq.k { border-color: rgba(43,234,208,.7); }
+    .rqa { align-self: center; color: #2BEAD0; font-size: 1.5rem; }
+    .pods { display: flex; justify-content: center; gap: .3rem; margin-top: .45rem; }
+    .pods i { font-style: normal; font: 700 .72rem/1 'JetBrains Mono', monospace; padding: .3rem .4rem; border-radius: 6px;
+      border: 1px solid #2BEAD0; background: rgba(43,234,208,.2); color: #C5FFF5 !important; }
+    .pods i.dead { border-color: #FF7A95; background: rgba(255,122,149,.18); color: #FFD0DA !important; text-decoration: line-through; }
+    .nodebox { margin-top: .9rem; border: 1.5px dashed rgba(155,130,255,.6); border-radius: 14px; padding: .6rem 1rem;
+      font-size: 1rem; color: #B8BFD0 !important; }
+
+    /* 계단 (k8s) */
+    .stairs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; align-items: end; margin-top: .6rem; }
+    .stair { border-radius: 14px; border: 1px solid rgba(155,130,255,.45); background: rgba(6,8,15,.6); padding: .8rem .9rem; }
+    .stair .lv { font: 800 .8rem/1 'JetBrains Mono', monospace; color: #2BEAD0 !important; letter-spacing: .06em; }
+    .stair b { display: block; font-size: 1.15rem; margin: .35rem 0 .3rem; }
+    .stair p { font-size: .9rem !important; color: #B8BFD0 !important; line-height: 1.45; margin: 0; }
+    .stair .when { display: block; margin-top: .5rem; font-size: .85rem; color: #FFD46B !important; }
+    .stair.s1 { min-height: 200px; } .stair.s2 { min-height: 240px; } .stair.s3 { min-height: 280px; } .stair.s4 { min-height: 320px; border-color: #2BEAD0; }
+
+    /* 조정 루프 (k8s) */
+    .loop3 { display: flex; align-items: center; gap: .7rem; margin-top: .6rem; }
+    .loop3 .st { flex: 1; text-align: center; border: 1px solid rgba(155,130,255,.45); border-radius: 14px; padding: .9rem .6rem; background: rgba(6,8,15,.6); }
+    .loop3 .st b { display: block; font-size: 1.25rem; }
+    .loop3 .st span { display: block; font-size: .92rem; color: #B8BFD0 !important; margin-top: .2rem; }
+    .loop3 .ar { color: #2BEAD0; font-size: 1.5rem; }
+
+    pre.code.sm { font-size: .84rem; line-height: 1.5; }
+    .reveal p.codecap, .codecap { font: 800 .78rem/1 'JetBrains Mono', monospace; letter-spacing: .06em; color: #CBBDFF !important; margin: 0 0 .35rem; font-size: .78rem !important; }
+    .note-line { font-size: 1rem !important; color: #B8BFD0 !important; margin-top: .7rem; }
+
+    /* ===== 시각화 · 예시 보강 (v2) ===== */
+    /* 원본 context 덱의 sim-line 패턴 */
+    .sim-list { list-style: none; display: flex; flex-direction: column; gap: .5rem; margin: 0; padding: 0; }
+    .sim-list > li { margin: 0; }
+    .sim-line { display: flex; align-items: center; gap: .8rem; padding: .5rem 1rem; border-radius: 12px;
+      border: 1px solid rgba(190,200,224,0.3); background: rgba(230,236,249,0.05); font-size: 1.02rem !important; line-height: 1.45; }
+    .sim-line .tok { margin-left: auto; font: 800 .82rem/1 'JetBrains Mono', monospace; white-space: nowrap; padding: .3rem .55rem; border-radius: 999px; }
+    .tok.ok   { background: rgba(43,234,208,.16); color: #8FF0E2 !important; border: 1px solid rgba(43,234,208,.5); }
+    .tok.ask  { background: rgba(255,212,107,.14); color: #FFE29A !important; border: 1px solid rgba(255,212,107,.5); }
+    .tok.no   { background: rgba(255,122,149,.14); color: #FF9FB0 !important; border: 1px solid rgba(255,122,149,.5); }
+    .tok.info { background: rgba(155,130,255,.16); color: #CBBDFF !important; border: 1px solid rgba(155,130,255,.5); }
+    .sim-line.fail { border-color: rgba(255,122,149,.55); background: rgba(255,122,149,.07); }
+    .sim-line.pass { border-color: rgba(43,234,208,.55); background: rgba(43,234,208,.07); }
+
+    /* 대화·터미널 재현 */
+    .tx { border-radius: 14px; border: 1px solid rgba(155,130,255,.4); background: #05070E; padding: .7rem .9rem; display: flex; flex-direction: column; gap: .4rem; }
+    .tx-h { font: 800 .76rem/1 'JetBrains Mono', monospace; letter-spacing: .06em; color: #8E96AB !important; padding-bottom: .35rem;
+      border-bottom: 1px solid rgba(155,130,255,.2); display: flex; gap: .5rem; align-items: center; }
+    .tx-h i { width: .55rem; height: .55rem; border-radius: 50%; display: inline-block; background: #FF7A95; }
+    .tx-h i + i { background: #FFD46B; } .tx-h i + i + i { background: #2BEAD0; }
+    .tx-l { font-size: .95rem !important; line-height: 1.45; margin: 0; padding: .3rem .55rem; border-radius: 8px; }
+    .tx-l.me  { background: rgba(155,130,255,.14); color: #E8E2FF !important; }
+    .tx-l.ai  { background: rgba(230,236,249,.05); color: #E2E6F0 !important; }
+    .tx-l.sys { font-family: 'JetBrains Mono', monospace; font-size: .84rem !important; color: #B8BFD0 !important; background: rgba(230,236,249,.03); }
+    .tx-l.bad { background: rgba(255,122,149,.12); color: #FFD0DA !important; }
+    .tx-l.good{ background: rgba(43,234,208,.12); color: #C5FFF5 !important; }
+    .tx-l b.who { font: 800 .74rem/1 'JetBrains Mono', monospace; margin-right: .45rem; letter-spacing: .04em; opacity: .85; }
+    pre.term-out { margin: 0; padding: .7rem .9rem; border-radius: 12px; background: #04060C; border: 1px solid rgba(43,234,208,.4);
+      font: 500 .8rem/1.55 'JetBrains Mono', monospace; color: #D7DCE8 !important; white-space: pre; overflow: hidden; }
+    pre.term-out .hl-r { color: #FF9FB0 !important; font-weight: 800; }
+    pre.term-out .hl-y { color: #FFE29A !important; font-weight: 800; }
+    pre.term-out .hl-g { color: #8FF0E2 !important; font-weight: 800; }
+    pre.term-out .dim  { color: #6E768A !important; }
+
+    /* 에이전트 루프 (SVG + 움직이는 점) */
+    .loopfig { width: 100%; height: auto; display: block; }
+    .loopfig .lbox { fill: rgba(6,8,15,.85); stroke: rgba(155,130,255,.55); stroke-width: 1.5; }
+    .loopfig .lbox.gate { stroke: #FFD46B; stroke-width: 2; }
+    .loopfig .lbox.core { fill: rgba(155,130,255,.18); stroke: #9B82FF; stroke-width: 2.5; }
+    .loopfig text { font-family: 'Pretendard', sans-serif; fill: #E2E6F0; font-size: 15px; font-weight: 700; }
+    .loopfig text.s { font-size: 12px; font-weight: 600; fill: #B8BFD0; }
+    .loopfig text.g { fill: #FFD46B; font-size: 12px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+    .loopfig .track { fill: none; stroke: rgba(43,234,208,.45); stroke-width: 2; stroke-dasharray: 6 6; }
+    .loopfig .runner { fill: none; stroke: #2BEAD0; stroke-width: 16; stroke-linecap: round; stroke-dasharray: 0.5 999.5;
+      stroke-dashoffset: 1000; filter: drop-shadow(0 0 6px #2BEAD0); }
+    section.present .loopfig .runner { animation: runLoop 7s linear infinite; }
+    @keyframes runLoop { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+
+    /* 래칫 톱니 (한 방향으로만, 한 칸씩) */
+    .gear-wrap { display: flex; align-items: center; justify-content: center; }
+    .gear { width: 120px; height: 120px; }
+    .gear .teeth { fill: rgba(43,234,208,.2); stroke: #2BEAD0; stroke-width: 2; transform-origin: 75px 75px; }
+    section.present .gear .teeth { animation: gearStep 4.8s steps(1, end) infinite; }
+    @keyframes gearStep {
+      0% { transform: rotate(0deg); } 16.6% { transform: rotate(30deg); } 33.3% { transform: rotate(60deg); }
+      50% { transform: rotate(90deg); } 66.6% { transform: rotate(120deg); } 83.3% { transform: rotate(150deg); } 100% { transform: rotate(180deg); }
+    }
+    .gear .pawl { fill: #FFD46B; }
+
+    /* 겹친 상자: 프롬프트 ⊂ 컨텍스트 ⊂ 하네스 */
+    .nest { position: relative; height: 330px; }
+    .nest .ring { position: absolute; border-radius: 22px; display: flex; align-items: flex-start; padding: .6rem .9rem; }
+    .nest .ring b { font-size: 1.08rem; }
+    .nest .ring span { display: block; font-size: .84rem; color: #B8BFD0 !important; margin-top: .1rem; }
+    .nest .r3 { inset: 0; border: 2px dashed rgba(43,234,208,.8); background: rgba(43,234,208,.05); }
+    .nest .r3 b { color: #2BEAD0 !important; }
+    .nest .r2 { inset: 92px 26px 26px 26px; border: 1.5px solid rgba(155,130,255,.7); background: rgba(155,130,255,.07); }
+    .nest .r1 { inset: 186px 52px 52px 52px; border: 1.5px solid #FFD46B; background: rgba(255,212,107,.08); }
+    .nest .r1 b { color: #FFD46B !important; }
+    .nest .side { position: absolute; right: 1rem; top: .65rem; display: flex; gap: .3rem; flex-wrap: wrap; max-width: 62%; justify-content: flex-end; }
+    .nest .side i { font-style: normal; font: 700 .72rem/1 'JetBrains Mono', monospace; padding: .28rem .45rem; border-radius: 6px;
+      border: 1px solid rgba(43,234,208,.5); color: #A9FFF0 !important; background: rgba(43,234,208,.08); }
+    section.present .nest .ring { animation: asZoomIn2 .45s cubic-bezier(.2,.7,.3,1) both; }
+    section.present .nest .r2 { animation-delay: .18s; } section.present .nest .r1 { animation-delay: .36s; }
+    @keyframes asZoomIn2 { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+
+    /* K8S — 자가 회복 */
+    .heal { display: flex; justify-content: center; gap: 1rem; margin: .4rem 0 .2rem; }
+    .hpod { width: 118px; height: 78px; border-radius: 14px; border: 2px solid #2BEAD0; background: rgba(43,234,208,.14);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; font: 800 .9rem/1.2 'JetBrains Mono', monospace; color: #C5FFF5 !important; }
+    .hpod small { font-size: .7rem; font-weight: 600; color: #8FF0E2 !important; }
+    section.present .hpod.victim { animation: podDie 6s ease-in-out infinite; }
+    @keyframes podDie {
+      0%, 25%  { border-color: #2BEAD0; background: rgba(43,234,208,.14); opacity: 1; transform: none; }
+      32%, 45% { border-color: #FF7A95; background: rgba(255,122,149,.22); opacity: 1; transform: none; }
+      55%      { opacity: 0; transform: scale(.85); }
+      70%      { opacity: 0; transform: scale(.85); border-color: #2BEAD0; background: rgba(43,234,208,.14); }
+      82%,100% { opacity: 1; transform: none; border-color: #2BEAD0; background: rgba(43,234,208,.14); }
+    }
+    .heal-cap { display: flex; justify-content: center; gap: 1.6rem; font: 700 .86rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; }
+    section.present .heal-cap span:nth-child(1) { animation: capOn 6s infinite; animation-delay: 0s; }
+    section.present .heal-cap span:nth-child(2) { animation: capOn2 6s infinite; }
+    section.present .heal-cap span:nth-child(3) { animation: capOn3 6s infinite; }
+    @keyframes capOn  { 0%,28% { color: #8FF0E2; } 30%,100% { color: #6E768A; } }
+    @keyframes capOn2 { 0%,29% { color: #6E768A; } 31%,66% { color: #FF9FB0; } 68%,100% { color: #6E768A; } }
+    @keyframes capOn3 { 0%,67% { color: #6E768A; } 69%,100% { color: #8FF0E2; } }
+
+    /* K8S — 요청 패킷이 흘러가는 길 */
+    .rq-track { position: relative; height: 14px; margin: .5rem 4% 0; border-top: 2px dashed rgba(43,234,208,.35); }
+    .rq-track .pk { position: absolute; top: -8px; width: 14px; height: 14px; border-radius: 50%; background: #FFD46B; box-shadow: 0 0 10px #FFD46B; opacity: 0; }
+    section.present .rq-track .pk { animation: pkMove 3.2s linear infinite; }
+    section.present .rq-track .pk:nth-child(2) { animation-delay: 1.07s; }
+    section.present .rq-track .pk:nth-child(3) { animation-delay: 2.13s; }
+    @keyframes pkMove { 0% { left: 0; opacity: 0; } 8% { opacity: 1; } 90% { opacity: 1; } 100% { left: 98%; opacity: 0; } }
+    section.present .pods i:not(.dead) { animation: podHit 3.2s infinite; }
+    section.present .pods i:nth-child(2) { animation-delay: 1.07s; }
+    section.present .pods i:nth-child(4) { animation-delay: 2.13s; }
+    @keyframes podHit { 0%, 88% { box-shadow: none; } 94% { box-shadow: 0 0 12px #FFD46B; } 100% { box-shadow: none; } }
+
+    /* K8S — 이미지 층 쌓기 */
+    .layers-stack { display: flex; flex-direction: column-reverse; gap: .35rem; width: 100%; }
+    .lyr { border-radius: 10px; padding: .55rem .9rem; display: flex; justify-content: space-between; align-items: center;
+      font-size: 1rem; border: 1px solid rgba(155,130,255,.45); background: rgba(6,8,15,.7); }
+    .lyr .mono { font-size: .8rem; color: #B8BFD0 !important; }
+    .lyr.l1 { border-color: rgba(155,130,255,.8); background: rgba(155,130,255,.16); }
+    .lyr.l2 { border-color: rgba(155,130,255,.6); background: rgba(155,130,255,.10); }
+    .lyr.l3 { border-color: rgba(43,234,208,.6); background: rgba(43,234,208,.10); }
+    .lyr.l4 { border-color: #FFD46B; background: rgba(255,212,107,.12); }
+    section.present .lyr { animation: lyrDrop .4s cubic-bezier(.2,.7,.3,1) both; }
+    section.present .lyr.l2 { animation-delay: .25s; } section.present .lyr.l3 { animation-delay: .5s; } section.present .lyr.l4 { animation-delay: .75s; }
+    @keyframes lyrDrop { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: none; } }
+
+    /* K8S — 롤링 업데이트 */
+    .roll { display: flex; flex-direction: column; gap: .55rem; margin-top: .4rem; }
+    .roll-row { display: grid; grid-template-columns: 120px repeat(4, 1fr); gap: .5rem; align-items: center; }
+    .roll-row .lbl { font: 800 .8rem/1.2 'JetBrains Mono', monospace; color: #8E96AB !important; }
+    .rp { height: 46px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font: 800 .82rem/1 'JetBrains Mono', monospace; }
+    .rp.v1 { border: 2px solid #9B82FF; background: rgba(155,130,255,.18); color: #E2DAFF !important; }
+    .rp.v2 { border: 2px solid #2BEAD0; background: rgba(43,234,208,.18); color: #C5FFF5 !important; }
+    .rp.wait { border: 2px dashed #FFD46B; background: rgba(255,212,107,.08); color: #FFE29A !important; }
+    .rp.gone { border: 2px dashed rgba(110,118,138,.6); background: transparent; color: #6E768A !important; }
+
+    /* K8S — 이름표 맞추기 */
+    .match { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-top: .4rem; }
+    .mpanel { border-radius: 14px; padding: .8rem 1rem; border: 1px solid rgba(155,130,255,.4); background: rgba(6,8,15,.55); }
+    .mpanel.ok { border-color: rgba(43,234,208,.6); } .mpanel.ng { border-color: rgba(255,122,149,.6); }
+    .mpanel h3 { margin: 0 0 .5rem; font-size: 1.15rem; }
+    .mrow { display: grid; grid-template-columns: 1fr 70px 1fr; align-items: center; gap: .3rem; }
+    .mtag { border-radius: 10px; padding: .5rem .6rem; text-align: center; font: 700 .8rem/1.35 'JetBrains Mono', monospace; border: 1px solid rgba(155,130,255,.5); background: rgba(155,130,255,.08); }
+    .mtag small { display: block; font-family: 'Pretendard', sans-serif; font-size: .72rem; color: #8E96AB !important; font-weight: 700; }
+    .mwire { height: 3px; border-radius: 2px; position: relative; }
+    .mpanel.ok .mwire { background: #2BEAD0; box-shadow: 0 0 8px #2BEAD0; transform-origin: left; }
+    section.present .mpanel.ok .mwire { animation: wireOn .6s .4s cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes wireOn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    .mpanel.ng .mwire { background: repeating-linear-gradient(90deg, #FF7A95 0 8px, transparent 8px 14px); }
+    .mpanel.ng .mwire::after { content: "✕"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -55%); color: #FF7A95; font-weight: 900; font-size: 1.1rem; }
+    .mres { margin-top: .6rem; font: 700 .82rem/1.5 'JetBrains Mono', monospace; padding: .45rem .6rem; border-radius: 8px; background: #04060C; }
+    .mpanel.ok .mres { color: #8FF0E2 !important; } .mpanel.ng .mres { color: #FF9FB0 !important; }
+    .diff { background: rgba(255,122,149,.25); border-radius: 3px; padding: 0 .1rem; }
+
+    /* 정적 보기(개요·인쇄·모션 줄이기)에서는 최종 상태로 */
+    .reveal.overview .nest .ring, .reveal.overview .lyr, .reveal.overview .hpod, .reveal.overview .gear .teeth,
+    .reveal.overview .mwire, .reveal.overview .rq-track .pk, .reveal.overview .loopfig .runner, .reveal.overview .pods i, .reveal.overview .heal-cap span { animation: none !important; opacity: 1; }
+    .reveal.overview .rq-track .pk { opacity: 0; }
+    @media print {
+      .reveal .nest .ring, .reveal .lyr, .reveal .hpod, .reveal .gear .teeth, .reveal .mwire, .reveal .pods i, .reveal .heal-cap span { animation: none !important; opacity: 1 !important; transform: none !important; }
+      .reveal .rq-track .pk, .reveal .loopfig .runner { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal .nest .ring, .reveal .lyr, .reveal .hpod, .reveal .gear .teeth, .reveal .mwire, .reveal .pods i, .reveal .heal-cap span { animation: none !important; opacity: 1 !important; transform: none !important; }
+      .reveal .rq-track .pk, .reveal .loopfig .runner { display: none; }
+    }
+
+    /* ===== 다음 지도 덱 공통 (v3) ===== */
+    /* diff 보기 */
+    .dv { border-radius: 12px; border: 1px solid rgba(155,130,255,.4); background: #04060C; overflow: hidden; }
+    .dv-h { font: 700 .74rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; padding: .5rem .8rem; border-bottom: 1px solid rgba(155,130,255,.2); }
+    .dv pre { margin: 0; padding: .45rem 0; font: 500 .78rem/1.6 'JetBrains Mono', monospace; color: #D7DCE8 !important; white-space: pre; background: transparent; border: 0; box-shadow: none; }
+    .dv .ln { display: block; padding: 0 .8rem; }
+    .dv .add { background: rgba(43,234,208,.12); color: #C5FFF5 !important; }
+    .dv .del { background: rgba(255,122,149,.13); color: #FFD0DA !important; }
+    .dv .hunk { color: #9B82FF !important; }
+    .dv .flag { outline: 2px solid #FFD46B; outline-offset: -2px; }
+
+    /* 데이터 표 (엑셀 느낌) */
+    .dbt { border-collapse: collapse; font: 500 .92rem/1.4 'JetBrains Mono', monospace; }
+    .dbt th { background: rgba(155,130,255,.2); color: #E2DAFF !important; padding: .32rem .6rem; border: 1px solid rgba(155,130,255,.35); text-align: left; }
+    .dbt td { padding: .3rem .6rem; border: 1px solid rgba(155,130,255,.22); color: #D7DCE8 !important; }
+    .dbt tr.pick td { background: rgba(43,234,208,.13); color: #C5FFF5 !important; }
+    .dbt tr.dim td { opacity: .35; }
+    .dbt td.null { color: #FF9FB0 !important; font-style: italic; }
+    .dbt caption { caption-side: top; text-align: left; font: 800 .72rem/1.6 'JetBrains Mono', monospace; color: #8E96AB; letter-spacing: .05em; }
+
+    /* SVG 차트 공통 */
+    .chart { width: 100%; height: auto; display: block; }
+    .chart text { font-family: 'Pretendard', sans-serif; fill: #B8BFD0; font-size: 12px; }
+    .chart text.t { fill: #E2E6F0; font-size: 14px; font-weight: 700; }
+    .chart .ax { stroke: rgba(190,200,224,.4); stroke-width: 1; }
+    .chart .grid { stroke: rgba(190,200,224,.1); stroke-width: 1; }
+    .chart .b1 { fill: rgba(155,130,255,.65); } .chart .b2 { fill: rgba(43,234,208,.65); } .chart .b3 { fill: rgba(255,212,107,.7); }
+    .chart .lim { stroke: #FF7A95; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .chart .ctr { stroke: rgba(43,234,208,.7); stroke-width: 1.5; }
+    .chart .ln2 { fill: none; stroke: #9B82FF; stroke-width: 2; }
+    .chart .pt { fill: #2BEAD0; } .chart .pt.out { fill: #FF7A95; }
+    section.present .chart .grow { animation: growY .7s cubic-bezier(.2,.7,.3,1) both; transform-box: fill-box; transform-origin: bottom; }
+    section.present .chart .grow:nth-of-type(2n) { animation-delay: .06s; }
+    section.present .chart .grow:nth-of-type(3n) { animation-delay: .12s; }
+    @keyframes growY { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    section.present .chart .draw { stroke-dasharray: 1200; animation: drawLn 1.6s ease-out both; }
+    @keyframes drawLn { from { stroke-dashoffset: 1200; } to { stroke-dashoffset: 0; } }
+    section.present .chart .pop { animation: asZoomIn2 .4s both; animation-delay: 1.3s; transform-box: fill-box; transform-origin: center; }
+
+    /* 콜아웃 번호 */
+    .cn { display: inline-flex; align-items: center; justify-content: center; width: 1.35rem; height: 1.35rem; border-radius: 50%;
+      background: #FFD46B; color: #06080F !important; font: 900 .78rem/1 'JetBrains Mono', monospace; margin-right: .35rem; vertical-align: middle; }
+    pre.term-out .mark { background: rgba(255,212,107,.18); outline: 1.5px solid rgba(255,212,107,.7); border-radius: 3px; }
+
+    /* 파일 크기 막대 (리팩터링) */
+    .fbar { display: grid; grid-template-columns: 150px 1fr 70px; gap: .6rem; align-items: center; font: 600 .82rem/1 'JetBrains Mono', monospace; margin: .25rem 0; }
+    .fbar .track2 { height: 16px; border-radius: 8px; background: rgba(190,200,224,.08); overflow: hidden; }
+    .fbar .fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #9B82FF, #FF7A95); transform-origin: left; }
+    section.present .fbar .fill { animation: wireOn 1.1s cubic-bezier(.2,.7,.3,1) both; }
+    .fbar .fill.ok { background: linear-gradient(90deg, #2BEAD0, #9B82FF); }
+
+    .reveal.overview .chart .grow, .reveal.overview .chart .draw, .reveal.overview .chart .pop, .reveal.overview .fbar .fill { animation: none !important; }
+    @media print { .reveal .chart .grow, .reveal .chart .draw, .reveal .chart .pop, .reveal .fbar .fill { animation: none !important; transform: none !important; stroke-dasharray: none !important; } }
+    @media (prefers-reduced-motion: reduce) { .reveal .chart .grow, .reveal .chart .draw, .reveal .chart .pop, .reveal .fbar .fill { animation: none !important; transform: none !important; stroke-dasharray: none !important; } }
+  </style>
+  <link rel="stylesheet" href="../assets/core.css">
+</head>
+<body>
+
+<div class="dl-toolbar">
+  <select id="tocSelect" class="transition-select" aria-label="목차 — 슬라이드로 바로 이동" title="목차 — 슬라이드로 바로 이동"></select>
+  <a class="dl-btn" href="../#board" title="시리즈 홈: 막혔을 때 펼쳐 보는 처방전">
+    <span aria-hidden="true">↖</span><span>시리즈 홈</span>
+  </a>
+  <button id="fullscreenBtn" class="dl-btn" title="전체화면 전환 (F)">
+    <span aria-hidden="true">⛶</span><span>FULL</span>
+  </button>
+</div>
+
+<div class="reveal">
+  <div class="slides">
+    <!-- ============= 타이틀 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="grid-2" style="align-items:center;">
+          <div>
+            <div class="chip">SEMINAR · 다음 지도 01 입문 · READING ERRORS</div>
+            <h1 style="font-size:4rem;">빨간 글씨,<br/><span class="grad">아래에서부터</span> 읽기</h1>
+            <p style="font-size:1.4rem; margin-top:1.1rem; max-width:600px;">
+              에러 메시지 읽는 법 —<br/>통째로 붙이기 전에 <strong class="accent2">30초만</strong> 읽어 봅니다.
+            </p>
+            <p class="credit">덱 형식: <a href="https://github.com/geniuskey/vibe-coding" target="_blank" rel="noopener">geniuskey/vibe-coding</a> (CC BY-NC 4.0) · 이 덱은 추가 작성분입니다.</p>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:.7rem;">
+            <div style="font-size:6rem; line-height:1;">🧾</div>
+            <div class="chip" style="border-color:rgba(43,234,208,.55);">에러 이름 · 내 파일 · 줄 번호</div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        인사. 에러를 AI에게 붙여 넣는 건 좋은 습관입니다. 다만 30초만 먼저 읽으면, AI에게 줄 정보가 정확해지고 같은 에러가 반복될 때 스스로 알아봅니다.
+        첫 질문: "에러가 뜨면 통째로 복사해서 붙이시는 분?" 대부분 손을 듭니다. 그게 오늘의 출발점입니다.
+      </aside>
+    </section>
+
+    <!-- ============= 3분 요약 ============= -->
+    <section class="tldr" data-depth="summary">
+      <div class="chip">3분 요약 · TL;DR</div>
+      <h2>결론부터 — 이 세 줄이면 됩니다</h2>
+      <p class="tldr-lede">에러 메시지는 범인의 이름과 사건 장소를 이미 적어 두었습니다. 읽는 순서만 알면 됩니다.</p>
+      <ol class="tldr-points">
+        <li><span class="n">1</span><div><strong>맨 아래 한 줄이 결론 — 에러 이름과 이유</strong><span class="sub">KeyError: '두께' → "'두께'라는 열(키)이 없다".</span></div></li>
+        <li><span class="n">2</span><div><strong>위로 올라가며 내 파일의 마지막 줄 번호를 찾는다</strong><span class="sub">site-packages 같은 남의 코드는 건너뜁니다. 고칠 곳은 대개 내 파일입니다.</span></div></li>
+        <li><span class="n">3</span><div><strong>AI에게는 하려던 것 · 기대한 결과 · 전체 에러를 함께 준다</strong><span class="sub">에러만 붙이면 추측하고, 맥락을 주면 원인을 찾습니다.</span></div></li>
+      </ol>
+      <div class="tldr-bottom">
+        <div class="tldr-prompt">
+          <div class="tldr-label">지금 바로 써 보는 프롬프트</div>
+          <pre>아래 에러를 고치기 전에, 먼저 읽는 법을 알려줘.
+1) 맨 아래 줄의 에러 이름과 뜻 2) 내 코드에서 문제가 난 파일과 줄 번호
+3) 가장 그럴듯한 원인 2가지와 각각 확인하는 방법. 그다음에 고쳐줘.
+[무엇을 하려다 났는지] / [전체 에러 메시지]</pre>
+        </div>
+        <div class="tldr-when">
+          <div class="tldr-label">이럴 때 이 덱을 다시 펼치세요</div>
+          <ul>
+            <li>같은 에러가 계속 반복될 때</li>
+            <li>AI가 엉뚱한 곳을 고칠 때</li>
+            <li>에러가 너무 길어서 겁날 때</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============= PROBLEM ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">PROBLEM · 통째로 붙이면 생기는 일</div>
+        <h2>에러를 붙일 때마다 <span class="accent3">다른 곳이 고쳐지고</span>, 에러는 그대로입니다</h2>
+        <div class="grid-2" style="align-items:stretch; gap:1.2rem; margin-top:.2rem;">
+          <div class="tx">
+            <div class="tx-h"><i></i><i></i><i></i>😵 붙이기만</div>
+            <p class="tx-l me"><b class="who">나</b>(에러 60줄 붙여 넣기) 고쳐줘</p>
+            <p class="tx-l ai fragment" data-fragment-index="1"><b class="who">AI</b>pandas 버전 문제일 수 있어요. 업그레이드하고 코드도 정리했습니다</p>
+            <p class="tx-l bad fragment" data-fragment-index="2"><b class="who">결과</b>같은 KeyError + 새로운 경고 3개</p>
+            <p class="tx-l bad fragment" data-fragment-index="3"><b class="who">세 번째 시도</b>코드가 처음보다 40줄 길어짐 🔁</p>
+          </div>
+          <div class="tx" style="border-color:rgba(43,234,208,.5);">
+            <div class="tx-h"><i></i><i></i><i></i>😌 30초 읽고</div>
+            <p class="tx-l me"><b class="who">나</b>loader.py 8번째 줄에서 KeyError: '두께'. 이번 주 CSV부터 났어. 열 이름 확인해줘</p>
+            <p class="tx-l ai fragment" data-fragment-index="1"><b class="who">AI</b>이번 주 파일은 열 이름이 <span class="mono">'두께 '</span>(뒤에 공백)입니다</p>
+            <p class="tx-l good fragment" data-fragment-index="2"><b class="who">결과</b>열 이름 앞뒤 공백을 지우는 한 줄 추가 ✅</p>
+            <p class="tx-l good fragment" data-fragment-index="3"><b class="who">덤</b>다음에 같은 에러를 보면 내가 먼저 알아봄</p>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        클릭할 때마다 양쪽이 한 줄씩 진행됩니다. 오른쪽 사람은 코딩 실력이 더 좋은 게 아니라, 에러의 맨 아래 줄과 줄 번호를 읽었을 뿐입니다.
+        "이번 주 CSV부터 났어" 같은 한 줄이 원인을 크게 좁혀 줍니다 — 무엇이 바뀌었는지는 AI가 알 수 없는 정보입니다.
+      </aside>
+    </section>
+
+    <!-- ============= 해부 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">ANATOMY · Traceback 해부</div>
+        <h2>세 부분만 보면 됩니다 — <span class="accent2">결론 · 내 줄 · 지나온 길</span></h2>
+        <div class="grid-2" style="grid-template-columns:1.35fr 1fr; gap:1.1rem; align-items:start;">
+          <pre class="term-out" style="font-size:.78rem; white-space:pre;"><span class="dim">Traceback (most recent call last):</span>
+<span class="cn">3</span><span class="dim">File "C:\work\report\main.py", line 12, in &lt;module&gt;</span>
+<span class="dim">    df = load("data/w47.csv")</span>
+<span class="cn">2</span><span class="mark">File "C:\work\report\loader.py", line 8, in load</span>
+<span class="mark">    return df["두께"].mean()</span>
+<span class="dim">           ~~^^^^^^^^</span>
+<span class="dim">  File "…\site-packages\pandas\core\frame.py", line 4102, in __getitem__</span>
+<span class="dim">    indexer = self.columns.get_loc(key)</span>
+<span class="dim">  File "…\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc</span>
+<span class="dim">    raise KeyError(key) from err</span>
+<span class="cn">1</span><span class="hl-r">KeyError: '두께'</span></pre>
+          <div class="stack" style="gap:.55rem;">
+            <div class="card fragment"><h3><span class="cn">1</span>맨 아래 — 결론</h3><p>에러 이름(KeyError)과 이유('두께'). 여기만 읽어도 절반은 압니다.</p></div>
+            <div class="card fragment"><h3><span class="cn">2</span>내 파일의 마지막 줄</h3><p>위로 올라가다 처음 만나는 <strong class="accent4">내 파일</strong>. 고칠 곳은 대개 여기입니다.</p></div>
+            <div class="card fragment"><h3><span class="cn">3</span>그 위 — 지나온 길</h3><p>어디서 불려 왔는지. 원인이 더 위에 있을 때만 봅니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        "most recent call last" — 가장 최근에 실행된 것이 맨 아래라는 뜻입니다. 그래서 아래에서부터 읽습니다.
+        pandas 내부 줄(site-packages)은 남의 코드입니다. 거기를 고치는 일은 거의 없습니다. 파이썬 3.11부터는 ~~^^^ 표시로 줄 안의 정확한 위치까지 짚어 줍니다.
+        경로와 줄 번호는 예시입니다.
+      </aside>
+    </section>
+
+    <!-- ============= 읽는 순서 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">ORDER · 30초 읽기 순서</div>
+        <h2>아래 → 위, 그리고 <span class="accent4">"무엇이 바뀌었나"</span></h2>
+        <ul class="sim-list">
+          <li class="sim-line fragment"><span><span class="cn">1</span>맨 아래 줄에서 <b>에러 이름</b>을 읽는다 — <span class="mono" style="font-size:.86rem;">KeyError</span></span><span class="tok info">5초</span></li>
+          <li class="sim-line fragment"><span><span class="cn">2</span>콜론 뒤 <b>이유</b>를 읽는다 — <span class="mono" style="font-size:.86rem;">'두께'</span>라는 키가 없다</span><span class="tok info">5초</span></li>
+          <li class="sim-line fragment"><span><span class="cn">3</span>위로 올라가며 <b>내 파일</b>의 마지막 줄 번호를 찾는다 — <span class="mono" style="font-size:.86rem;">loader.py:8</span></span><span class="tok ask">10초</span></li>
+          <li class="sim-line fragment"><span><span class="cn">4</span>그 줄을 열어 <b>무엇을 하려던 줄인지</b> 본다 — 열 '두께'의 평균</span><span class="tok ask">5초</span></li>
+          <li class="sim-line pass fragment"><span><span class="cn">5</span><b>최근에 무엇이 바뀌었나</b> — 이번 주 파일부터 났다</span><span class="tok ok">5초</span></li>
+        </ul>
+        <p class="note-line fragment">이 다섯 줄이 그대로 <strong class="accent2">AI에게 줄 정보</strong>가 됩니다. 에러 60줄보다 훨씬 강력합니다.</p>
+      </div>
+      <aside class="notes">
+        클릭할 때마다 한 단계씩. 5번이 가장 강력한 단서입니다. 어제까지 됐다면, 어제와 오늘 사이에 바뀐 것(데이터, 코드, 패키지)이 범인일 확률이 높습니다.
+        git을 쓰고 있다면 "어제 커밋과 오늘 사이에 바뀐 파일 보여줘"가 5번을 대신합니다.
+      </aside>
+    </section>
+
+    <!-- ============= 흔한 에러 10 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">TOP 10 · 이름이 반은 말해 줍니다</div>
+        <h2>자주 보는 에러 열 개, <span class="accent2">한 줄 뜻과 첫 의심</span></h2>
+        <table class="xt" style="font-size:.9rem;">
+          <tr><th>에러 이름</th><th>한 줄 뜻</th><th>먼저 의심할 것</th></tr>
+          <tr><td class="mono">ModuleNotFoundError</td><td>그런 패키지가 없다</td><td>설치 안 함 · 다른 가상환경에서 실행</td></tr>
+          <tr><td class="mono">FileNotFoundError</td><td>그 경로에 파일이 없다</td><td>실행 위치(현재 폴더) · 오타 · <span class="mono">\</span>와 <span class="mono">/</span></td></tr>
+          <tr><td class="mono">KeyError</td><td>그 이름의 열·키가 없다</td><td>열 이름 오타 · 앞뒤 공백 · 대소문자</td></tr>
+          <tr><td class="mono">IndexError</td><td>그 번호의 칸이 없다</td><td>빈 목록 · 행 수가 예상보다 적음</td></tr>
+          <tr><td class="mono">TypeError</td><td>종류가 안 맞는 걸 섞었다</td><td>숫자인 줄 알았는데 글자("1,234")</td></tr>
+          <tr><td class="mono">ValueError</td><td>종류는 맞는데 값이 이상하다</td><td>"N/A"를 숫자로 바꾸려 함</td></tr>
+          <tr><td class="mono">AttributeError</td><td>그 물건에 그런 기능이 없다</td><td><span class="mono">'NoneType'</span>이면 앞에서 결과가 비었음</td></tr>
+          <tr><td class="mono">UnicodeDecodeError</td><td>글자 인코딩이 다르다</td><td>한글 CSV — cp949로 저장된 파일</td></tr>
+          <tr><td class="mono">SyntaxError · IndentationError</td><td>문법 · 들여쓰기가 틀렸다</td><td>괄호 짝 · 탭과 스페이스 섞임</td></tr>
+          <tr><td class="mono">PermissionError</td><td>권한이 없다</td><td>파일이 엑셀에서 열려 있음 · 읽기 전용 폴더</td></tr>
+        </table>
+      </div>
+      <aside class="notes">
+        전부 외울 필요는 없습니다. 에러 이름 자체가 영어 단어라 대개 뜻이 보입니다.
+        사내에서 특히 자주 보는 건 세 가지: FileNotFoundError(실행 위치), UnicodeDecodeError(한글 CSV), PermissionError(엑셀에서 파일이 열려 있음).
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">REF</span>
+        <a href="https://docs.python.org/ko/3/library/exceptions.html" target="_blank" rel="noopener">Python Docs · 내장 예외</a>
+      </div>
+    </section>
+
+    <!-- ============= 사례 1: KeyError ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">CASE 1 · KeyError — 보이지 않는 공백</div>
+        <h2>"분명히 '두께' 열이 있는데요?" — <span class="accent3">눈에 안 보이는 한 칸</span></h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.55rem;">
+            <pre class="term-out" style="font-size:.82rem;"><span class="dim">&gt;&gt;&gt; df["두께"]</span>
+<span class="hl-r">KeyError: '두께'</span></pre>
+            <pre class="term-out fragment" style="font-size:.82rem;"><span class="dim">&gt;&gt;&gt; print(list(df.columns))</span>
+['날짜', '설비', <span class="mark">'두께 '</span>, '균일도']
+<span class="dim">            ↑ 끝에 공백 한 칸</span></pre>
+            <pre class="code good sm fragment"><span class="cm"># 처방: 열 이름 앞뒤 공백을 지우고 시작</span>
+df.columns = df.columns.str.strip()</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card autoshow"><h3>왜 생기나</h3><p>엑셀에서 머리글을 고치다 공백이 들어가거나, 시스템마다 내보내는 형식이 조금씩 다릅니다.</p></div>
+            <div class="card autoshow"><h3>확인 한 줄</h3><p>KeyError가 나면 <span class="mono">list(df.columns)</span>로 진짜 이름을 출력합니다. 따옴표 안까지 봅니다.</p></div>
+            <div class="card autoshow good"><h3>다시는 안 나게</h3><p>"CSV를 읽으면 열 이름부터 strip" — CLAUDE.md에 한 줄. 하네스 덱의 래칫입니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        클릭하면 확인 → 처방 순서로 나옵니다. 사람 눈에는 '두께'와 '두께 '가 같아 보이지만 컴퓨터에는 다른 글자입니다.
+        비슷한 함정: 전각 괄호, 줄바꿈이 들어간 머리글, 'Thickness'와 'thickness'.
+      </aside>
+    </section>
+
+    <!-- ============= 사례 2: UnicodeDecodeError ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">CASE 2 · UnicodeDecodeError — 한글 CSV</div>
+        <h2>엑셀에서 저장한 한글 CSV는 <span class="accent4">utf-8이 아닐 때가 많습니다</span></h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.55rem;">
+            <pre class="term-out" style="font-size:.78rem;"><span class="dim">&gt;&gt;&gt; pd.read_csv("측정결과.csv")</span>
+<span class="hl-r">UnicodeDecodeError: 'utf-8' codec can't decode
+byte 0xb3 in position 0: invalid start byte</span></pre>
+            <div class="card fragment"><h3>읽는 법</h3><p><span class="mono">'utf-8'</span>로 읽으려 했는데, 첫 글자(<span class="mono">position 0</span>)부터 utf-8 규칙에 맞지 않는다 → 파일이 다른 방식으로 저장됐다.</p></div>
+            <pre class="code good sm fragment"><span class="cm"># 엑셀 "CSV(쉼표로 분리)"는 대개 cp949</span>
+df = pd.read_csv(<span class="st">"측정결과.csv"</span>, encoding=<span class="st">"cp949"</span>)
+
+<span class="cm"># 저장할 때 엑셀에서 한글이 안 깨지게</span>
+df.to_csv(<span class="st">"out.csv"</span>, encoding=<span class="st">"utf-8-sig"</span>, index=<span class="kw">False</span>)</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card autoshow"><h3>인코딩 = 글자를 숫자로 적는 방식</h3><p>같은 '가'도 utf-8과 cp949는 다른 숫자로 적습니다. 방식이 다르면 읽다가 멈춥니다.</p></div>
+            <div class="card autoshow"><h3>반대 증상: 깨진 글자</h3><p>에러 없이 <span class="mono">ì¸¡ì •</span>처럼 나오면, 읽는 방식이 틀렸는데 우연히 멈추지 않은 경우입니다.</p></div>
+            <div class="card autoshow"><h3>utf-8-sig</h3><p>파일 앞에 표식(BOM)을 붙여, 엑셀이 utf-8 파일임을 알아보게 합니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        한국 사내 환경에서 가장 흔한 에러 중 하나입니다. 엑셀의 기본 CSV 저장은 대개 cp949(EUC-KR 계열)입니다. 엑셀 버전과 저장 옵션에 따라 "CSV UTF-8"을 고를 수도 있습니다.
+        바이트 값(0xb3 등)은 파일마다 다릅니다. 핵심은 'utf-8' codec can't decode라는 문구입니다.
+      </aside>
+    </section>
+
+    <!-- ============= 사례 3: NoneType ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">CASE 3 · AttributeError: 'NoneType' — 범인은 위에</div>
+        <h2>에러가 난 줄이 <span class="accent3">꼭 원인은 아닙니다</span></h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.55rem;">
+            <pre class="code sm"><span class="kw">def</span> load_week(week):
+    path = find_file(week)
+    <span class="kw">if</span> path <span class="kw">is None</span>:
+        print(<span class="st">"파일 없음"</span>)
+        <span class="kw">return</span>                <span class="mark"><span class="cm"># ← 여기서 아무것도 안 돌려줌 (None)</span></span>
+    <span class="kw">return</span> pd.read_csv(path)
+
+df = load_week(<span class="nm">48</span>)
+summary = df.groupby(<span class="st">"설비"</span>).mean()   <span class="cm"># ← 에러는 여기서</span></pre>
+            <pre class="term-out" style="font-size:.8rem;"><span class="hl-r">AttributeError: 'NoneType' object has no attribute 'groupby'</span></pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card fragment"><h3>읽는 법</h3><p>"None이라는 물건에는 groupby 기능이 없다" → <span class="mono">df</span>가 데이터가 아니라 <strong class="accent4">비어 있다(None)</strong>.</p></div>
+            <div class="card fragment"><h3>그럼 왜 비었나?</h3><p><span class="mono">df</span>를 만든 곳으로 거슬러 올라갑니다. 48주차 파일이 없어서 <span class="mono">return</span>만 하고 끝났습니다.</p></div>
+            <div class="card fragment good"><h3>처방</h3><p>못 찾으면 조용히 None을 돌려주지 말고 바로 에러를 내게: <span class="mono">raise FileNotFoundError(week)</span></p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        "에러는 증상이 드러난 곳에서 나고, 원인은 더 위에 있다"는 가장 중요한 감각입니다. NoneType이 보이면 무조건 "이 변수를 만든 곳"을 찾아 올라갑니다.
+        처방이 흥미롭습니다: 에러를 없애는 게 아니라, 원인이 있는 곳에서 더 일찍, 더 분명하게 나게 만듭니다.
+      </aside>
+    </section>
+
+    <!-- ============= 웹 쪽 에러 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">WEB · 브라우저에서 보는 에러</div>
+        <h2>화면 쪽 에러는 <span class="accent2">어디에 찍히는지</span>부터 다릅니다</h2>
+        <div class="grid-3" style="margin-top:.4rem;">
+          <div class="card autoshow"><h3>🖥️ 서버 터미널</h3><p>백엔드(파이썬)의 Traceback은 <strong>서버를 띄운 터미널</strong>에 찍힙니다. 브라우저에는 "500"만 보입니다.</p></div>
+          <div class="card autoshow"><h3>🧰 F12 → Console</h3><p>프론트(자바스크립트) 에러. <span class="mono">TypeError: Cannot read properties of undefined</span>가 단골입니다.</p></div>
+          <div class="card autoshow"><h3>🌐 F12 → Network</h3><p>요청마다 상태 코드. 4xx는 요청한 쪽, 5xx는 서버 쪽부터 봅니다.</p></div>
+        </div>
+        <table class="xt" style="margin-top:1rem;">
+          <tr><th>보이는 것</th><th>뜻</th><th>어디서 진짜 이유를 보나</th></tr>
+          <tr><td class="mono">404 Not Found</td><td>그런 주소가 없다</td><td>프론트의 요청 주소 vs 백엔드의 주소 정의</td></tr>
+          <tr><td class="mono">500 Internal Server Error</td><td>서버 코드에서 사고</td><td>서버 터미널의 Traceback — 이 덱의 읽는 법 그대로</td></tr>
+          <tr><td class="mono">CORS policy</td><td>다른 주소에서 온 요청을 서버가 막음</td><td>백엔드의 허용 주소 설정</td></tr>
+        </table>
+      </div>
+      <aside class="notes">
+        웹 앱에서 가장 흔한 실수는 브라우저 화면의 "500"만 AI에게 보여 주는 것입니다. 진짜 이유는 서버 터미널에 있습니다 — 그걸 함께 붙여야 합니다.
+        층 구분은 "프로그램의 구조 한 장" 덱과 연결됩니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../architecture/">프로그램의 구조 한 장</a>
+      </div>
+    </section>
+
+    <!-- ============= 조용한 버그 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip warn">⚠️ SILENT · 에러가 안 나는 게 더 무섭다</div>
+        <h2>빨간 글씨는 친절한 편입니다. <span class="accent3">조용히 틀리는 코드</span>가 더 위험합니다</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.55rem;">
+            <div class="sim-line fail"><span>📉 평균이 나오긴 했는데, "N/A" 행이 빠져서 계산됨</span></div>
+            <div class="sim-line fail"><span>🔢 "1,234"가 글자로 읽혀 합계에서 제외됨</span></div>
+            <div class="sim-line fail"><span>🗓️ 날짜가 글자로 정렬돼 "11-10"이 "11-9"보다 앞</span></div>
+            <div class="sim-line fail"><span>🤐 <span class="mono">try: … except: pass</span> — 에러를 삼켜 버림</span></div>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card autoshow"><h3>에러를 숨기지 말게 하기</h3><p>AI가 <span class="mono">except: pass</span>를 넣으면 반려합니다. 에러는 고치는 것이지 숨기는 게 아닙니다.</p></div>
+            <div class="card autoshow"><h3>숫자로 검산하기</h3><p>행 수 · 합계를 원본과 비교하는 검사 한 줄이, 조용한 틀림을 시끄럽게 만듭니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        "에러가 사라졌다"와 "고쳐졌다"는 다릅니다. AI가 에러를 빨리 없애려고 try/except로 감싸는 경우가 있습니다 — 리뷰할 때 빨간 깃발입니다.
+        검산 방법은 검증 덱이 정본입니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../verification/">검증과 테스트</a>
+        <a href="../review/">사람이 리뷰하는 법</a>
+      </div>
+    </section>
+
+    <!-- ============= AI에게 넘기는 법 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">HANDOFF · AI에게 에러 넘기는 법</div>
+        <h2>다섯 칸 템플릿 — <span class="accent2">추측 대신 원인</span>을 받습니다</h2>
+        <div class="grid-2" style="gap:1.4rem; align-items:start;">
+          <div class="prompt-card">
+            <div class="pc-label">💬 에러 보고 템플릿</div>
+            <pre class="code">[하려던 것] 주간 리포트 만들기 (python main.py)
+[기대]     report.csv 생성
+[실제]     loader.py 8번째 줄에서 KeyError: '두께'
+[바뀐 것]  이번 주 CSV부터 발생. 코드는 그대로
+[전체 에러] (Traceback 전체를 그대로 붙여 넣기)
+
+고치기 전에 원인 후보 2개와 확인 방법부터 알려줘.</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card autoshow"><h3>전체 에러는 자르지 않기</h3><p>읽는 건 내가 30초, 붙이는 건 전체. 중간을 자르면 단서가 사라집니다.</p></div>
+            <div class="card autoshow"><h3>"원인부터"가 핵심</h3><p>바로 고치게 하면 추측으로 고칩니다. 원인 후보를 먼저 받으면 틀린 수정을 막습니다.</p></div>
+            <div class="card autoshow bad"><h3>붙이기 전에 확인</h3><p>경로에 사람 이름이나 서버 주소, 에러에 비밀번호가 찍혔다면 지우고 붙입니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        다섯 칸 중 [바뀐 것]이 가장 자주 빠지고, 가장 효과가 큽니다.
+        세 번째 카드는 보안 약속과 연결됩니다. 접속 에러에는 DB 주소와 계정이 그대로 찍히는 경우가 있습니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../debugging/">AI와 함께 디버깅하기</a>
+        <a href="../security/">보안과 거버넌스</a>
+      </div>
+    </section>
+
+    <!-- ============= 경고 ============= -->
+    <section data-depth="extra">
+      <div class="vfill">
+        <div class="chip">DEEPER · 경고(Warning)는 에러가 아닙니다</div>
+        <h2>노란 글씨는 <span class="accent4">멈추지 않습니다</span> — 하지만 읽어 둘 가치는 있습니다</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <pre class="term-out" style="font-size:.76rem;"><span class="hl-y">FutureWarning:</span> The default value of numeric_only in
+DataFrameGroupBy.mean is deprecated. …
+
+<span class="hl-y">SettingWithCopyWarning:</span>
+A value is trying to be set on a copy of a slice
+from a DataFrame. …</pre>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card"><h3>FutureWarning</h3><p>"다음 버전부터 동작이 바뀝니다." 지금은 되지만, 패키지를 올리면 결과가 달라질 수 있습니다.</p></div>
+            <div class="card"><h3>SettingWithCopyWarning</h3><p>"고친 값이 원본에 반영 안 됐을 수 있습니다." 조용한 틀림의 씨앗이라 꼭 확인합니다.</p></div>
+            <div class="card"><h3>처리 원칙</h3><p>한 번은 뜻을 묻고, 고칠 수 있으면 고칩니다. 무작정 경고 끄기는 반려.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">핵심 모드에서는 접히는 심화 장입니다. 경고 문구는 pandas 버전에 따라 조금씩 다릅니다.</aside>
+    </section>
+
+    <!-- ============= 실습 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip live">🖐 실습 · 일부러 에러 내고 읽기 (15분)</div>
+        <h2>에러 세 개를 일부러 만들고, <span class="accent2">AI보다 먼저</span> 읽어 봅니다</h2>
+        <p class="lab-learn"><b>배우는 것</b> — 결론 · 내 줄 · 바뀐 것을 30초 안에 찾는 눈.</p>
+        <div class="grid-2" style="align-items:start; gap:1.6rem;">
+          <div class="prompt-card">
+            <div class="pc-label">💬 에이전트에게 이렇게 말하세요</div>
+            <pre class="code">연습용 폴더에 파이썬 파일을 만들어줘.
+실행하면 KeyError, UnicodeDecodeError,
+'NoneType' AttributeError가 하나씩 차례로 나게.
+원인은 알려주지 말고, 내가 읽고 답하면 채점해줘.
+채점 기준: 에러 이름 · 파일과 줄 번호 · 원인.</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="done-box">
+              <p class="bx-t">✅ 완료 기준</p>
+              <ul>
+                <li>세 에러 모두 <strong>에러 이름과 이유</strong>를 말했다</li>
+                <li>세 에러 모두 <strong>내 파일의 줄 번호</strong>를 찾았다</li>
+                <li>NoneType은 <strong>원인이 된 위쪽 줄</strong>까지 찾았다</li>
+              </ul>
+            </div>
+            <div class="stuck-box">
+              <p class="bx-t">🧯 막히면</p>
+              <p>에러를 맨 아래 한 줄만 남기고 가려 보세요. 그 한 줄로 무엇을 알 수 있는지부터 말해 보면, 나머지가 따라옵니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        15분. AI를 채점자로 쓰는 실습입니다 — 고치는 게 아니라 읽는 연습이 목적입니다.
+        세 번째 완료 기준이 오늘의 핵심 감각(원인은 위에 있다)을 확인합니다.
+      </aside>
+    </section>
+
+    <!-- ============= 정리 ============= -->
+    <section>
+      <div class="vfill center">
+        <div class="chip">정리</div>
+        <h2>오늘 가져갈 습관 세 가지</h2>
+        <div style="display:flex; flex-direction:column; gap:1rem; max-width:1000px; margin:.6rem auto 0;">
+          <div class="card" style="text-align:left;"><h3>1. 맨 아래부터, 내 파일의 줄 번호까지</h3><p>결론(에러 이름 · 이유) → <strong class="accent2">내 파일의 마지막 줄</strong>. 남의 코드는 건너뜁니다.</p></div>
+          <div class="card" style="text-align:left;"><h3>2. 에러가 난 줄 ≠ 원인이 있는 줄</h3><p>특히 NoneType은 <strong class="accent4">그 값을 만든 곳</strong>으로 거슬러 올라갑니다.</p></div>
+          <div class="card" style="text-align:left;"><h3>3. 다섯 칸으로 넘기고, 원인부터 받는다</h3><p>하려던 것 · 기대 · 실제 · 바뀐 것 · 전체 에러. 에러를 숨기는 수정은 반려합니다.</p></div>
+        </div>
+      </div>
+      <aside class="notes">세 습관으로 마무리. 다음 단계로 debugging 덱(재현 → 가설 → 한 번에 하나)을 안내하고 Q&amp;A.</aside>
+    </section>
+
+    <!-- ============= 참고 ============= -->
+    <section data-depth="extra">
+      <div class="vfill">
+        <div class="chip">REFERENCES</div>
+        <h2>더 깊이 보기</h2>
+        <div class="grid-2" style="align-items:stretch; margin-top:.4rem;">
+          <div class="card ref-col">
+            <h3>🐍 공식 문서</h3>
+            <ul>
+              <li><a href="https://docs.python.org/ko/3/tutorial/errors.html" target="_blank" rel="noopener">에러와 예외 (Python 자습서)</a><span class="rd">Traceback의 구조와 예외 처리</span></li>
+              <li><a href="https://docs.python.org/ko/3/library/exceptions.html" target="_blank" rel="noopener">내장 예외 목록</a><span class="rd">에러 이름별 정확한 뜻</span></li>
+              <li><a href="https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html" target="_blank" rel="noopener">pandas.read_csv</a><span class="rd">encoding · skiprows 옵션</span></li>
+            </ul>
+          </div>
+          <div class="card ref-col">
+            <h3>🔗 시리즈 안에서</h3>
+            <ul>
+              <li><a href="../debugging/">AI와 함께 디버깅하기</a><span class="rd">고칠수록 꼬일 때</span></li>
+              <li><a href="../architecture/">프로그램의 구조 한 장</a><span class="rd">에러가 어느 층에서 났나</span></li>
+              <li><a href="../verification/">검증과 테스트</a><span class="rd">조용한 틀림 잡기</span></li>
+              <li><a href="../harness/">하네스 엔지니어링</a><span class="rd">같은 에러를 한 줄로 고정</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">Python 공식 자습서는 한국어 번역이 있습니다.</aside>
+    </section>
+  </div>
+</div>
+
+<!-- reveal.js 5.1.0 — inlined for offline/self-contained deck (MIT, Hakim El Hattab) -->
+<script src="../vendor/reveal/reveal.js"></script>
+<!-- 핵심만 보기: data-depth="extra" 장 접기 + 3분 요약 (Reveal.initialize 보다 먼저) -->
+<script src="../assets/core.js"></script>
+<script src="../vendor/reveal/notes.js"></script>
+<script>
+  Reveal.initialize({
+    plugins: typeof RevealNotes !== 'undefined' ? [RevealNotes] : [],
+    hash: true,
+    hashOneBasedIndex: true,
+    controls: true,
+    controlsLayout: 'edges',
+    progress: true,
+    slideNumber: 'c/t',
+    transition: 'fade',
+    backgroundTransition: 'fade',
+    width: 1280,
+    height: 800,
+    margin: 0.04,
+    minScale: 0.2,
+    maxScale: 2.0,
+    center: false,
+  });
+
+  // ===== 목차 드롭다운 =====
+  (function () {
+    const sel = document.getElementById('tocSelect');
+    if (!sel) return;
+    const slides = Array.from(document.querySelectorAll('.reveal .slides > section'));
+    const clean = (t) => (t || '').replace(/\s+/g, ' ').trim().slice(0, 34);
+    // <br/>는 textContent 에서 사라져 단어가 붙는다 — 공백으로 바꿔 읽는다
+    const brText = (el) => { const c = el.cloneNode(true); c.querySelectorAll('br').forEach((b) => b.replaceWith(' ')); return c.textContent; };
+    slides.forEach((s, i) => {
+      const h = s.querySelector('h1, h2');
+      const label = clean(h ? brText(h) : '') || ('페이지 ' + (i + 1));
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = (i + 1) + '. ' + label;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', () => {
+      const i = Number(sel.value);
+      if (!Number.isNaN(i)) Reveal.slide(i);
+      sel.blur(); // 방향키가 다시 슬라이드 내비게이션으로 가도록
+    });
+    Reveal.on('slidechanged', (e) => { sel.value = String(e.indexh); });
+    Reveal.on('ready', (e) => { sel.value = String(e.indexh); });
+  })();
+
+  // ===== 전체화면 =====
+  (function () {
+    const fsBtn = document.getElementById('fullscreenBtn');
+    if (!fsBtn) return;
+    if (!document.fullscreenEnabled) { document.documentElement.classList.add('no-fullscreen'); return; }
+    fsBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    });
+  })();
+</script>
+
+
+<!-- 통합 발표 플랫폼: 질문·이모지·슬라이드 동기화는 모든 덱이 공유하는 assets/qa.js 하나가 담당한다. -->
+<link rel="stylesheet" href="../assets/qa.css">
+<script src="../assets/qa.js" defer></script>
+
+</body>
+</html>
