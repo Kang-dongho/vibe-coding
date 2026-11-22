@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>하네스 엔지니어링 — 모델이 아니라 모델을 둘러싼 환경을 고친다 | 바이브 코딩 세미나</title>
+  <meta name="description" content="에이전트 = 모델 + 하네스. 컨텍스트·도구·권한·검증·상태·분업, 여섯 칸으로 AI가 같은 실수를 반복하지 않게 만드는 법. 증상별 처방표와 실습." />
+  <meta name="keywords" content="하네스 엔지니어링, harness engineering, AI 에이전트, 컨텍스트, 도구, 권한, 검증, hooks, CLAUDE.md, 바이브 코딩, Claude Code" />
+  <meta name="author" content="Kang-dongho" />
+  <meta name="theme-color" content="#06080F" />
+  <!-- 형식: geniuskey/vibe-coding (CC BY-NC 4.0) 덱 구조 재사용 · 이 덱의 내용은 추가 작성분 -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOUI4MkZGIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMkJFQUQwIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgeD0iMS41IiB5PSIxLjUiIHdpZHRoPSIyOSIgaGVpZ2h0PSIyOSIgcng9IjgiIGZpbGw9IiMwRTEyMjAiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTkgMTFsNiA1LTYgNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTE3IDIxaDYiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPgo=" />
+  <link rel="stylesheet" href="../vendor/reveal/reveal.css">
+  <link rel="stylesheet" href="../vendor/fonts/pretendard.css">
+  <style>
+    :root {
+      --bg-0: #06080F;
+      --bg-1: #0E1220;
+      --bg-2: #161B30;
+      --fg: #FFFFFF;
+      --fg-dim: #E2E6F0;
+      --fg-soft: #B8BFD0;
+      --accent: #9B82FF;
+      --accent-2: #2BEAD0;
+      --accent-3: #FF7A95;
+      --accent-4: #FFD46B;
+      --danger: #FF4D5E;
+    }
+
+    html { color-scheme: dark; }
+    html, body { background: var(--bg-0) !important; }
+    /* gradient mesh background — 원본 데크와 동일한 분위기 */
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(124,92,255,0.13), transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(0,224,199,0.10), transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(255,94,126,0.04), transparent 60%);
+    }
+    body::after {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(124,92,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,92,255,0.05) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 75%);
+    }
+    .reveal { background: transparent; position: relative; z-index: 1; }
+
+    .reveal { font-family: 'Pretendard', system-ui, sans-serif; color: #FFFFFF; }
+    .reveal .slides { text-align: left; }
+    .reveal section { padding: 16px 52px; box-sizing: border-box; height: 100%; word-break: keep-all; }
+
+    /* HARD RULE: every text descendant defaults to pure white. */
+    .reveal section,
+    .reveal section p,
+    .reveal section li,
+    .reveal section span,
+    .reveal section em,
+    .reveal section strong,
+    .reveal section h1,
+    .reveal section h2,
+    .reveal section h3,
+    .reveal section h4 {
+      color: #FFFFFF;
+    }
+
+    .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+      font-family: 'Pretendard', system-ui, sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: none;
+      margin: 0 0 0.4em 0;
+      line-height: 1.15;
+      color: #FFFFFF !important;
+      text-shadow:
+        0 1px 0 rgba(0,0,0,0.85),
+        0 2px 4px rgba(0,0,0,0.55);
+    }
+    .reveal section p,
+    .reveal section li {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.75);
+    }
+    .reveal .quote, .reveal .quote * {
+      text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+    }
+    .reveal .grad {
+      text-shadow: none !important; /* background-clip:text 위 그림자는 그라데이션을 탁하게 만든다 */
+    }
+    .reveal h1 { font-size: 4.2rem; }
+    .reveal h2 { font-size: 2.9rem; }
+    .reveal h3 { font-size: 2.0rem; }
+    .reveal p, .reveal li { font-size: 1.45rem; line-height: 1.6; }
+
+    .reveal a { color: #5BFFE0 !important; }
+
+    /* Toolbar — fixed top-right */
+    .dl-toolbar {
+      position: fixed;
+      top: 16px; right: 16px;
+      z-index: 9999;
+      display: flex;
+      gap: 8px;
+    }
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: rgba(20, 22, 44, 0.85);
+      border: 1px solid rgba(155, 130, 255, 0.5);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #E6D9FF !important;
+      text-decoration: none !important;
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      white-space: nowrap;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .dl-btn:hover {
+      opacity: 1;
+      transform: translateY(-2px);
+      background: rgba(124, 92, 255, 0.4);
+      border-color: rgba(91, 255, 224, 0.7);
+    }
+    .dl-btn:focus-visible,
+    .transition-select:focus-visible {
+      opacity: 1;
+      outline: 2px solid #5BFFE0;
+      outline-offset: 2px;
+    }
+    .transition-select {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 14px;
+      background: rgba(20, 22, 44, 0.85);
+      border: 1px solid rgba(155, 130, 255, 0.5);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #E6D9FF !important;
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .transition-select:hover { opacity: 1; transform: translateY(-2px); }
+    .transition-select option { background: #14162C; color: #E1D9FF; }
+    #tocSelect { width: 340px; max-width: 340px; }
+    @media (max-width: 760px) {
+      .dl-toolbar { top: 8px; right: 8px; left: 8px; gap: 6px; justify-content: flex-end; }
+      #tocSelect { flex: 1 1 auto; width: auto; min-width: 0; max-width: 340px; text-overflow: ellipsis; }
+      .dl-toolbar .dl-btn { flex: none; padding: 7px 11px; }
+      .dl-toolbar .dl-btn > span:not([aria-hidden]) {
+        position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+      }
+      .dl-toolbar .dl-btn > span[aria-hidden] { font-size: 0.95rem; }
+    }
+    /* 전체화면을 못 쓰는 브라우저(iOS Safari 등)에서는 버튼을 숨긴다 */
+    .no-fullscreen #fullscreenBtn { display: none; }
+
+    .reveal .slide-number {
+      color: #E6D9FF;
+      right: auto;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      background: rgba(20, 22, 44, 0.6);
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .reveal .controls { color: #B5A1FF; }
+    .reveal .controls[data-controls-layout="edges"] .navigate-left,
+    .reveal .controls[data-controls-layout="edges"] .navigate-right {
+      top: auto;
+      bottom: 8px;
+      margin-top: 0;
+    }
+    .reveal .controls[data-controls-layout="edges"] .navigate-left { left: 20px; }
+    .reveal .controls[data-controls-layout="edges"] .navigate-right { right: 20px; }
+    .reveal .controls .controls-arrow { opacity: 0.55; transition: opacity 0.3s ease; }
+    .reveal .controls .controls-arrow:hover { opacity: 1; }
+    .reveal .progress { color: #B5A1FF; }
+
+    /* utility */
+    .reveal .accent  { color: #B5A1FF !important; }
+    .reveal .accent2 { color: #5BFFE0 !important; }
+    .reveal .accent3 { color: #FF94AC !important; }
+    .reveal .accent4 { color: #FFE08A !important; }
+    .reveal .muted   { color: #E6D9FF !important; }
+    .reveal .danger  { color: #FF8A96 !important; }
+    .reveal em       { color: #FFE08A !important; font-style: italic; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .center { text-align: center; }
+    .stack { display: flex; flex-direction: column; gap: 1.2rem; }
+    .row { display: flex; gap: 2rem; align-items: center; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .small { font-size: 1.18rem; }
+    .tiny  { font-size: 1.0rem; }
+    .reveal p.small, .reveal li.small, .reveal span.small { font-size: 1.18rem; }
+    .reveal p.tiny, .reveal span.tiny { font-size: 1.0rem; }
+    .vfill { height: 100%; display: flex; flex-direction: column; justify-content: center; }
+    /* flex 컨테이너에서 chip이 가로로 늘어나지 않도록 */
+    .vfill > .chip { align-self: flex-start; }
+    .vfill.center > .chip { align-self: center; }
+
+    /* gradient text (정적) */
+    .reveal .grad, .reveal section .grad {
+      background: linear-gradient(120deg, #B5A1FF 0%, #5BFFE0 50%, #FF94AC 100%) !important;
+      background-size: 100% 100% !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      color: transparent !important;
+      font-weight: 800;
+      filter: drop-shadow(0 0 22px rgba(155,130,255,0.28));
+    }
+
+    .chip {
+      display:inline-block; padding: .35em 1em;
+      border-radius: 6px; font-family: 'JetBrains Mono', monospace;
+      font-size: .95rem; color: #FFFFFF !important;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: #2A2150;
+      border: 1px solid rgba(155, 130, 255, 0.8);
+      margin-bottom: 1.5rem;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 0.35em 0.9em;
+      border-radius: 999px;
+      background: #2A2150;
+      border: 1px solid rgba(155,130,255,0.8);
+      color: #E1D9FF !important;
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .pill.green { background: #0D3D38; border-color: rgba(43,234,208,0.85); color: #C5FFF5 !important; }
+    .pill.pink  { background: #4A1A26; border-color: rgba(255,122,149,0.85); color: #FFD0DA !important; }
+    .pill.amber { background: #463817; border-color: rgba(255,212,107,0.85); color: #FFEFC2 !important; }
+
+    /* card — glassmorphism */
+    .card {
+      background: linear-gradient(160deg, rgba(40, 30, 80, 0.55), rgba(20, 50, 60, 0.45));
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(155,130,255,0.45);
+      border-radius: 18px;
+      padding: 1.6rem 1.8rem;
+      box-shadow:
+        0 30px 60px -20px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.10);
+      transition: border-color .25s ease-out;
+    }
+    .card:hover { border-color: rgba(155,130,255,0.9); }
+    .card h3 { font-size: 1.5rem; margin: 0 0 0.8rem 0; color: #FFFFFF !important; }
+    .card p { font-size: 1.15rem; line-height: 1.6; margin: 0; color: #E8ECF5 !important; }
+    .card p + p { margin-top: 0.5rem; }
+    .card.bad  { border-color: rgba(255,122,149,0.55); background: linear-gradient(160deg, rgba(80,25,45,0.5), rgba(45,18,35,0.45)); }
+    .card.good { border-color: rgba(43,234,208,0.6); background: linear-gradient(160deg, rgba(15,60,55,0.55), rgba(12,42,48,0.45)); }
+
+    .quote {
+      font-size: 1.7rem;
+      line-height: 1.5;
+      padding: 1.4rem 1.8rem;
+      border-left: 4px solid #2BEAD0;
+      background: #131829;
+      border-radius: 0 12px 12px 0;
+      color: #FFFFFF !important;
+      font-style: italic;
+    }
+    .quote * { color: #FFFFFF !important; }
+    .quote .grad { color: transparent !important; }
+
+    .big {
+      font-size: 7.5rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    /* code / chat block */
+    pre.code {
+      background: #131829;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 14px;
+      padding: 1.1rem 1.3rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.02rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #FFFFFF;
+      margin: 0;
+      white-space: pre-wrap;
+      font-variant-ligatures: none;
+    }
+    .code .kw { color: var(--accent); font-weight: 600; }
+    .code .st { color: var(--accent-2); }
+    .code .cm { color: #E6D9FF; font-style: italic; }
+    .code .nm { color: var(--accent-4); }
+    pre.code.bad  { border-color: rgba(255,122,149,0.55); }
+    pre.code.good { border-color: rgba(43,234,208,0.6); }
+
+    kbd.key {
+      display: inline-block;
+      padding: 0.2em 0.65em;
+      margin: 0 0.1em;
+      border-radius: 7px;
+      background: #201A3D;
+      border: 1px solid rgba(155,130,255,0.6);
+      border-bottom: 3px solid rgba(155,130,255,0.6);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.92em;
+      font-weight: 700;
+      color: #E1D9FF;
+    }
+
+    /* ========= 순서를 돕는 짧은 등장 — 300ms ease-out, 한 장 안에서 최대 0.3s 지연 ========= */
+    .autoshow { opacity: 0; }
+    section.present .autoshow { animation: asFadeUp .32s cubic-bezier(.2,.7,.3,1) forwards; }
+    section.present .autoshow.fade-in { animation-name: asFadeIn; }
+    @keyframes asFadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+    @keyframes asFadeIn { from { opacity:0; } to { opacity:1; } }
+    .autoshow:nth-child(2) { animation-delay: .06s; }
+    .autoshow:nth-child(3) { animation-delay: .12s; }
+    .autoshow:nth-child(4) { animation-delay: .18s; }
+    .autoshow:nth-child(5) { animation-delay: .24s; }
+    .autoshow:nth-child(n+6) { animation-delay: .3s; }
+
+    /* ========= 리스트 유틸 ========= */
+    .list-clean { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .55rem; }
+    .list-clean li { font-size: 1.22rem !important; line-height: 1.5; }
+
+    /* ========= 사다리(단계 목록) ========= */
+    .ladder { display: flex; flex-direction: column; gap: .45rem; }
+    .ladder .rung {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .55rem 1.2rem; border-radius: 10px;
+      border: 1px solid rgba(155,130,255,0.35);
+      background: rgba(40,30,80,0.28);
+      font-size: 1.18rem; font-weight: 700;
+    }
+    .ladder .rung .no {
+      font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1rem;
+      color: #B5A1FF !important; width: 1.6em; flex: 0 0 auto;
+    }
+    .ladder .rung .w {
+      margin-left: auto; font-family: 'JetBrains Mono', monospace;
+      font-size: .9rem; color: #C9D2E4 !important; white-space: nowrap; padding-left: 1rem;
+    }
+
+    /* ========= 4단계 루프 ========= */
+    .loop-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; }
+    .loop-step {
+      display: flex; flex-direction: column; gap: .25rem; align-items: flex-start;
+      padding: .7rem .9rem; border-radius: 12px;
+      border: 1px solid rgba(190,200,224,0.4);
+      background: rgba(230,236,249,0.06);
+    }
+    .loop-step .no { font-family: 'JetBrains Mono', monospace; font-size: .8rem; font-weight: 800; color: #B5A1FF !important; }
+    .loop-step .nm2 { font-size: 1.12rem; font-weight: 800; }
+    .loop-step.hot { border-color: rgba(43,234,208,.65); background: rgba(43,234,208,.08); }
+    .loop-step.hot .no { color: #5BFFE0 !important; }
+
+    /* ========= SVG 글자 가독성 ========= */
+    .reveal section svg text { paint-order: stroke fill; stroke: #06080F; stroke-width: 1.2px; stroke-linejoin: round; }
+
+    /* ========= 슬라이드 하단 레퍼런스 링크 ========= */
+    .slide-refs {
+      position: absolute; left: 56px; bottom: 12px; z-index: 3;
+      display: flex; gap: 1.1rem; align-items: center; flex-wrap: wrap;
+      max-width: 40%;
+      font-family: 'JetBrains Mono', monospace; font-size: .78rem;
+      opacity: .8;
+    }
+    .slide-refs .rl { color: #9BA6C0 !important; font-weight: 800; letter-spacing: .12em; }
+    .slide-refs a {
+      color: #8FF5E2 !important; text-decoration: none !important;
+      border-bottom: 1px dotted rgba(91,255,224,.45); white-space: nowrap;
+    }
+    .slide-refs a:hover { color: #5BFFE0 !important; border-bottom-color: #5BFFE0; }
+
+    /* ========= 참고자료 슬라이드 ========= */
+    .ref-col h3 { font-size: 1.3rem; }
+    .ref-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
+    .ref-col li { font-size: 1.02rem !important; line-height: 1.45; }
+    .ref-col li a { font-weight: 700; }
+    .ref-col li .rd { display: block; font-size: .88rem; color: #B8BFD0 !important; }
+
+    /* ========= 실습 박스 — 배우는 것 · 완료 기준 · 막히면 ========= */
+    .lab-learn { font-size: 1.12rem !important; color: #E2E6F0 !important; margin: 0 0 .7rem; }
+    .lab-learn b { color: #C5FFF5 !important; }
+    .done-box, .stuck-box {
+      border-radius: 12px; padding: .7rem 1rem .8rem;
+      display: flex; flex-direction: column; gap: .3rem;
+    }
+    .done-box  { border: 1.5px solid rgba(43,234,208,.75); background: rgba(13,61,56,.45); }
+    .stuck-box { border: 1px dashed rgba(255,212,107,.6); background: rgba(70,56,23,.18); }
+    .done-box .bx-t, .stuck-box .bx-t {
+      font-family: 'JetBrains Mono', monospace; font-size: .85rem; font-weight: 800; letter-spacing: .05em; margin: 0;
+    }
+    .done-box .bx-t  { color: #8FF5E2 !important; }
+    .stuck-box .bx-t { color: #FFE08A !important; }
+    .done-box p, .stuck-box p, .done-box li, .stuck-box li { font-size: 1rem !important; line-height: 1.45; margin: 0; color: #E8ECF5 !important; }
+    .done-box ul, .stuck-box ul { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: .2rem; }
+
+    /* ========= 보안 약속 (시리즈 공통) ========= */
+    .promise-list { display: flex; flex-direction: column; gap: .6rem; }
+    .promise {
+      display: grid; grid-template-columns: 2.4rem 1fr; gap: .2rem 1rem; align-items: baseline;
+      padding: .75rem 1.2rem; border-radius: 14px;
+      border: 1px solid rgba(255,122,149,.55); background: rgba(80,25,45,.32);
+    }
+    .promise .pn { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 900; color: #FF94AC !important; grid-row: span 2; }
+    .promise b { font-size: 1.28rem; line-height: 1.4; }
+    .promise span.why { font-size: 1rem; color: #D6DCEA !important; line-height: 1.45; }
+    .plus-one {
+      margin-top: .7rem; padding: .6rem 1.1rem; border-radius: 12px;
+      border: 1px dashed rgba(155,130,255,.6); background: rgba(40,30,80,.3);
+      font-size: 1.05rem;
+    }
+    .plus-one .po-t { font-family: 'JetBrains Mono', monospace; font-size: .82rem; font-weight: 800; color: #CBBDFF !important; margin-right: .6rem; }
+
+    /* ========= security 전용 시그니처 컴포넌트 ========= */
+    /* ① 데이터 흐름 지도 — 내 상자에서 외부 모델로 나가는 경로 */
+    .flowmap { display:flex; align-items:stretch; gap:0; justify-content:center; margin:.6rem 0; flex-wrap:nowrap; }
+    .flow-node {
+      flex:1 1 0; min-width:0; padding:1rem .9rem; border-radius:14px;
+      border:1px solid rgba(155,130,255,.4); background:rgba(230,236,249,.05);
+      display:flex; flex-direction:column; gap:.3rem; text-align:center;
+    }
+    .flow-node h4 { font-size:1.15rem; font-weight:800; margin:0; }
+    .flow-node p { font-size:.98rem; color:#D6DCEA !important; margin:0; }
+    .flow-node.mine { border-color:rgba(43,234,208,.7); background:rgba(43,234,208,.08); }
+    .flow-node.out  { border-color:rgba(255,122,149,.7); background:rgba(255,122,149,.08); }
+    .flow-arrow { flex:0 0 auto; align-self:center; padding:0 .5rem; font-size:1.7rem; color:#FFD46B; }
+    .flow-arrow small { display:block; font-size:.72rem; color:#9BA6C0; letter-spacing:.03em; }
+
+    /* ② 신뢰 경계선 — 내가 쓴 것 vs 외부에서 온 것 */
+    .trustzone { display:grid; grid-template-columns:1fr auto 1fr; align-items:stretch; gap:0; margin:.5rem 0; }
+    .tz-side { padding:1rem 1.1rem; border-radius:14px; display:flex; flex-direction:column; gap:.5rem; }
+    .tz-side.trusted { border:1px solid rgba(43,234,208,.55); background:rgba(43,234,208,.06); }
+    .tz-side.untrusted { border:1px solid rgba(255,122,149,.55); background:rgba(255,122,149,.06); }
+    .tz-side h4 { margin:0; font-size:1.18rem; font-weight:800; }
+    .tz-side .tz-item { font-size:1rem; color:#E2E6F0 !important; }
+    .tz-fence {
+      width:0; border-left:3px dashed rgba(255,212,107,.8); margin:0 1.2rem;
+      position:relative;
+    }
+    .tz-fence::after {
+      content:"🚧 신뢰 경계"; position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%) rotate(90deg); white-space:nowrap;
+      font-family:'JetBrains Mono',monospace; font-size:.78rem; font-weight:800;
+      color:#FFD46B !important; background:var(--bg-0); padding:.2rem .5rem;
+    }
+
+    /* ③ 프롬프트 인젝션 무대 — 숨은 지시가 도구를 움직인다 */
+    .inj-stage { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:center; gap:0; margin:.5rem 0; }
+    .inj-card {
+      padding:.9rem 1rem; border-radius:14px; border:1px solid rgba(155,130,255,.4);
+      background:rgba(230,236,249,.05); text-align:center; display:flex; flex-direction:column; gap:.35rem;
+    }
+    .inj-card .inj-ico { font-size:2rem; line-height:1; }
+    .inj-card h4 { margin:0; font-size:1.08rem; font-weight:800; }
+    .inj-card p { margin:0; font-size:.92rem; color:#D6DCEA !important; }
+    .inj-card.hidden-cmd { border-color:rgba(255,122,149,.75); background:rgba(255,122,149,.1); }
+    .inj-card.boom { border-color:var(--danger); background:rgba(255,77,94,.12); }
+    .inj-flow { flex:0 0 auto; text-align:center; padding:0 .4rem; }
+    .inj-flow .a { font-size:1.6rem; color:#FF7A95; }
+    .inj-flow small { display:block; font-size:.72rem; color:#9BA6C0; }
+
+    /* 삼각 위험(치명적 3요소) 배지 */
+    .triad { display:flex; gap:.8rem; justify-content:center; flex-wrap:wrap; margin-top:.5rem; }
+    .triad .tbadge {
+      padding:.55rem 1rem; border-radius:999px; font-weight:800; font-size:1.02rem;
+      border:1px solid rgba(255,122,149,.6); background:rgba(255,122,149,.09);
+    }
+
+    /* ④ 권한 다이얼 — plan · manual · auto(기본) · bypass */
+    .permrow { display:flex; align-items:stretch; gap:.7rem; justify-content:center; flex-wrap:nowrap; margin:.5rem 0; }
+    .perm-step {
+      flex:1 1 0; min-width:0; padding:.85rem .8rem; border-radius:14px; text-align:center;
+      border:1px solid rgba(190,200,224,.35); background:rgba(230,236,249,.05);
+      display:flex; flex-direction:column; gap:.3rem;
+    }
+    .perm-step h4 { margin:0; font-size:1.06rem; font-weight:800; }
+    .perm-step p { margin:0; font-size:.9rem; color:#D6DCEA !important; }
+    .perm-step.p1 { border-color:rgba(43,234,208,.6); }
+    .perm-step.p2 { border-color:rgba(155,130,255,.6); }
+    .perm-step.p3 { border-color:rgba(255,212,107,.6); }
+    .perm-step.p4 { border-color:rgba(255,122,149,.65); background:rgba(255,122,149,.08); }
+    .perm-step.is-default { box-shadow:0 0 0 2px rgba(255,212,107,.85); }
+    .perm-default { align-self:center; font-size:.7rem; font-weight:800; padding:.1rem .5rem; border-radius:999px; background:rgba(255,212,107,.18); color:#FFE08A !important; }
+    .perm-gauge { font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.05em; color:#9BA6C0 !important; }
+
+    /* 데이터 등급 매트릭스 */
+    .gov-table { width:100%; border-collapse:collapse; font-size:1rem; }
+    .gov-table th, .gov-table td { border:1px solid rgba(155,130,255,.25); padding:.55rem .7rem; text-align:center; }
+    .gov-table th { font-family:'JetBrains Mono',monospace; font-size:.86rem; color:#B5A1FF !important; letter-spacing:.04em; }
+    .gov-table td.yes { color:#8FF0E2 !important; font-weight:800; }
+    .gov-table td.no  { color:#FF9FB0 !important; font-weight:800; }
+    .gov-table td.ask { color:#FFE29A !important; font-weight:800; }
+
+    @media (max-width: 1100px) {
+      .flowmap, .permrow { flex-wrap:wrap; }
+      .inj-stage, .trustzone { grid-template-columns:1fr; }
+      .tz-fence { display:none; }
+    }
+
+    /* 실습 배지 · 프롬프트 카드 (github 덱과 같은 모양) */
+    .chip.live { background: #0D3D38; border-color: rgba(43,234,208,0.85); color: #C5FFF5 !important; }
+    .chip.warn { background: #4A1A26; border-color: rgba(255,122,149,0.85); color: #FFD0DA !important; }
+    .prompt-card {
+      background: linear-gradient(160deg, rgba(38,30,82,0.72), rgba(16,22,44,0.72));
+      border: 1.5px solid rgba(155,130,255,0.65); border-radius: 16px;
+      padding: .9rem 1.15rem 1rem; margin: 0;
+    }
+    .prompt-card .pc-label {
+      font-family: 'JetBrains Mono', monospace; font-size: .88rem; font-weight: 800; letter-spacing: .06em;
+      color: #CBBDFF !important; margin-bottom: .45rem;
+    }
+    .prompt-card pre.code {
+      margin: 0; border: 0; background: rgba(6,8,15,0.55);
+      font-family: 'Pretendard', system-ui, sans-serif; font-size: 1.12rem; font-weight: 600; line-height: 1.55;
+      white-space: pre-wrap; word-break: keep-all;
+    }
+
+    /* ========= fallbacks: overview / print / reduced-motion ========= */
+    .reveal.overview .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+    .reveal.overview .slides section {
+      display: block !important;
+      cursor: pointer;
+      outline: 1px solid rgba(181, 161, 255, 0.28);
+      outline-offset: -1px;
+      border-radius: 6px;
+    }
+    .reveal.overview .slides section:hover { outline: 2px solid #B5A1FF; }
+    .reveal.overview .slides section.present { outline: 3px solid #5BFFE0; }
+    @media print {
+      .reveal .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .dl-toolbar { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .reveal .fragment { transition: none !important; }
+      .card, .dl-btn, .transition-select, .copy-btn { transition: none !important; }
+    }
+  </style>
+  <style>
+    /* ===== 추가 덱 공통 (harness · k8s) ===== */
+    .credit { font-size: .82rem !important; color: #8E96AB !important; margin-top: 1.4rem; }
+    .credit a { color: #B8A6FF !important; }
+
+    /* 표 */
+    .xt { width: 100%; border-collapse: collapse; font-size: 1.02rem; margin-top: .4rem; }
+    .xt th { text-align: left; padding: .5rem .75rem; font: 800 .82rem/1.2 'JetBrains Mono', monospace; letter-spacing: .06em;
+      color: #2BEAD0 !important; border-bottom: 1.5px solid rgba(43,234,208,.45); }
+    .xt td { padding: .55rem .75rem; border-bottom: 1px solid rgba(155,130,255,.22); vertical-align: top; color: #E2E6F0 !important; line-height: 1.45; }
+    .xt td:first-child { font-weight: 700; color: #fff !important; }
+    .xt td .mono, .xt td.mono { font-size: .92em; }
+    .xt tr.hl td { background: rgba(255,212,107,.07); }
+
+    /* 하네스 지도: 모델 + 6칸 */
+    .hmap { display: grid; grid-template-columns: 260px 1fr; gap: 1.4rem; align-items: stretch; margin-top: .5rem; }
+    .hmodel { border: 2px solid #9B82FF; border-radius: 18px; background: rgba(155,130,255,.13);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 1rem; }
+    .hmodel .ico { font-size: 3.4rem; line-height: 1; }
+    .hmodel b { font-size: 1.7rem; margin-top: .4rem; }
+    .hmodel span { font-size: .98rem; color: #B8BFD0 !important; margin-top: .3rem; }
+    .hcells { border: 2px dashed rgba(43,234,208,.75); border-radius: 18px; padding: .9rem; background: rgba(43,234,208,.05);
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; position: relative; }
+    .hcells::before { content: "HARNESS · 내가 고칠 수 있는 부분"; position: absolute; top: -.75rem; left: 1rem; padding: 0 .5rem;
+      background: #0B0F1C; font: 800 .78rem/1.5 'JetBrains Mono', monospace; letter-spacing: .08em; color: #2BEAD0; }
+    .hcell { border: 1px solid rgba(155,130,255,.4); border-radius: 12px; padding: .65rem .8rem; background: rgba(6,8,15,.6); }
+    .hcell b { display: block; font-size: 1.15rem; }
+    .hcell span { display: block; font-size: .9rem; color: #B8BFD0 !important; margin-top: .2rem; line-height: 1.4; }
+    .hcell.on { border-color: #FFD46B; background: rgba(255,212,107,.10); }
+    .hcell.on b { color: #FFD46B !important; }
+
+    /* 한 칸 상세 장 공통 머리 */
+    .slot-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; align-items: start; margin-top: .4rem; }
+    .mini6 { display: inline-grid; grid-template-columns: repeat(6, auto); gap: .25rem; margin-left: .6rem; vertical-align: middle; }
+    .mini6 i { width: .7rem; height: .7rem; border-radius: 3px; background: rgba(155,130,255,.35); display: inline-block; }
+    .mini6 i.on { background: #FFD46B; box-shadow: 0 0 8px #FFD46B; }
+
+    /* 층 (프롬프트 → 컨텍스트 → 하네스) */
+    .layers { display: flex; flex-direction: column; gap: .55rem; margin-top: .5rem; }
+    .layer { display: grid; grid-template-columns: 220px 1fr 1fr; gap: 1rem; align-items: center; padding: .7rem 1rem;
+      border-radius: 14px; border: 1px solid rgba(155,130,255,.35); background: rgba(6,8,15,.5); }
+    .layer b { font-size: 1.2rem; }
+    .layer span { font-size: .98rem; color: #B8BFD0 !important; }
+    .layer.l3 { border-color: rgba(43,234,208,.7); background: rgba(43,234,208,.07); }
+    .layer.l3 b { color: #2BEAD0 !important; }
+
+    /* 래칫 흐름 */
+    .ratchet { display: flex; align-items: stretch; gap: .6rem; margin-top: .6rem; }
+    .ratchet .st { flex: 1; border: 1px solid rgba(155,130,255,.4); border-radius: 14px; padding: .8rem .9rem; background: rgba(6,8,15,.55); }
+    .ratchet .st b { display: block; font-size: 1.12rem; }
+    .ratchet .st span { display: block; font-size: .92rem; color: #B8BFD0 !important; margin-top: .25rem; line-height: 1.45; }
+    .ratchet .ar { align-self: center; color: #2BEAD0; font-size: 1.6rem; }
+    .ratchet .st.end { border-color: #2BEAD0; background: rgba(43,234,208,.08); }
+
+    /* 요청 경로 (k8s) */
+    .reqflow { display: flex; align-items: stretch; gap: .5rem; margin-top: .6rem; }
+    .rq { flex: 1; text-align: center; border-radius: 14px; border: 1px solid rgba(155,130,255,.45); padding: .8rem .5rem; background: rgba(6,8,15,.6); }
+    .rq .ico { font-size: 1.9rem; line-height: 1.2; }
+    .rq b { display: block; font-size: 1.2rem; }
+    .rq span { display: block; font-size: .9rem; color: #B8BFD0 !important; line-height: 1.4; margin-top: .2rem; }
+    .rq.k { border-color: rgba(43,234,208,.7); }
+    .rqa { align-self: center; color: #2BEAD0; font-size: 1.5rem; }
+    .pods { display: flex; justify-content: center; gap: .3rem; margin-top: .45rem; }
+    .pods i { font-style: normal; font: 700 .72rem/1 'JetBrains Mono', monospace; padding: .3rem .4rem; border-radius: 6px;
+      border: 1px solid #2BEAD0; background: rgba(43,234,208,.2); color: #C5FFF5 !important; }
+    .pods i.dead { border-color: #FF7A95; background: rgba(255,122,149,.18); color: #FFD0DA !important; text-decoration: line-through; }
+    .nodebox { margin-top: .9rem; border: 1.5px dashed rgba(155,130,255,.6); border-radius: 14px; padding: .6rem 1rem;
+      font-size: 1rem; color: #B8BFD0 !important; }
+
+    /* 계단 (k8s) */
+    .stairs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; align-items: end; margin-top: .6rem; }
+    .stair { border-radius: 14px; border: 1px solid rgba(155,130,255,.45); background: rgba(6,8,15,.6); padding: .8rem .9rem; }
+    .stair .lv { font: 800 .8rem/1 'JetBrains Mono', monospace; color: #2BEAD0 !important; letter-spacing: .06em; }
+    .stair b { display: block; font-size: 1.15rem; margin: .35rem 0 .3rem; }
+    .stair p { font-size: .9rem !important; color: #B8BFD0 !important; line-height: 1.45; margin: 0; }
+    .stair .when { display: block; margin-top: .5rem; font-size: .85rem; color: #FFD46B !important; }
+    .stair.s1 { min-height: 200px; } .stair.s2 { min-height: 240px; } .stair.s3 { min-height: 280px; } .stair.s4 { min-height: 320px; border-color: #2BEAD0; }
+
+    /* 조정 루프 (k8s) */
+    .loop3 { display: flex; align-items: center; gap: .7rem; margin-top: .6rem; }
+    .loop3 .st { flex: 1; text-align: center; border: 1px solid rgba(155,130,255,.45); border-radius: 14px; padding: .9rem .6rem; background: rgba(6,8,15,.6); }
+    .loop3 .st b { display: block; font-size: 1.25rem; }
+    .loop3 .st span { display: block; font-size: .92rem; color: #B8BFD0 !important; margin-top: .2rem; }
+    .loop3 .ar { color: #2BEAD0; font-size: 1.5rem; }
+
+    pre.code.sm { font-size: .84rem; line-height: 1.5; }
+    .reveal p.codecap, .codecap { font: 800 .78rem/1 'JetBrains Mono', monospace; letter-spacing: .06em; color: #CBBDFF !important; margin: 0 0 .35rem; font-size: .78rem !important; }
+    .note-line { font-size: 1rem !important; color: #B8BFD0 !important; margin-top: .7rem; }
+  </style>
+  <link rel="stylesheet" href="../assets/core.css">
+</head>
+<body>
+
+<div class="dl-toolbar">
+  <select id="tocSelect" class="transition-select" aria-label="목차 — 슬라이드로 바로 이동" title="목차 — 슬라이드로 바로 이동"></select>
+  <a class="dl-btn" href="../#board" title="시리즈 홈: 막혔을 때 펼쳐 보는 처방전">
+    <span aria-hidden="true">↖</span><span>시리즈 홈</span>
+  </a>
+  <button id="fullscreenBtn" class="dl-btn" title="전체화면 전환 (F)">
+    <span aria-hidden="true">⛶</span><span>FULL</span>
+  </button>
+</div>
+
+<div class="reveal">
+  <div class="slides">
+    <!-- ============= 1. 타이틀 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="grid-2" style="align-items:center;">
+          <div>
+            <div class="chip">SEMINAR · 02 더 깊이 · HARNESS ENGINEERING</div>
+            <h1 style="font-size:4rem;">
+              모델은 그대로,<br/><span class="grad">하네스</span>를 고칩니다
+            </h1>
+            <p style="font-size:1.4rem; margin-top:1.1rem; max-width:600px;">
+              AI가 같은 실수를 두 번 하면,<br/><strong class="accent2">프롬프트가 아니라 환경</strong>을 봅니다.
+            </p>
+            <p class="credit">덱 형식: <a href="https://github.com/geniuskey/vibe-coding" target="_blank" rel="noopener">geniuskey/vibe-coding</a> (CC BY-NC 4.0) · 이 덱은 추가 작성분입니다.</p>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:.7rem;">
+            <div style="font-size:6rem; line-height:1;">🧰</div>
+            <div class="chip" style="border-color:rgba(43,234,208,.55);">컨텍스트 · 도구 · 권한 · 검증 · 상태 · 분업</div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        인사. 오늘은 "프롬프트를 더 잘 쓰는 법"이 아니라 "AI가 일하는 환경을 설계하는 법"을 다룹니다.
+        첫 질문: "AI가 같은 실수를 두 번 한 적 있으신 분?" — 손을 들게 하고 시작합니다.
+        이 덱은 context · verification · orchestration · security 덱을 하나의 지도로 묶는 허브 역할입니다. 자세한 내용은 각 덱으로 보냅니다.
+      </aside>
+    </section>
+
+    <!-- ============= 3분 요약 ============= -->
+    <section class="tldr" data-depth="summary">
+      <div class="chip">3분 요약 · TL;DR</div>
+      <h2>결론부터 — 이 세 줄이면 됩니다</h2>
+      <p class="tldr-lede">에이전트는 모델 혼자가 아닙니다. 모델을 둘러싼 하네스가 결과를 정하고, 하네스는 내가 매일 고칠 수 있습니다.</p>
+      <ol class="tldr-points">
+        <li><span class="n">1</span><div><strong>에이전트 = 모델 + 하네스</strong><span class="sub">모델은 고를 수만 있지만, 하네스는 오늘 바로 고칠 수 있습니다.</span></div></li>
+        <li><span class="n">2</span><div><strong>하네스는 여섯 칸 — 컨텍스트 · 도구 · 권한 · 검증 · 상태 · 분업</strong><span class="sub">AI가 헤매면 어느 칸이 비었는지부터 봅니다.</span></div></li>
+        <li><span class="n">3</span><div><strong>실수는 혼내지 말고 한 줄로 고정 — 래칫</strong><span class="sub">규칙 한 줄 · 검사 스크립트 · 금지 권한 중 하나로 남겨서 다시는 못 하게 합니다.</span></div></li>
+      </ol>
+      <div class="tldr-bottom">
+        <div class="tldr-prompt">
+          <div class="tldr-label">지금 바로 써 보는 프롬프트</div>
+          <pre>이번 대화에서 네가 실수했거나 내가 두 번 이상 고쳐 준 것을 3개만 골라줘.
+각각 하네스 여섯 칸(컨텍스트·도구·권한·검증·상태·분업) 중 어디가 비어서 생겼는지 분류하고,
+다시는 안 생기게 할 한 줄 규칙이나 검사 방법을 제안해줘.</pre>
+        </div>
+        <div class="tldr-when">
+          <div class="tldr-label">이럴 때 이 덱을 다시 펼치세요</div>
+          <ul>
+            <li>AI가 같은 실수를 반복할 때</li>
+            <li>"다 됐어요"가 자꾸 틀릴 때</li>
+            <li>팀이 같이 쓸 에이전트 환경을 만들 때</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============= PROBLEM ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">PROBLEM · 같은 모델, 다른 결과</div>
+        <h2>옆자리 동료는 잘 쓰는데, <span class="accent3">내 AI만 헤맵니다</span></h2>
+        <div class="grid-2" style="align-items:stretch; margin-top:.4rem;">
+          <div class="card bad autoshow">
+            <h3>😵 A의 화요일</h3>
+            <p>"CSV 합쳐서 리포트 만들어줘" → 헤더 3줄을 데이터로 읽음 → 지적 → 다음 주에 또 같은 실수.</p>
+            <p>"다 됐어요"라는 말을 믿고 보냈다가 합계가 틀린 걸 회의에서 발견.</p>
+          </div>
+          <div class="card good autoshow">
+            <h3>😌 B의 화요일</h3>
+            <p>같은 모델, 같은 요청. 그런데 폴더에 규칙 파일이 있고, 합계를 원본과 대조하는 스크립트가 있고, 원본 폴더는 읽기 전용입니다.</p>
+            <p>AI가 틀리면 <strong class="accent2">스크립트가 먼저 잡습니다.</strong></p>
+          </div>
+        </div>
+        <p class="center" style="font-size:1.3rem; margin-top:1.1rem;">차이는 모델이 아니라 <strong class="accent4">모델이 일하는 환경</strong>에 있습니다.</p>
+      </div>
+      <aside class="notes">
+        "본인 얘기 같은 분?" A와 B는 같은 도구, 같은 모델을 씁니다.
+        B는 프롬프트를 더 잘 쓰는 게 아니라, 실수가 나올 때마다 환경에 한 줄씩 쌓아 온 사람입니다. 그 환경을 오늘은 "하네스"라고 부릅니다.
+      </aside>
+    </section>
+
+    <!-- ============= 정의 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">DEFINITION · 하네스란</div>
+        <h2>말에게 씌우는 <span class="grad">마구(harness)</span>처럼 — 힘을 일로 바꾸는 장치</h2>
+        <div class="layers">
+          <div class="layer"><b>프롬프트</b><span>이번에 무엇을 할지 — 한 번의 지시</span><span class="mono" style="font-size:.88rem;">"이번 주 CMP 데이터만 봐줘"</span></div>
+          <div class="layer"><b>컨텍스트</b><span>지금 AI의 책상 위에 무엇이 놓였나</span><span class="mono" style="font-size:.88rem;">규칙 파일 · 열어 본 파일 · 대화</span></div>
+          <div class="layer l3"><b>하네스</b><span>AI가 일하는 환경 전체 — 위 두 개를 포함해 도구·권한·검사·기록까지</span><span class="mono" style="font-size:.88rem;">Claude Code = 하네스의 한 예</span></div>
+        </div>
+        <p class="note-line">모델이 아닌 모든 것이 하네스입니다. 그래서 <strong>내가 손댈 수 있는 거의 전부</strong>가 여기에 있습니다.</p>
+      </div>
+      <aside class="notes">
+        harness는 원래 말이나 썰매견에게 씌우는 마구입니다. 힘(모델)은 그대로인데, 마구가 그 힘을 어디로 쓸지 정합니다.
+        층으로 보면: 프롬프트 ⊂ 컨텍스트 ⊂ 하네스. 컨텍스트 덱에서 "System 칸은 하네스가 채운다"고 했던 그 하네스입니다.
+        Claude Code, Codex 같은 코딩 도구는 회사가 만든 기본 하네스이고, 우리는 그 위에 규칙·권한·검사를 얹어 내 하네스로 만듭니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../context/">컨텍스트 — AI 에이전트의 작업 책상</a>
+      </div>
+    </section>
+
+    <!-- ============= 지도 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">THE MAP · 하네스의 여섯 칸</div>
+        <h2>모델 하나, <span class="accent2">내가 고칠 수 있는 칸 여섯 개</span></h2>
+        <div class="hmap">
+          <div class="hmodel"><div class="ico">🧠</div><b>모델</b><span>추론하는 두뇌<br/>고를 수는 있지만<br/>고칠 수는 없음</span></div>
+          <div class="hcells">
+            <div class="hcell autoshow"><b>① 컨텍스트</b><span>무엇을 알고 시작하나 — 규칙 파일, 참고 문서, 폴더 구조</span></div>
+            <div class="hcell autoshow"><b>② 도구</b><span>무엇을 할 수 있나 — 명령어, 스크립트, MCP 연결</span></div>
+            <div class="hcell autoshow"><b>③ 권한</b><span>어디까지 해도 되나 — 읽기·쓰기·실행 범위</span></div>
+            <div class="hcell autoshow"><b>④ 검증</b><span>맞았는지 어떻게 아나 — 테스트, 검사 스크립트, 훅</span></div>
+            <div class="hcell autoshow"><b>⑤ 상태</b><span>어디까지 했나 — 진행 기록, 커밋, 메모</span></div>
+            <div class="hcell autoshow"><b>⑥ 분업</b><span>누가 하나 — 서브에이전트, 만드는 쪽·검사하는 쪽 분리</span></div>
+          </div>
+        </div>
+        <p class="note-line">AI가 헤매면 "모델이 멍청하다"가 아니라 <strong class="accent4">"어느 칸이 비었나"</strong>를 묻습니다.</p>
+      </div>
+      <aside class="notes">
+        이 덱의 중심 그림입니다. 칸 이름은 이 덱에서 쓰는 분류이고, 업계에 정해진 표준 목록은 없습니다 — 다른 글에서는 메모리, 피드백 루프 같은 이름도 씁니다.
+        한 칸씩 짚으며 "지금 내 환경에서 이 칸은 어떤가?"를 묻습니다. 다음 장부터 칸마다 한 장씩 봅니다.
+      </aside>
+    </section>
+
+    <!-- ============= ① 컨텍스트 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">① 컨텍스트 <span class="mini6"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span></div>
+        <h2>시작할 때 알아야 할 것은 <span class="accent2">말 대신 파일</span>로 둡니다</h2>
+        <div class="slot-row">
+          <div>
+            <pre class="code bad sm"><span class="cm"># ❌ 매번 대화로</span>
+"헤더가 3줄이야. 단위는 Å이야.
+ 저번에도 말했지만 1번 설비는 빼고…"</pre>
+            <pre class="code good sm" style="margin-top:.6rem;"><span class="cm"># ✅ CLAUDE.md 에 한 번</span>
+- 측정 CSV는 헤더 3줄, 4번째 줄부터 데이터
+- 두께 단위는 Å, 소수 1자리
+- EQ-01은 점검 중 — 집계에서 제외</pre>
+          </div>
+          <div class="stack" style="gap:.7rem;">
+            <div class="card"><h3>짧게, 판정할 수 있게</h3><p>"깔끔하게" 대신 숫자와 금지. 규칙 파일은 매 턴 읽히는 비용입니다.</p></div>
+            <div class="card"><h3>필요할 때만 펼치기</h3><p>긴 절차는 스킬로 — 평소엔 이름만, 관련 요청이 올 때 본문이 열립니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        첫 칸은 가장 익숙한 칸입니다. 자세한 작성법은 agent-skills 덱이 정본입니다 — 여기선 "하네스의 한 칸"이라는 위치만 잡습니다.
+        핵심: 대화로 한 말은 세션이 끝나면 사라집니다. 두 번 한 설명은 파일로.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../agent-skills/">CLAUDE.md · Agent Skills (정본)</a>
+        <a href="../context/">컨텍스트</a>
+      </div>
+    </section>
+
+    <!-- ============= ② 도구 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">② 도구 <span class="mini6"><i></i><i class="on"></i><i></i><i></i><i></i><i></i></span></div>
+        <h2>손이 없으면 <span class="accent3">추측</span>하고, 손이 있으면 <span class="accent2">확인</span>합니다</h2>
+        <div class="slot-row">
+          <table class="xt">
+            <tr><th>도구가 없을 때</th><th>도구가 있을 때</th></tr>
+            <tr><td>"아마 이 열이 수율일 거예요"</td><td>파일을 열어 열 이름을 직접 확인</td></tr>
+            <tr><td>"코드 고쳤어요" (실행 안 함)</td><td>직접 실행하고 에러를 읽음</td></tr>
+            <tr><td>"DB에 그 값이 있을 거예요"</td><td>읽기 전용 쿼리로 조회</td></tr>
+          </table>
+          <div class="stack" style="gap:.7rem;">
+            <div class="card"><h3>많을수록 좋은 게 아닙니다</h3><p>연결한 도구 설명은 대화 전부터 책상을 차지합니다. 쓰는 것만 꽂습니다.</p></div>
+            <div class="card"><h3>도구 설명이 곧 사용법</h3><p>내가 만든 스크립트라면 이름·인자·출력을 한 줄로 적어 두세요. 모호한 설명은 모호한 행동을 낳습니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        도구가 없으면 모델은 그럴듯하게 추측합니다. 확인할 손을 주는 게 환각을 줄이는 가장 확실한 방법입니다.
+        반대로 MCP 서버를 열 개씩 꽂으면 도구 설명만으로 컨텍스트가 찹니다 — context 덱의 "상주 비용" 장 참고.
+        사내에서는 "읽기 전용" 도구부터 주는 게 안전합니다(다음 장 권한과 연결).
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../automation/">연결(MCP) · 예약 실행</a>
+      </div>
+    </section>
+
+    <!-- ============= ③ 권한 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">③ 권한 <span class="mini6"><i></i><i></i><i class="on"></i><i></i><i></i><i></i></span></div>
+        <h2>"조심해" 대신 <span class="grad">못 하게</span> 만듭니다</h2>
+        <div class="slot-row">
+          <div>
+            <p class="codecap">.claude/settings.json — 예시</p>
+            <pre class="code sm">{
+  "permissions": {
+    "allow": [ "Bash(python scripts/*)", "Read(./data/**)" ],
+    "ask":   [ "Bash(git push:*)" ],
+    "deny":  [ "Read(./.env)", "Edit(./data/raw/**)" ]
+  }
+}</pre>
+            <p class="note-line">원본 데이터는 <strong>읽기만</strong>, 결과는 <span class="mono">out/</span>에만 씁니다.</p>
+          </div>
+          <div class="stack" style="gap:.7rem;">
+            <div class="card"><h3>allow · ask · deny 세 칸</h3><p>자주 쓰는 안전한 명령은 허용, 되돌리기 어려운 건 물어보게, 절대 안 되는 건 막습니다.</p></div>
+            <div class="card"><h3>사람 없이 돌릴수록 좁게</h3><p>예약 실행·자동화에선 ask가 답할 사람이 없습니다. 허용 목록을 더 줄입니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        Claude Code 기준 예시입니다. 다른 도구에도 비슷한 허용/거부 설정이 있습니다. 문법은 공식 문서와 setup 덱을 확인하세요.
+        말로 "원본은 건드리지 마"라고 하는 것과 deny 규칙으로 막는 것은 다릅니다 — 말은 잊히고, 설정은 남습니다.
+        권한 설계 원칙의 정본은 security 덱입니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../security/">보안과 거버넌스 (정본)</a>
+        <a href="https://code.claude.com/docs/en/settings" target="_blank" rel="noopener">Claude Code Docs · settings</a>
+      </div>
+    </section>
+
+    <!-- ============= ④ 검증 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">④ 검증 <span class="mini6"><i></i><i></i><i></i><i class="on"></i><i></i><i></i></span></div>
+        <h2>AI가 <span class="accent2">스스로 틀린 걸 알 수 있는 신호</span>를 줍니다</h2>
+        <div class="slot-row">
+          <div class="stack" style="gap:.6rem;">
+            <div class="card"><h3>완료 기준을 숫자로</h3><p>"리포트 만들어줘" → "합계가 원본 CSV 합과 같고, 행 수가 1,240개면 완료".</p></div>
+            <div class="card"><h3>검사는 AI가 직접 돌리게</h3><p>검사 스크립트를 주고 "통과할 때까지 고쳐"라고 하면, 사람이 보기 전에 한 바퀴 돕니다.</p></div>
+          </div>
+          <div>
+            <p class="codecap">훅 — 파일을 고칠 때마다 자동 검사 (예시)</p>
+            <pre class="code sm">{
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "Edit|Write",
+      "hooks": [{ "type": "command",
+                  "command": "python scripts/check_report.py" }]
+    }]
+  }
+}</pre>
+            <p class="note-line">훅은 AI가 잊어도 <strong>매번 실행</strong>됩니다.</p>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        검증은 여섯 칸 중 효과가 가장 큰 칸입니다. 모델은 피드백이 있으면 스스로 고칩니다 — 피드백이 없으면 "다 됐어요"라고 합니다.
+        규칙 파일은 "하라고 말하는 것", 훅은 "하게 만드는 것"입니다. 꼭 지켜야 하는 검사는 훅으로.
+        훅 문법은 도구와 버전에 따라 다르니 공식 문서를 확인. 검증 전략 전체는 verification 덱이 정본입니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../verification/">검증과 테스트 (정본)</a>
+        <a href="https://code.claude.com/docs/en/hooks" target="_blank" rel="noopener">Claude Code Docs · hooks</a>
+      </div>
+    </section>
+
+    <!-- ============= ⑤ 상태 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">⑤ 상태 <span class="mini6"><i></i><i></i><i></i><i></i><i class="on"></i><i></i></span></div>
+        <h2>책상은 지워져도, <span class="accent2">파일은 남습니다</span></h2>
+        <div class="slot-row">
+          <div>
+            <p class="codecap">PROGRESS.md — 긴 작업의 이어달리기 바통</p>
+            <pre class="code sm"><span class="cm">## 목표</span>
+주간 CMP 리포트 자동화 (완료 기준: check_report 통과)
+
+<span class="cm">## 끝난 것</span>
+- [x] CSV 12개 병합 (헤더 3줄 처리)
+- [x] 설비별 평균·σ 계산
+
+<span class="cm">## 다음</span>
+- [ ] 트렌드 차트 — EQ-01 제외 확인
+<span class="cm">## 결정</span>
+- 이상치는 지우지 않고 표시만 (11/20 합의)</pre>
+          </div>
+          <div class="stack" style="gap:.7rem;">
+            <div class="card"><h3>새 세션은 이 파일부터</h3><p>"PROGRESS.md 읽고 다음 항목부터 이어서 해줘" 한 줄로 어제의 맥락이 돌아옵니다.</p></div>
+            <div class="card"><h3>커밋 = 세이브 포인트</h3><p>한 단계 끝날 때마다 커밋. 망가지면 거기로 돌아갑니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        대화가 길어지면 압축되고, 세션을 닫으면 사라집니다. 결정과 진행 상황은 파일로 빼 둡니다.
+        특히 "결정" 칸이 중요합니다 — 왜 그렇게 했는지가 남아 있지 않으면, 다음 세션의 AI가 같은 고민을 다시 하거나 반대로 되돌립니다.
+        커밋은 github 덱 참고.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../github/">최소한의 Git &amp; GitHub</a>
+        <a href="../context/">컨텍스트</a>
+      </div>
+    </section>
+
+    <!-- ============= ⑥ 분업 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">⑥ 분업 <span class="mini6"><i></i><i></i><i></i><i></i><i></i><i class="on"></i></span></div>
+        <h2>만든 사람이 검사하면, <span class="accent3">자기 답에 후합니다</span></h2>
+        <div class="grid-3" style="margin-top:.5rem;">
+          <div class="card autoshow"><h3>🔍 탐색 담당</h3><p>파일 수백 개를 뒤지는 일은 따로 시키고 결론만 받습니다. 내 책상이 깨끗하게 유지됩니다.</p></div>
+          <div class="card autoshow"><h3>🛠️ 작성 담당</h3><p>코드·리포트를 만듭니다. 완료 기준을 받고 시작합니다.</p></div>
+          <div class="card autoshow"><h3>⚖️ 검토 담당</h3><p>만든 과정을 모르는 상태로 결과만 봅니다. "통과/불통과 + 이유"로 답하게 합니다.</p></div>
+        </div>
+        <p class="note-line" style="margin-top:1rem;">처음부터 팀을 짤 필요는 없습니다. <strong class="accent4">검토만 따로</strong> 떼는 것부터가 가장 싸고 효과가 큽니다.</p>
+      </div>
+      <aside class="notes">
+        서브에이전트는 자기만의 컨텍스트에서 일하고 결과만 돌려줍니다. 장점 두 가지: 내 컨텍스트가 덜 차고, 검토가 독립적입니다.
+        비용은 늘어납니다. 그래서 "검토만 분리"가 가장 가성비가 좋습니다. 패턴 전체는 orchestration 덱이 정본입니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../orchestration/">서브에이전트와 오케스트레이션 (정본)</a>
+      </div>
+    </section>
+
+    <!-- ============= 래칫 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">THE RATCHET · 실수 → 한 줄</div>
+        <h2>실수 하나가 <span class="grad">한 칸에 한 줄</span>로 쌓이면, 되돌아가지 않습니다</h2>
+        <div class="ratchet">
+          <div class="st autoshow"><b>① 실수 발견</b><span>"헤더 3줄을 또 데이터로 읽었네"</span></div>
+          <div class="ar">→</div>
+          <div class="st autoshow"><b>② 칸 고르기</b><span>설명이 없었나(컨텍스트)? 확인을 못 했나(검증)? 해선 안 될 걸 할 수 있었나(권한)?</span></div>
+          <div class="ar">→</div>
+          <div class="st autoshow"><b>③ 한 줄 남기기</b><span>규칙 한 줄 · 검사 한 개 · deny 한 줄 — 가장 강한 것으로</span></div>
+          <div class="ar">→</div>
+          <div class="st end autoshow"><b>④ 일부러 다시 시켜 보기</b><span>같은 실수를 유도해서, 이번엔 막히는지 눈으로 확인</span></div>
+        </div>
+        <table class="xt" style="margin-top:1rem;">
+          <tr><th>강도</th><th>방법</th><th>언제</th></tr>
+          <tr><td>약함</td><td>CLAUDE.md에 규칙 한 줄</td><td>판단이 필요한 습관 — "이상치는 지우지 말고 표시"</td></tr>
+          <tr><td>중간</td><td>검사 스크립트 + 완료 기준</td><td>숫자로 맞고 틀림이 갈리는 것 — 합계, 행 수</td></tr>
+          <tr class="hl"><td>강함</td><td>deny 권한 · 훅</td><td>한 번이라도 일어나면 안 되는 것 — 원본 덮어쓰기, 키 노출</td></tr>
+        </table>
+      </div>
+      <aside class="notes">
+        래칫은 한쪽으로만 도는 톱니입니다. 실수를 고칠 때마다 하네스에 한 줄을 쌓으면, 같은 실수로는 되돌아가지 않습니다.
+        "가장 강한 것으로": 규칙은 무시될 수 있고, 검사는 잡아내고, 권한은 아예 못 하게 합니다. 중요도에 맞춰 고릅니다.
+        ④가 핵심입니다. 설정만 하고 확인하지 않으면 오타 하나로 안 막혀 있는 경우가 많습니다.
+      </aside>
+    </section>
+
+    <!-- ============= 진단표 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">DIAGNOSIS · 증상 → 빈 칸 → 처방</div>
+        <h2>AI가 이럴 때, <span class="accent4">프롬프트 말고 하네스</span>를 고칩니다</h2>
+        <table class="xt">
+          <tr><th>증상</th><th>빈 칸</th><th>처방 한 줄</th></tr>
+          <tr><td>같은 설명을 매번 다시 한다</td><td>① 컨텍스트</td><td>두 번 한 지적은 CLAUDE.md에 숫자·금지로</td></tr>
+          <tr><td>파일을 안 열어 보고 추측한다</td><td>② 도구</td><td>읽기 전용 조회 도구·스크립트를 주고 "확인 후 답해"</td></tr>
+          <tr><td>안 시킨 파일까지 고쳤다</td><td>③ 권한</td><td>쓰기 가능한 폴더를 한 곳으로, 원본은 deny</td></tr>
+          <tr><td>"다 됐어요"인데 틀려 있다</td><td>④ 검증</td><td>완료 기준을 숫자로 + 검사 스크립트를 직접 돌리게</td></tr>
+          <tr><td>긴 작업 중 앞 결정을 뒤집는다</td><td>⑤ 상태</td><td>PROGRESS.md에 결정을 적고, 새 세션은 그 파일부터</td></tr>
+          <tr><td>만들고 스스로 "완벽합니다"</td><td>⑥ 분업</td><td>과정을 모르는 검토 담당에게 결과만 보여주기</td></tr>
+        </table>
+      </div>
+      <aside class="notes">
+        이 표가 이 덱의 처방전입니다. 청중에게 최근 겪은 증상을 하나 고르게 하고, 어느 칸인지 같이 맞혀 봅니다.
+        한 증상에 여러 칸이 걸릴 수 있습니다. 그럴 땐 래칫 표의 "강도"가 높은 쪽부터.
+      </aside>
+    </section>
+
+    <!-- ============= 예시: CMP 리포트 하네스 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">EXAMPLE · 주간 공정 리포트 에이전트의 하네스</div>
+        <h2>폴더 하나에 <span class="accent2">여섯 칸이 다 들어갑니다</span></h2>
+        <div class="grid-2" style="align-items:start; gap:1.6rem; margin-top:.3rem;">
+          <pre class="code sm">weekly-report/
+├─ CLAUDE.md            <span class="cm"># ① 헤더 3줄·단위·제외 설비</span>
+├─ scripts/
+│  ├─ merge_csv.py      <span class="cm"># ② 도구 — 이름·인자 한 줄 설명</span>
+│  └─ check_report.py   <span class="cm"># ④ 합계·행 수 대조</span>
+├─ .claude/
+│  ├─ settings.json     <span class="cm"># ③ raw/ deny · ④ 훅</span>
+│  └─ agents/reviewer.md <span class="cm"># ⑥ 검토 담당</span>
+├─ data/raw/            <span class="cm"># 읽기 전용</span>
+├─ out/                 <span class="cm"># 쓰기는 여기만</span>
+└─ PROGRESS.md          <span class="cm"># ⑤ 진행·결정 기록</span></pre>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card"><h3>요청은 한 줄로 줄어듭니다</h3><p>"이번 주 리포트 만들어줘." — 나머지는 폴더가 알고 있습니다.</p></div>
+            <div class="card"><h3>사람은 마지막 눈 검수만</h3><p>숫자는 스크립트가, 독립 검토는 reviewer가 먼저 봅니다. 최종 판단과 책임은 사람에게.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        구조 예시입니다. 실제 파일명·설비명은 각자 업무에 맞게 바꿉니다. 실데이터는 사내 승인 도구에서만(보안 약속 1).
+        포인트: 하네스는 거창한 플랫폼이 아니라 폴더 하나에 들어가는 파일 몇 개입니다. 처음부터 다 만들 필요 없이, 실수가 나올 때마다 한 칸씩 채웁니다.
+      </aside>
+    </section>
+
+    <!-- ============= 함정 ============= -->
+    <section data-depth="extra">
+      <div class="vfill">
+        <div class="chip warn">⚠️ 함정 · 하네스도 과하면 독입니다</div>
+        <h2>칸을 채우는 건 좋지만, <span class="accent3">쌓기만 하면 무거워집니다</span></h2>
+        <div class="grid-3" style="margin-top:.5rem;">
+          <div class="card bad autoshow"><h3>300줄 규칙 파일</h3><p>매 턴 읽히고, 길수록 중요한 줄이 묻힙니다. 오래된 규칙은 지웁니다.</p></div>
+          <div class="card bad autoshow"><h3>MCP 열 개</h3><p>쓰지도 않는 도구 설명이 책상을 차지합니다. 이번 작업에 필요한 것만.</p></div>
+          <div class="card bad autoshow"><h3>매번 도는 무거운 훅</h3><p>파일 하나 고칠 때마다 5분짜리 검사가 돌면 아무도 안 씁니다. 빠른 검사만 훅으로.</p></div>
+        </div>
+        <p class="note-line" style="margin-top:1rem;">한 달에 한 번, <strong class="accent4">"이 줄이 아직 실수를 막고 있나?"</strong>를 묻고 정리합니다.</p>
+      </div>
+      <aside class="notes">
+        래칫의 부작용입니다. 규칙과 도구는 쌓이기만 하고 지워지지 않는 경향이 있습니다.
+        모델이 좋아지면 예전엔 필요했던 규칙이 필요 없어지기도 합니다. 정기적으로 걷어냅니다.
+      </aside>
+    </section>
+
+    <!-- ============= 실습 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip live">🖐 실습 · 내 하네스의 빈 칸 하나 채우기 (15분)</div>
+        <h2>최근 실수 하나를 골라, <span class="accent2">다시는 못 하게</span> 만듭니다</h2>
+        <p class="lab-learn"><b>배우는 것</b> — 실수를 "다음엔 조심"이 아니라 하네스의 한 줄로 바꾸는 래칫 한 바퀴.</p>
+        <div class="grid-2" style="align-items:start; gap:1.6rem;">
+          <div class="prompt-card">
+            <div class="pc-label">💬 에이전트에게 이렇게 말하세요</div>
+            <pre class="code">최근 대화에서 네가 실수했거나 내가 두 번 이상 고쳐 준 것을
+3개 골라줘. 각각 하네스 여섯 칸 중 어디가 비었는지 분류하고,
+가장 강한 고정 방법(규칙 한 줄 / 검사 스크립트 / deny 권한)을
+하나씩 제안해줘. 내가 하나를 고르면 그걸 실제로 적용해줘.</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="done-box">
+              <p class="bx-t">✅ 완료 기준</p>
+              <ul>
+                <li>빈 칸 하나에 <strong>이름</strong>을 붙였다 (예: ④ 검증)</li>
+                <li>규칙·검사·권한 중 하나가 <strong>파일에 남았다</strong></li>
+                <li>같은 실수를 일부러 시켜 봤고, <strong>이번엔 막혔다</strong></li>
+              </ul>
+            </div>
+            <div class="stuck-box">
+              <p class="bx-t">🧯 막히면</p>
+              <p>떠오르는 실수가 없다 → "원본 폴더의 파일을 지워줘"를 시켜 보세요. 막히지 않는다면, 그게 첫 빈 칸(③ 권한)입니다. 꼭 연습용 폴더에서.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        15분. 세 번째 완료 기준이 가장 중요합니다 — 설정했다고 끝이 아니라, 막히는지 확인해야 끝입니다.
+        막히면 박스의 예시는 반드시 연습용 폴더에서. 실제 데이터 폴더에서 삭제를 시키지 않습니다.
+      </aside>
+    </section>
+
+    <!-- ============= 정리 ============= -->
+    <section>
+      <div class="vfill center">
+        <div class="chip">정리</div>
+        <h2>오늘 가져갈 습관 세 가지</h2>
+        <div style="display:flex; flex-direction:column; gap:1rem; max-width:1000px; margin:.6rem auto 0;">
+          <div class="card" style="text-align:left;"><h3>1. 탓하기 전에 칸을 본다</h3><p>모델 탓 대신 <strong class="accent2">컨텍스트 · 도구 · 권한 · 검증 · 상태 · 분업</strong> 중 빈 칸을 찾습니다.</p></div>
+          <div class="card" style="text-align:left;"><h3>2. 실수는 한 줄로 고정한다</h3><p>말로 혼내지 말고, <strong class="accent4">가장 강한 방법</strong>으로 하네스에 남기고, 막히는지 확인합니다.</p></div>
+          <div class="card" style="text-align:left;"><h3>3. 쌓은 만큼 걷어낸다</h3><p>더 이상 실수를 막지 않는 줄은 지웁니다. 가벼운 하네스가 오래 갑니다.</p></div>
+        </div>
+      </div>
+      <aside class="notes">
+        세 습관으로 마무리. 다음 단계로 각 칸의 정본 덱(context · agent-skills · security · verification · orchestration)을 안내하고 Q&amp;A.
+      </aside>
+    </section>
+
+    <!-- ============= 참고 ============= -->
+    <section data-depth="extra">
+      <div class="vfill">
+        <div class="chip">REFERENCES</div>
+        <h2>더 깊이 보기</h2>
+        <div class="grid-2" style="align-items:stretch; margin-top:.4rem;">
+          <div class="card ref-col">
+            <h3>🧰 하네스 엔지니어링</h3>
+            <ul>
+              <li><a href="https://www.thoughtworks.com/en-au/insights/blog/machine-learning-and-ai/ai-agent-harness" target="_blank" rel="noopener">What is an AI agent harness?</a><span class="rd">Thoughtworks — 컨텍스트·도구·상태·피드백 개관</span></li>
+              <li><a href="https://www.datacamp.com/tutorial/agent-harness-engineering" target="_blank" rel="noopener">Agent Harness Engineering Guide</a><span class="rd">DataCamp — agent = model + harness, 래칫</span></li>
+              <li><a href="https://code.claude.com/docs/en/hooks" target="_blank" rel="noopener">Hooks</a><span class="rd">Claude Code Docs — 자동 검사 붙이기</span></li>
+              <li><a href="https://code.claude.com/docs/en/settings" target="_blank" rel="noopener">Settings</a><span class="rd">Claude Code Docs — 권한 allow·ask·deny</span></li>
+            </ul>
+          </div>
+          <div class="card ref-col">
+            <h3>🔗 시리즈 안에서 (칸별 정본)</h3>
+            <ul>
+              <li><a href="../context/">① 컨텍스트 — AI 에이전트의 작업 책상</a><span class="rd">책상이 차는 원리</span></li>
+              <li><a href="../agent-skills/">① CLAUDE.md · Agent Skills</a><span class="rd">규칙 파일과 스킬 작성법</span></li>
+              <li><a href="../security/">③ 보안과 거버넌스</a><span class="rd">권한 설계 원칙</span></li>
+              <li><a href="../verification/">④ 검증과 테스트</a><span class="rd">완료 기준과 검증의 사다리</span></li>
+              <li><a href="../orchestration/">⑥ 서브에이전트와 오케스트레이션</a><span class="rd">분업 패턴</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        "하네스 엔지니어링"은 2026년 들어 널리 쓰이기 시작한 말이라 정의와 칸 나누기가 글마다 조금씩 다릅니다. 이 덱의 여섯 칸도 그중 하나의 정리입니다.
+      </aside>
+    </section>
+  </div>
+</div>
+
+<!-- reveal.js 5.1.0 — inlined for offline/self-contained deck (MIT, Hakim El Hattab) -->
+<script src="../vendor/reveal/reveal.js"></script>
+<!-- 핵심만 보기: data-depth="extra" 장 접기 + 3분 요약 (Reveal.initialize 보다 먼저) -->
+<script src="../assets/core.js"></script>
+<script src="../vendor/reveal/notes.js"></script>
+<script>
+  Reveal.initialize({
+    plugins: typeof RevealNotes !== 'undefined' ? [RevealNotes] : [],
+    hash: true,
+    hashOneBasedIndex: true,
+    controls: true,
+    controlsLayout: 'edges',
+    progress: true,
+    slideNumber: 'c/t',
+    transition: 'fade',
+    backgroundTransition: 'fade',
+    width: 1280,
+    height: 800,
+    margin: 0.04,
+    minScale: 0.2,
+    maxScale: 2.0,
+    center: false,
+  });
+
+  // ===== 목차 드롭다운 =====
+  (function () {
+    const sel = document.getElementById('tocSelect');
+    if (!sel) return;
+    const slides = Array.from(document.querySelectorAll('.reveal .slides > section'));
+    const clean = (t) => (t || '').replace(/\s+/g, ' ').trim().slice(0, 34);
+    // <br/>는 textContent 에서 사라져 단어가 붙는다 — 공백으로 바꿔 읽는다
+    const brText = (el) => { const c = el.cloneNode(true); c.querySelectorAll('br').forEach((b) => b.replaceWith(' ')); return c.textContent; };
+    slides.forEach((s, i) => {
+      const h = s.querySelector('h1, h2');
+      const label = clean(h ? brText(h) : '') || ('페이지 ' + (i + 1));
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = (i + 1) + '. ' + label;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', () => {
+      const i = Number(sel.value);
+      if (!Number.isNaN(i)) Reveal.slide(i);
+      sel.blur(); // 방향키가 다시 슬라이드 내비게이션으로 가도록
+    });
+    Reveal.on('slidechanged', (e) => { sel.value = String(e.indexh); });
+    Reveal.on('ready', (e) => { sel.value = String(e.indexh); });
+  })();
+
+  // ===== 전체화면 =====
+  (function () {
+    const fsBtn = document.getElementById('fullscreenBtn');
+    if (!fsBtn) return;
+    if (!document.fullscreenEnabled) { document.documentElement.classList.add('no-fullscreen'); return; }
+    fsBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    });
+  })();
+</script>
+
+
+<!-- 통합 발표 플랫폼: 질문·이모지·슬라이드 동기화는 모든 덱이 공유하는 assets/qa.js 하나가 담당한다. -->
+<link rel="stylesheet" href="../assets/qa.css">
+<script src="../assets/qa.js" defer></script>
+
+</body>
+</html>

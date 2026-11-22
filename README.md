@@ -19,9 +19,11 @@
 | 02 더 깊이 | `verification/` | AI가 쓴 코드를 믿는 법 — 검증과 테스트 (검증의 사다리 · 분석 숫자 믿는 법 · TDD · AI 리뷰 · 평가) |
 | 02 더 깊이 | `orchestration/` | 서브에이전트와 오케스트레이션 (컨텍스트 격리 · 병렬 fan-out · 파이프라인 · Workflow) |
 | 02 더 깊이 | `security/` | 사내 환경에서의 AI — 보안과 거버넌스 (보안 약속 3개의 정본 `#/promises` · 데이터 경로 · 인젝션 · 권한 · 민감 파일 차단 실습) |
+| 02 더 깊이 | `harness/` | 하네스 엔지니어링 — 모델은 그대로, 환경을 고친다 (에이전트 = 모델 + 하네스 · 여섯 칸 · 래칫 · 증상별 처방표 — 각 칸의 정본 덱으로 연결하는 허브) **추가 덱** |
 | 03 직접 해보기 | `agent-skills/` | 내 노하우를 AI에게 물려주는 법 — CLAUDE.md · Agent Skills (반복 설명을 파일로 승격하는 정본 + 반도체 실무 예제, 예제 스킬 모음 `agent-skills/skills/`) |
 | 03 직접 해보기 | `making-slides/` | 바이브 코딩으로 슬라이드 자료 만들기 (레퍼런스 앵커링 · 좌표+증상 피드백 · 스스로 검사 — CLAUDE.md·스킬은 `agent-skills/`로, `slide-deck` 예제 스킬 동봉) |
 | 03 직접 해보기 | `automation/` | 내 도구가 혼자 돌게 — 연결(MCP) · 예약 실행 · 팀이 같이 쓰는 앱 |
+| 03 직접 해보기 | `k8s/` | K8S 첫걸음 — 내 도구를 팀이 쓰는 서버로 (컨테이너 · Pod·Deployment·Service·Ingress · 사내망 · 막혔을 때 · AI에게 kubectl 맡기기) **추가 덱** |
 | 번외 | `forChildren/` | 나만의 게임 만들기 (어린이 × 부모) |
 | 번외 | `herdr/` | herdr — 여러 AI 코딩 에이전트를 한 화면에서 부리는 터미널 (space → tab · 상태 표시) |
 | 번외 | `ai-map/` | AI 업계 지도 — 각 진영의 전략 (입문 덱 부록에서 분리, 분기마다 갱신) |
@@ -46,7 +48,7 @@
 - 공개 사이트·`file://` 에서는 기본 **핵심 모드**, 왼쪽 아래 토글로 전체를 펼친다(선택은 `localStorage.vibe-depth`에 기억, 보던 장으로 복귀).
 - 실제 발표(`server.js`로 띄운 곳)·`?present`·인쇄(`?print-pdf`)는 **항상 전체 모드** — 발표자와 청중의 슬라이드 번호가 같아야 따라가기가 깨지지 않는다. 강제로 고르려면 `?core` / `?full`.
 - 덱에 붙이는 법: `<head>`에 `<link rel="stylesheet" href="../assets/core.css">`, `reveal.js` 바로 다음(`Reveal.initialize` 앞)에 `<script src="../assets/core.js"></script>`.
-- 적용 덱: prompt · ui-ux · github · debugging · context · knowledge · verification · orchestration · security · agent-skills · making-slides · automation · herdr · ai-map. (setup · intro · workshop · forChildren은 처음부터 끝까지 따라가는 덱이라 접지 않는다.)
+- 적용 덱: prompt · ui-ux · github · debugging · context · knowledge · verification · orchestration · security · harness · agent-skills · making-slides · automation · k8s · herdr · ai-map. (setup · intro · workshop · forChildren은 처음부터 끝까지 따라가는 덱이라 접지 않는다.)
 
 ### 첫 화면 — 빌드 장면 (루트 `index.html`)
 

@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>K8S 첫걸음 — 내 도구를 팀이 쓰는 서버로 | 바이브 코딩 세미나</title>
+  <meta name="description" content="내 PC에서 돌던 대시보드를 팀이 쓰게 하려면. 컨테이너와 Kubernetes를 Pod·Deployment·Service·Ingress 네 단어로, 사내망에서 달라지는 점과 막혔을 때 쓰는 명령 3개까지." />
+  <meta name="keywords" content="Kubernetes, K8S, 쿠버네티스, Docker, 컨테이너, Pod, Deployment, Service, Ingress, kubectl, 사내망, 바이브 코딩" />
+  <meta name="author" content="Kang-dongho" />
+  <meta name="theme-color" content="#06080F" />
+  <!-- 형식: geniuskey/vibe-coding (CC BY-NC 4.0) 덱 구조 재사용 · 이 덱의 내용은 추가 작성분 -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOUI4MkZGIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMkJFQUQwIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgeD0iMS41IiB5PSIxLjUiIHdpZHRoPSIyOSIgaGVpZ2h0PSIyOSIgcng9IjgiIGZpbGw9IiMwRTEyMjAiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTkgMTFsNiA1LTYgNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTE3IDIxaDYiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPgo=" />
+  <link rel="stylesheet" href="../vendor/reveal/reveal.css">
+  <link rel="stylesheet" href="../vendor/fonts/pretendard.css">
+  <style>
+    :root {
+      --bg-0: #06080F;
+      --bg-1: #0E1220;
+      --bg-2: #161B30;
+      --fg: #FFFFFF;
+      --fg-dim: #E2E6F0;
+      --fg-soft: #B8BFD0;
+      --accent: #9B82FF;
+      --accent-2: #2BEAD0;
+      --accent-3: #FF7A95;
+      --accent-4: #FFD46B;
+      --danger: #FF4D5E;
+    }
+
+    html { color-scheme: dark; }
+    html, body { background: var(--bg-0) !important; }
+    /* gradient mesh background — 원본 데크와 동일한 분위기 */
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(124,92,255,0.13), transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(0,224,199,0.10), transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(255,94,126,0.04), transparent 60%);
+    }
+    body::after {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(124,92,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,92,255,0.05) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 75%);
+    }
+    .reveal { background: transparent; position: relative; z-index: 1; }
+
+    .reveal { font-family: 'Pretendard', system-ui, sans-serif; color: #FFFFFF; }
+    .reveal .slides { text-align: left; }
+    .reveal section { padding: 16px 52px; box-sizing: border-box; height: 100%; word-break: keep-all; }
+
+    /* HARD RULE: every text descendant defaults to pure white. */
+    .reveal section,
+    .reveal section p,
+    .reveal section li,
+    .reveal section span,
+    .reveal section em,
+    .reveal section strong,
+    .reveal section h1,
+    .reveal section h2,
+    .reveal section h3,
+    .reveal section h4 {
+      color: #FFFFFF;
+    }
+
+    .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+      font-family: 'Pretendard', system-ui, sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: none;
+      margin: 0 0 0.4em 0;
+      line-height: 1.15;
+      color: #FFFFFF !important;
+      text-shadow:
+        0 1px 0 rgba(0,0,0,0.85),
+        0 2px 4px rgba(0,0,0,0.55);
+    }
+    .reveal section p,
+    .reveal section li {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.75);
+    }
+    .reveal .quote, .reveal .quote * {
+      text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+    }
+    .reveal .grad {
+      text-shadow: none !important; /* background-clip:text 위 그림자는 그라데이션을 탁하게 만든다 */
+    }
+    .reveal h1 { font-size: 4.2rem; }
+    .reveal h2 { font-size: 2.9rem; }
+    .reveal h3 { font-size: 2.0rem; }
+    .reveal p, .reveal li { font-size: 1.45rem; line-height: 1.6; }
+
+    .reveal a { color: #5BFFE0 !important; }
+
+    /* Toolbar — fixed top-right */
+    .dl-toolbar {
+      position: fixed;
+      top: 16px; right: 16px;
+      z-index: 9999;
+      display: flex;
+      gap: 8px;
+    }
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: rgba(20, 22, 44, 0.85);
+      border: 1px solid rgba(155, 130, 255, 0.5);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #E6D9FF !important;
+      text-decoration: none !important;
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      white-space: nowrap;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .dl-btn:hover {
+      opacity: 1;
+      transform: translateY(-2px);
+      background: rgba(124, 92, 255, 0.4);
+      border-color: rgba(91, 255, 224, 0.7);
+    }
+    .dl-btn:focus-visible,
+    .transition-select:focus-visible {
+      opacity: 1;
+      outline: 2px solid #5BFFE0;
+      outline-offset: 2px;
+    }
+    .transition-select {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 14px;
+      background: rgba(20, 22, 44, 0.85);
+      border: 1px solid rgba(155, 130, 255, 0.5);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #E6D9FF !important;
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .transition-select:hover { opacity: 1; transform: translateY(-2px); }
+    .transition-select option { background: #14162C; color: #E1D9FF; }
+    #tocSelect { width: 340px; max-width: 340px; }
+    @media (max-width: 760px) {
+      .dl-toolbar { top: 8px; right: 8px; left: 8px; gap: 6px; justify-content: flex-end; }
+      #tocSelect { flex: 1 1 auto; width: auto; min-width: 0; max-width: 340px; text-overflow: ellipsis; }
+      .dl-toolbar .dl-btn { flex: none; padding: 7px 11px; }
+      .dl-toolbar .dl-btn > span:not([aria-hidden]) {
+        position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+      }
+      .dl-toolbar .dl-btn > span[aria-hidden] { font-size: 0.95rem; }
+    }
+    /* 전체화면을 못 쓰는 브라우저(iOS Safari 등)에서는 버튼을 숨긴다 */
+    .no-fullscreen #fullscreenBtn { display: none; }
+
+    .reveal .slide-number {
+      color: #E6D9FF;
+      right: auto;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      background: rgba(20, 22, 44, 0.6);
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .reveal .controls { color: #B5A1FF; }
+    .reveal .controls[data-controls-layout="edges"] .navigate-left,
+    .reveal .controls[data-controls-layout="edges"] .navigate-right {
+      top: auto;
+      bottom: 8px;
+      margin-top: 0;
+    }
+    .reveal .controls[data-controls-layout="edges"] .navigate-left { left: 20px; }
+    .reveal .controls[data-controls-layout="edges"] .navigate-right { right: 20px; }
+    .reveal .controls .controls-arrow { opacity: 0.55; transition: opacity 0.3s ease; }
+    .reveal .controls .controls-arrow:hover { opacity: 1; }
+    .reveal .progress { color: #B5A1FF; }
+
+    /* utility */
+    .reveal .accent  { color: #B5A1FF !important; }
+    .reveal .accent2 { color: #5BFFE0 !important; }
+    .reveal .accent3 { color: #FF94AC !important; }
+    .reveal .accent4 { color: #FFE08A !important; }
+    .reveal .muted   { color: #E6D9FF !important; }
+    .reveal .danger  { color: #FF8A96 !important; }
+    .reveal em       { color: #FFE08A !important; font-style: italic; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .center { text-align: center; }
+    .stack { display: flex; flex-direction: column; gap: 1.2rem; }
+    .row { display: flex; gap: 2rem; align-items: center; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .small { font-size: 1.18rem; }
+    .tiny  { font-size: 1.0rem; }
+    .reveal p.small, .reveal li.small, .reveal span.small { font-size: 1.18rem; }
+    .reveal p.tiny, .reveal span.tiny { font-size: 1.0rem; }
+    .vfill { height: 100%; display: flex; flex-direction: column; justify-content: center; }
+    /* flex 컨테이너에서 chip이 가로로 늘어나지 않도록 */
+    .vfill > .chip { align-self: flex-start; }
+    .vfill.center > .chip { align-self: center; }
+
+    /* gradient text (정적) */
+    .reveal .grad, .reveal section .grad {
+      background: linear-gradient(120deg, #B5A1FF 0%, #5BFFE0 50%, #FF94AC 100%) !important;
+      background-size: 100% 100% !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      color: transparent !important;
+      font-weight: 800;
+      filter: drop-shadow(0 0 22px rgba(155,130,255,0.28));
+    }
+
+    .chip {
+      display:inline-block; padding: .35em 1em;
+      border-radius: 6px; font-family: 'JetBrains Mono', monospace;
+      font-size: .95rem; color: #FFFFFF !important;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: #2A2150;
+      border: 1px solid rgba(155, 130, 255, 0.8);
+      margin-bottom: 1.5rem;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 0.35em 0.9em;
+      border-radius: 999px;
+      background: #2A2150;
+      border: 1px solid rgba(155,130,255,0.8);
+      color: #E1D9FF !important;
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .pill.green { background: #0D3D38; border-color: rgba(43,234,208,0.85); color: #C5FFF5 !important; }
+    .pill.pink  { background: #4A1A26; border-color: rgba(255,122,149,0.85); color: #FFD0DA !important; }
+    .pill.amber { background: #463817; border-color: rgba(255,212,107,0.85); color: #FFEFC2 !important; }
+
+    /* card — glassmorphism */
+    .card {
+      background: linear-gradient(160deg, rgba(40, 30, 80, 0.55), rgba(20, 50, 60, 0.45));
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(155,130,255,0.45);
+      border-radius: 18px;
+      padding: 1.6rem 1.8rem;
+      box-shadow:
+        0 30px 60px -20px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.10);
+      transition: border-color .25s ease-out;
+    }
+    .card:hover { border-color: rgba(155,130,255,0.9); }
+    .card h3 { font-size: 1.5rem; margin: 0 0 0.8rem 0; color: #FFFFFF !important; }
+    .card p { font-size: 1.15rem; line-height: 1.6; margin: 0; color: #E8ECF5 !important; }
+    .card p + p { margin-top: 0.5rem; }
+    .card.bad  { border-color: rgba(255,122,149,0.55); background: linear-gradient(160deg, rgba(80,25,45,0.5), rgba(45,18,35,0.45)); }
+    .card.good { border-color: rgba(43,234,208,0.6); background: linear-gradient(160deg, rgba(15,60,55,0.55), rgba(12,42,48,0.45)); }
+
+    .quote {
+      font-size: 1.7rem;
+      line-height: 1.5;
+      padding: 1.4rem 1.8rem;
+      border-left: 4px solid #2BEAD0;
+      background: #131829;
+      border-radius: 0 12px 12px 0;
+      color: #FFFFFF !important;
+      font-style: italic;
+    }
+    .quote * { color: #FFFFFF !important; }
+    .quote .grad { color: transparent !important; }
+
+    .big {
+      font-size: 7.5rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    /* code / chat block */
+    pre.code {
+      background: #131829;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 14px;
+      padding: 1.1rem 1.3rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.02rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #FFFFFF;
+      margin: 0;
+      white-space: pre-wrap;
+      font-variant-ligatures: none;
+    }
+    .code .kw { color: var(--accent); font-weight: 600; }
+    .code .st { color: var(--accent-2); }
+    .code .cm { color: #E6D9FF; font-style: italic; }
+    .code .nm { color: var(--accent-4); }
+    pre.code.bad  { border-color: rgba(255,122,149,0.55); }
+    pre.code.good { border-color: rgba(43,234,208,0.6); }
+
+    kbd.key {
+      display: inline-block;
+      padding: 0.2em 0.65em;
+      margin: 0 0.1em;
+      border-radius: 7px;
+      background: #201A3D;
+      border: 1px solid rgba(155,130,255,0.6);
+      border-bottom: 3px solid rgba(155,130,255,0.6);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.92em;
+      font-weight: 700;
+      color: #E1D9FF;
+    }
+
+    /* ========= 순서를 돕는 짧은 등장 — 300ms ease-out, 한 장 안에서 최대 0.3s 지연 ========= */
+    .autoshow { opacity: 0; }
+    section.present .autoshow { animation: asFadeUp .32s cubic-bezier(.2,.7,.3,1) forwards; }
+    section.present .autoshow.fade-in { animation-name: asFadeIn; }
+    @keyframes asFadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+    @keyframes asFadeIn { from { opacity:0; } to { opacity:1; } }
+    .autoshow:nth-child(2) { animation-delay: .06s; }
+    .autoshow:nth-child(3) { animation-delay: .12s; }
+    .autoshow:nth-child(4) { animation-delay: .18s; }
+    .autoshow:nth-child(5) { animation-delay: .24s; }
+    .autoshow:nth-child(n+6) { animation-delay: .3s; }
+
+    /* ========= 리스트 유틸 ========= */
+    .list-clean { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .55rem; }
+    .list-clean li { font-size: 1.22rem !important; line-height: 1.5; }
+
+    /* ========= 사다리(단계 목록) ========= */
+    .ladder { display: flex; flex-direction: column; gap: .45rem; }
+    .ladder .rung {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .55rem 1.2rem; border-radius: 10px;
+      border: 1px solid rgba(155,130,255,0.35);
+      background: rgba(40,30,80,0.28);
+      font-size: 1.18rem; font-weight: 700;
+    }
+    .ladder .rung .no {
+      font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1rem;
+      color: #B5A1FF !important; width: 1.6em; flex: 0 0 auto;
+    }
+    .ladder .rung .w {
+      margin-left: auto; font-family: 'JetBrains Mono', monospace;
+      font-size: .9rem; color: #C9D2E4 !important; white-space: nowrap; padding-left: 1rem;
+    }
+
+    /* ========= 4단계 루프 ========= */
+    .loop-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; }
+    .loop-step {
+      display: flex; flex-direction: column; gap: .25rem; align-items: flex-start;
+      padding: .7rem .9rem; border-radius: 12px;
+      border: 1px solid rgba(190,200,224,0.4);
+      background: rgba(230,236,249,0.06);
+    }
+    .loop-step .no { font-family: 'JetBrains Mono', monospace; font-size: .8rem; font-weight: 800; color: #B5A1FF !important; }
+    .loop-step .nm2 { font-size: 1.12rem; font-weight: 800; }
+    .loop-step.hot { border-color: rgba(43,234,208,.65); background: rgba(43,234,208,.08); }
+    .loop-step.hot .no { color: #5BFFE0 !important; }
+
+    /* ========= SVG 글자 가독성 ========= */
+    .reveal section svg text { paint-order: stroke fill; stroke: #06080F; stroke-width: 1.2px; stroke-linejoin: round; }
+
+    /* ========= 슬라이드 하단 레퍼런스 링크 ========= */
+    .slide-refs {
+      position: absolute; left: 56px; bottom: 12px; z-index: 3;
+      display: flex; gap: 1.1rem; align-items: center; flex-wrap: wrap;
+      max-width: 40%;
+      font-family: 'JetBrains Mono', monospace; font-size: .78rem;
+      opacity: .8;
+    }
+    .slide-refs .rl { color: #9BA6C0 !important; font-weight: 800; letter-spacing: .12em; }
+    .slide-refs a {
+      color: #8FF5E2 !important; text-decoration: none !important;
+      border-bottom: 1px dotted rgba(91,255,224,.45); white-space: nowrap;
+    }
+    .slide-refs a:hover { color: #5BFFE0 !important; border-bottom-color: #5BFFE0; }
+
+    /* ========= 참고자료 슬라이드 ========= */
+    .ref-col h3 { font-size: 1.3rem; }
+    .ref-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
+    .ref-col li { font-size: 1.02rem !important; line-height: 1.45; }
+    .ref-col li a { font-weight: 700; }
+    .ref-col li .rd { display: block; font-size: .88rem; color: #B8BFD0 !important; }
+
+    /* ========= 실습 박스 — 배우는 것 · 완료 기준 · 막히면 ========= */
+    .lab-learn { font-size: 1.12rem !important; color: #E2E6F0 !important; margin: 0 0 .7rem; }
+    .lab-learn b { color: #C5FFF5 !important; }
+    .done-box, .stuck-box {
+      border-radius: 12px; padding: .7rem 1rem .8rem;
+      display: flex; flex-direction: column; gap: .3rem;
+    }
+    .done-box  { border: 1.5px solid rgba(43,234,208,.75); background: rgba(13,61,56,.45); }
+    .stuck-box { border: 1px dashed rgba(255,212,107,.6); background: rgba(70,56,23,.18); }
+    .done-box .bx-t, .stuck-box .bx-t {
+      font-family: 'JetBrains Mono', monospace; font-size: .85rem; font-weight: 800; letter-spacing: .05em; margin: 0;
+    }
+    .done-box .bx-t  { color: #8FF5E2 !important; }
+    .stuck-box .bx-t { color: #FFE08A !important; }
+    .done-box p, .stuck-box p, .done-box li, .stuck-box li { font-size: 1rem !important; line-height: 1.45; margin: 0; color: #E8ECF5 !important; }
+    .done-box ul, .stuck-box ul { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: .2rem; }
+
+    /* ========= 보안 약속 (시리즈 공통) ========= */
+    .promise-list { display: flex; flex-direction: column; gap: .6rem; }
+    .promise {
+      display: grid; grid-template-columns: 2.4rem 1fr; gap: .2rem 1rem; align-items: baseline;
+      padding: .75rem 1.2rem; border-radius: 14px;
+      border: 1px solid rgba(255,122,149,.55); background: rgba(80,25,45,.32);
+    }
+    .promise .pn { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 900; color: #FF94AC !important; grid-row: span 2; }
+    .promise b { font-size: 1.28rem; line-height: 1.4; }
+    .promise span.why { font-size: 1rem; color: #D6DCEA !important; line-height: 1.45; }
+    .plus-one {
+      margin-top: .7rem; padding: .6rem 1.1rem; border-radius: 12px;
+      border: 1px dashed rgba(155,130,255,.6); background: rgba(40,30,80,.3);
+      font-size: 1.05rem;
+    }
+    .plus-one .po-t { font-family: 'JetBrains Mono', monospace; font-size: .82rem; font-weight: 800; color: #CBBDFF !important; margin-right: .6rem; }
+
+    /* ========= security 전용 시그니처 컴포넌트 ========= */
+    /* ① 데이터 흐름 지도 — 내 상자에서 외부 모델로 나가는 경로 */
+    .flowmap { display:flex; align-items:stretch; gap:0; justify-content:center; margin:.6rem 0; flex-wrap:nowrap; }
+    .flow-node {
+      flex:1 1 0; min-width:0; padding:1rem .9rem; border-radius:14px;
+      border:1px solid rgba(155,130,255,.4); background:rgba(230,236,249,.05);
+      display:flex; flex-direction:column; gap:.3rem; text-align:center;
+    }
+    .flow-node h4 { font-size:1.15rem; font-weight:800; margin:0; }
+    .flow-node p { font-size:.98rem; color:#D6DCEA !important; margin:0; }
+    .flow-node.mine { border-color:rgba(43,234,208,.7); background:rgba(43,234,208,.08); }
+    .flow-node.out  { border-color:rgba(255,122,149,.7); background:rgba(255,122,149,.08); }
+    .flow-arrow { flex:0 0 auto; align-self:center; padding:0 .5rem; font-size:1.7rem; color:#FFD46B; }
+    .flow-arrow small { display:block; font-size:.72rem; color:#9BA6C0; letter-spacing:.03em; }
+
+    /* ② 신뢰 경계선 — 내가 쓴 것 vs 외부에서 온 것 */
+    .trustzone { display:grid; grid-template-columns:1fr auto 1fr; align-items:stretch; gap:0; margin:.5rem 0; }
+    .tz-side { padding:1rem 1.1rem; border-radius:14px; display:flex; flex-direction:column; gap:.5rem; }
+    .tz-side.trusted { border:1px solid rgba(43,234,208,.55); background:rgba(43,234,208,.06); }
+    .tz-side.untrusted { border:1px solid rgba(255,122,149,.55); background:rgba(255,122,149,.06); }
+    .tz-side h4 { margin:0; font-size:1.18rem; font-weight:800; }
+    .tz-side .tz-item { font-size:1rem; color:#E2E6F0 !important; }
+    .tz-fence {
+      width:0; border-left:3px dashed rgba(255,212,107,.8); margin:0 1.2rem;
+      position:relative;
+    }
+    .tz-fence::after {
+      content:"🚧 신뢰 경계"; position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%) rotate(90deg); white-space:nowrap;
+      font-family:'JetBrains Mono',monospace; font-size:.78rem; font-weight:800;
+      color:#FFD46B !important; background:var(--bg-0); padding:.2rem .5rem;
+    }
+
+    /* ③ 프롬프트 인젝션 무대 — 숨은 지시가 도구를 움직인다 */
+    .inj-stage { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:center; gap:0; margin:.5rem 0; }
+    .inj-card {
+      padding:.9rem 1rem; border-radius:14px; border:1px solid rgba(155,130,255,.4);
+      background:rgba(230,236,249,.05); text-align:center; display:flex; flex-direction:column; gap:.35rem;
+    }
+    .inj-card .inj-ico { font-size:2rem; line-height:1; }
+    .inj-card h4 { margin:0; font-size:1.08rem; font-weight:800; }
+    .inj-card p { margin:0; font-size:.92rem; color:#D6DCEA !important; }
+    .inj-card.hidden-cmd { border-color:rgba(255,122,149,.75); background:rgba(255,122,149,.1); }
+    .inj-card.boom { border-color:var(--danger); background:rgba(255,77,94,.12); }
+    .inj-flow { flex:0 0 auto; text-align:center; padding:0 .4rem; }
+    .inj-flow .a { font-size:1.6rem; color:#FF7A95; }
+    .inj-flow small { display:block; font-size:.72rem; color:#9BA6C0; }
+
+    /* 삼각 위험(치명적 3요소) 배지 */
+    .triad { display:flex; gap:.8rem; justify-content:center; flex-wrap:wrap; margin-top:.5rem; }
+    .triad .tbadge {
+      padding:.55rem 1rem; border-radius:999px; font-weight:800; font-size:1.02rem;
+      border:1px solid rgba(255,122,149,.6); background:rgba(255,122,149,.09);
+    }
+
+    /* ④ 권한 다이얼 — plan · manual · auto(기본) · bypass */
+    .permrow { display:flex; align-items:stretch; gap:.7rem; justify-content:center; flex-wrap:nowrap; margin:.5rem 0; }
+    .perm-step {
+      flex:1 1 0; min-width:0; padding:.85rem .8rem; border-radius:14px; text-align:center;
+      border:1px solid rgba(190,200,224,.35); background:rgba(230,236,249,.05);
+      display:flex; flex-direction:column; gap:.3rem;
+    }
+    .perm-step h4 { margin:0; font-size:1.06rem; font-weight:800; }
+    .perm-step p { margin:0; font-size:.9rem; color:#D6DCEA !important; }
+    .perm-step.p1 { border-color:rgba(43,234,208,.6); }
+    .perm-step.p2 { border-color:rgba(155,130,255,.6); }
+    .perm-step.p3 { border-color:rgba(255,212,107,.6); }
+    .perm-step.p4 { border-color:rgba(255,122,149,.65); background:rgba(255,122,149,.08); }
+    .perm-step.is-default { box-shadow:0 0 0 2px rgba(255,212,107,.85); }
+    .perm-default { align-self:center; font-size:.7rem; font-weight:800; padding:.1rem .5rem; border-radius:999px; background:rgba(255,212,107,.18); color:#FFE08A !important; }
+    .perm-gauge { font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.05em; color:#9BA6C0 !important; }
+
+    /* 데이터 등급 매트릭스 */
+    .gov-table { width:100%; border-collapse:collapse; font-size:1rem; }
+    .gov-table th, .gov-table td { border:1px solid rgba(155,130,255,.25); padding:.55rem .7rem; text-align:center; }
+    .gov-table th { font-family:'JetBrains Mono',monospace; font-size:.86rem; color:#B5A1FF !important; letter-spacing:.04em; }
+    .gov-table td.yes { color:#8FF0E2 !important; font-weight:800; }
+    .gov-table td.no  { color:#FF9FB0 !important; font-weight:800; }
+    .gov-table td.ask { color:#FFE29A !important; font-weight:800; }
+
+    @media (max-width: 1100px) {
+      .flowmap, .permrow { flex-wrap:wrap; }
+      .inj-stage, .trustzone { grid-template-columns:1fr; }
+      .tz-fence { display:none; }
+    }
+
+    /* 실습 배지 · 프롬프트 카드 (github 덱과 같은 모양) */
+    .chip.live { background: #0D3D38; border-color: rgba(43,234,208,0.85); color: #C5FFF5 !important; }
+    .chip.warn { background: #4A1A26; border-color: rgba(255,122,149,0.85); color: #FFD0DA !important; }
+    .prompt-card {
+      background: linear-gradient(160deg, rgba(38,30,82,0.72), rgba(16,22,44,0.72));
+      border: 1.5px solid rgba(155,130,255,0.65); border-radius: 16px;
+      padding: .9rem 1.15rem 1rem; margin: 0;
+    }
+    .prompt-card .pc-label {
+      font-family: 'JetBrains Mono', monospace; font-size: .88rem; font-weight: 800; letter-spacing: .06em;
+      color: #CBBDFF !important; margin-bottom: .45rem;
+    }
+    .prompt-card pre.code {
+      margin: 0; border: 0; background: rgba(6,8,15,0.55);
+      font-family: 'Pretendard', system-ui, sans-serif; font-size: 1.12rem; font-weight: 600; line-height: 1.55;
+      white-space: pre-wrap; word-break: keep-all;
+    }
+
+    /* ========= fallbacks: overview / print / reduced-motion ========= */
+    .reveal.overview .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+    .reveal.overview .slides section {
+      display: block !important;
+      cursor: pointer;
+      outline: 1px solid rgba(181, 161, 255, 0.28);
+      outline-offset: -1px;
+      border-radius: 6px;
+    }
+    .reveal.overview .slides section:hover { outline: 2px solid #B5A1FF; }
+    .reveal.overview .slides section.present { outline: 3px solid #5BFFE0; }
+    @media print {
+      .reveal .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .dl-toolbar { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .reveal .fragment { transition: none !important; }
+      .card, .dl-btn, .transition-select, .copy-btn { transition: none !important; }
+    }
+  </style>
+  <style>
+    /* ===== 추가 덱 공통 (harness · k8s) ===== */
+    .credit { font-size: .82rem !important; color: #8E96AB !important; margin-top: 1.4rem; }
+    .credit a { color: #B8A6FF !important; }
+
+    /* 표 */
+    .xt { width: 100%; border-collapse: collapse; font-size: 1.02rem; margin-top: .4rem; }
+    .xt th { text-align: left; padding: .5rem .75rem; font: 800 .82rem/1.2 'JetBrains Mono', monospace; letter-spacing: .06em;
+      color: #2BEAD0 !important; border-bottom: 1.5px solid rgba(43,234,208,.45); }
+    .xt td { padding: .55rem .75rem; border-bottom: 1px solid rgba(155,130,255,.22); vertical-align: top; color: #E2E6F0 !important; line-height: 1.45; }
+    .xt td:first-child { font-weight: 700; color: #fff !important; }
+    .xt td .mono, .xt td.mono { font-size: .92em; }
+    .xt tr.hl td { background: rgba(255,212,107,.07); }
+
+    /* 하네스 지도: 모델 + 6칸 */
+    .hmap { display: grid; grid-template-columns: 260px 1fr; gap: 1.4rem; align-items: stretch; margin-top: .5rem; }
+    .hmodel { border: 2px solid #9B82FF; border-radius: 18px; background: rgba(155,130,255,.13);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 1rem; }
+    .hmodel .ico { font-size: 3.4rem; line-height: 1; }
+    .hmodel b { font-size: 1.7rem; margin-top: .4rem; }
+    .hmodel span { font-size: .98rem; color: #B8BFD0 !important; margin-top: .3rem; }
+    .hcells { border: 2px dashed rgba(43,234,208,.75); border-radius: 18px; padding: .9rem; background: rgba(43,234,208,.05);
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; position: relative; }
+    .hcells::before { content: "HARNESS · 내가 고칠 수 있는 부분"; position: absolute; top: -.75rem; left: 1rem; padding: 0 .5rem;
+      background: #0B0F1C; font: 800 .78rem/1.5 'JetBrains Mono', monospace; letter-spacing: .08em; color: #2BEAD0; }
+    .hcell { border: 1px solid rgba(155,130,255,.4); border-radius: 12px; padding: .65rem .8rem; background: rgba(6,8,15,.6); }
+    .hcell b { display: block; font-size: 1.15rem; }
+    .hcell span { display: block; font-size: .9rem; color: #B8BFD0 !important; margin-top: .2rem; line-height: 1.4; }
+    .hcell.on { border-color: #FFD46B; background: rgba(255,212,107,.10); }
+    .hcell.on b { color: #FFD46B !important; }
+
+    /* 한 칸 상세 장 공통 머리 */
+    .slot-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; align-items: start; margin-top: .4rem; }
+    .mini6 { display: inline-grid; grid-template-columns: repeat(6, auto); gap: .25rem; margin-left: .6rem; vertical-align: middle; }
+    .mini6 i { width: .7rem; height: .7rem; border-radius: 3px; background: rgba(155,130,255,.35); display: inline-block; }
+    .mini6 i.on { background: #FFD46B; box-shadow: 0 0 8px #FFD46B; }
+
+    /* 층 (프롬프트 → 컨텍스트 → 하네스) */
+    .layers { display: flex; flex-direction: column; gap: .55rem; margin-top: .5rem; }
+    .layer { display: grid; grid-template-columns: 220px 1fr 1fr; gap: 1rem; align-items: center; padding: .7rem 1rem;
+      border-radius: 14px; border: 1px solid rgba(155,130,255,.35); background: rgba(6,8,15,.5); }
+    .layer b { font-size: 1.2rem; }
+    .layer span { font-size: .98rem; color: #B8BFD0 !important; }
+    .layer.l3 { border-color: rgba(43,234,208,.7); background: rgba(43,234,208,.07); }
+    .layer.l3 b { color: #2BEAD0 !important; }
+
+    /* 래칫 흐름 */
+    .ratchet { display: flex; align-items: stretch; gap: .6rem; margin-top: .6rem; }
+    .ratchet .st { flex: 1; border: 1px solid rgba(155,130,255,.4); border-radius: 14px; padding: .8rem .9rem; background: rgba(6,8,15,.55); }
+    .ratchet .st b { display: block; font-size: 1.12rem; }
+    .ratchet .st span { display: block; font-size: .92rem; color: #B8BFD0 !important; margin-top: .25rem; line-height: 1.45; }
+    .ratchet .ar { align-self: center; color: #2BEAD0; font-size: 1.6rem; }
+    .ratchet .st.end { border-color: #2BEAD0; background: rgba(43,234,208,.08); }
+
+    /* 요청 경로 (k8s) */
+    .reqflow { display: flex; align-items: stretch; gap: .5rem; margin-top: .6rem; }
+    .rq { flex: 1; text-align: center; border-radius: 14px; border: 1px solid rgba(155,130,255,.45); padding: .8rem .5rem; background: rgba(6,8,15,.6); }
+    .rq .ico { font-size: 1.9rem; line-height: 1.2; }
+    .rq b { display: block; font-size: 1.2rem; }
+    .rq span { display: block; font-size: .9rem; color: #B8BFD0 !important; line-height: 1.4; margin-top: .2rem; }
+    .rq.k { border-color: rgba(43,234,208,.7); }
+    .rqa { align-self: center; color: #2BEAD0; font-size: 1.5rem; }
+    .pods { display: flex; justify-content: center; gap: .3rem; margin-top: .45rem; }
+    .pods i { font-style: normal; font: 700 .72rem/1 'JetBrains Mono', monospace; padding: .3rem .4rem; border-radius: 6px;
+      border: 1px solid #2BEAD0; background: rgba(43,234,208,.2); color: #C5FFF5 !important; }
+    .pods i.dead { border-color: #FF7A95; background: rgba(255,122,149,.18); color: #FFD0DA !important; text-decoration: line-through; }
+    .nodebox { margin-top: .9rem; border: 1.5px dashed rgba(155,130,255,.6); border-radius: 14px; padding: .6rem 1rem;
+      font-size: 1rem; color: #B8BFD0 !important; }
+
+    /* 계단 (k8s) */
+    .stairs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; align-items: end; margin-top: .6rem; }
+    .stair { border-radius: 14px; border: 1px solid rgba(155,130,255,.45); background: rgba(6,8,15,.6); padding: .8rem .9rem; }
+    .stair .lv { font: 800 .8rem/1 'JetBrains Mono', monospace; color: #2BEAD0 !important; letter-spacing: .06em; }
+    .stair b { display: block; font-size: 1.15rem; margin: .35rem 0 .3rem; }
+    .stair p { font-size: .9rem !important; color: #B8BFD0 !important; line-height: 1.45; margin: 0; }
+    .stair .when { display: block; margin-top: .5rem; font-size: .85rem; color: #FFD46B !important; }
+    .stair.s1 { min-height: 200px; } .stair.s2 { min-height: 240px; } .stair.s3 { min-height: 280px; } .stair.s4 { min-height: 320px; border-color: #2BEAD0; }
+
+    /* 조정 루프 (k8s) */
+    .loop3 { display: flex; align-items: center; gap: .7rem; margin-top: .6rem; }
+    .loop3 .st { flex: 1; text-align: center; border: 1px solid rgba(155,130,255,.45); border-radius: 14px; padding: .9rem .6rem; background: rgba(6,8,15,.6); }
+    .loop3 .st b { display: block; font-size: 1.25rem; }
+    .loop3 .st span { display: block; font-size: .92rem; color: #B8BFD0 !important; margin-top: .2rem; }
+    .loop3 .ar { color: #2BEAD0; font-size: 1.5rem; }
+
+    pre.code.sm { font-size: .84rem; line-height: 1.5; }
+    .reveal p.codecap, .codecap { font: 800 .78rem/1 'JetBrains Mono', monospace; letter-spacing: .06em; color: #CBBDFF !important; margin: 0 0 .35rem; font-size: .78rem !important; }
+    .note-line { font-size: 1rem !important; color: #B8BFD0 !important; margin-top: .7rem; }
+  </style>
+  <link rel="stylesheet" href="../assets/core.css">
+</head>
+<body>
+
+<div class="dl-toolbar">
+  <select id="tocSelect" class="transition-select" aria-label="목차 — 슬라이드로 바로 이동" title="목차 — 슬라이드로 바로 이동"></select>
+  <a class="dl-btn" href="../#board" title="시리즈 홈: 막혔을 때 펼쳐 보는 처방전">
+    <span aria-hidden="true">↖</span><span>시리즈 홈</span>
+  </a>
+  <button id="fullscreenBtn" class="dl-btn" title="전체화면 전환 (F)">
+    <span aria-hidden="true">⛶</span><span>FULL</span>
+  </button>
+</div>
+
+<div class="reveal">
+  <div class="slides">
+    <!-- ============= 1. 타이틀 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="grid-2" style="align-items:center;">
+          <div>
+            <div class="chip">SEMINAR · 03 직접 해보기 · KUBERNETES</div>
+            <h1 style="font-size:4rem;">
+              내 도구를<br/><span class="grad">팀이 쓰는 서버</span>로
+            </h1>
+            <p style="font-size:1.4rem; margin-top:1.1rem; max-width:600px;">
+              K8S 첫걸음 — 명령어 암기 말고,<br/><strong class="accent2">머릿속에 그림 한 장</strong>을 남깁니다.
+            </p>
+            <p class="credit">덱 형식: <a href="https://github.com/geniuskey/vibe-coding" target="_blank" rel="noopener">geniuskey/vibe-coding</a> (CC BY-NC 4.0) · 이 덱은 추가 작성분입니다.</p>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:.7rem;">
+            <div style="font-size:6rem; line-height:1;">☸️</div>
+            <div class="chip" style="border-color:rgba(43,234,208,.55);">컨테이너 · Pod · Deployment · Service · Ingress</div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        인사. 청중은 서버 경험이 거의 없다고 가정합니다. 목표는 kubectl 명령 암기가 아니라 "요청이 어디로 흘러가는지" 그림이 생기는 것.
+        첫 질문: "내 PC에서 돌던 프로그램을 다른 사람도 쓰게 해 달라는 요청, 받아 보신 분?"
+      </aside>
+    </section>
+
+    <!-- ============= 3분 요약 ============= -->
+    <section class="tldr" data-depth="summary">
+      <div class="chip">3분 요약 · TL;DR</div>
+      <h2>결론부터 — 이 세 줄이면 됩니다</h2>
+      <p class="tldr-lede">K8S는 "이렇게 돌고 있어야 한다"를 적어 두면, 그 상태를 계속 맞춰 주는 관리자입니다.</p>
+      <ol class="tldr-points">
+        <li><span class="n">1</span><div><strong>먼저 컨테이너 — 프로그램을 실행 환경째 상자에 담는다</strong><span class="sub">"내 PC에선 되는데"가 사라집니다. K8S는 이 상자를 옮기고 돌리는 쪽입니다.</span></div></li>
+        <li><span class="n">2</span><div><strong>외울 단어는 넷 — Pod · Deployment · Service · Ingress</strong><span class="sub">실행 단위 → 개수 유지 → 고정 주소 → 바깥 입구.</span></div></li>
+        <li><span class="n">3</span><div><strong>막히면 명령 셋 — get · describe · logs</strong><span class="sub">상태를 보고 → 이유를 보고 → 프로그램이 남긴 말을 봅니다.</span></div></li>
+      </ol>
+      <div class="tldr-bottom">
+        <div class="tldr-prompt">
+          <div class="tldr-label">지금 바로 써 보는 프롬프트</div>
+          <pre>이 프로젝트를 사내 K8S에 올리려고 해. Dockerfile과 Deployment·Service YAML 초안을 만들어줘.
+이미지 주소·포트·환경변수처럼 내가 채워야 하는 값은 TODO로 표시하고,
+각 줄이 무슨 뜻인지 주석을 달아줘. 실제 클러스터에는 아무것도 적용하지 마.</pre>
+        </div>
+        <div class="tldr-when">
+          <div class="tldr-label">이럴 때 이 덱을 다시 펼치세요</div>
+          <ul>
+            <li>만든 도구를 팀이 같이 써야 할 때</li>
+            <li>인프라 담당자와 대화가 안 통할 때</li>
+            <li>Pod가 안 뜨고 낯선 에러만 보일 때</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============= PROBLEM ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">PROBLEM · 내 PC 서버의 한계</div>
+        <h2>"링크 좀 보내 줘"에서 <span class="accent3">문제가 시작</span>됩니다</h2>
+        <div class="grid-3" style="margin-top:.5rem;">
+          <div class="card bad autoshow"><h3>💤 내 PC가 꺼지면 끝</h3><p>퇴근하고 PC를 끄면 팀의 대시보드도 꺼집니다. 휴가 중엔 아무도 못 씁니다.</p></div>
+          <div class="card bad autoshow"><h3>💥 죽으면 아무도 모름</h3><p>새벽에 에러로 멈춰도 다시 켜 줄 사람이 없습니다. 아침에 "안 돼요" 메신저로 압니다.</p></div>
+          <div class="card bad autoshow"><h3>🧩 "내 PC에선 되는데"</h3><p>다른 서버로 옮기면 파이썬 버전, 패키지, 경로가 달라서 안 돕니다.</p></div>
+        </div>
+        <p class="note-line" style="margin-top:1rem;">K8S가 해결하는 건 바로 이 세 가지 — <strong class="accent2">항상 켜져 있게, 죽으면 다시 켜게, 어디서나 똑같이</strong>.</p>
+      </div>
+      <aside class="notes">
+        바이브 코딩으로 도구를 만들면, 다음 단계는 거의 항상 "팀이 같이 쓰게 해 줘"입니다. 그때 부딪히는 세 가지 문제를 먼저 공감시킵니다.
+        세 번째(환경 차이)는 컨테이너가, 첫 두 개(항상 켜짐·자동 재시작)는 K8S가 해결합니다.
+      </aside>
+    </section>
+
+    <!-- ============= 계단 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">THE STAIRS · 꼭 K8S까지 가야 하나</div>
+        <h2>한 계단씩 올라갑니다 — <span class="accent4">필요할 때만</span></h2>
+        <div class="stairs">
+          <div class="stair s1 autoshow"><span class="lv">LV 1</span><b>내 PC에서 실행</b><p>python app.py — 나 혼자 쓸 때.</p><span class="when">→ 혼자 쓰면 여기서 충분</span></div>
+          <div class="stair s2 autoshow"><span class="lv">LV 2</span><b>서버 한 대에서 실행</b><p>공용 서버에 띄워 두기. 꺼지지 않지만, 죽으면 손으로 다시 켭니다.</p><span class="when">→ 소수 팀원, 잠깐 쓸 때</span></div>
+          <div class="stair s3 autoshow"><span class="lv">LV 3</span><b>컨테이너로 실행</b><p>실행 환경째 상자에 담아서 어느 서버에서나 똑같이. 이 단계가 K8S의 전제입니다.</p><span class="when">→ 옮기거나 다시 깔 일이 생길 때</span></div>
+          <div class="stair s4 autoshow"><span class="lv">LV 4</span><b>K8S에서 실행</b><p>여러 서버 위에서 개수를 유지하고, 죽으면 자동으로 다시 띄우고, 새 버전을 무중단으로 교체.</p><span class="when">→ 팀·부서가 매일 쓸 때, 회사에 클러스터가 있을 때</span></div>
+        </div>
+      </div>
+      <aside class="notes">
+        중요한 메시지: K8S는 목표가 아니라 도구입니다. 나 혼자 쓰는 도구를 K8S에 올리면 배보다 배꼽이 큽니다.
+        회사에 이미 운영 중인 클러스터와 담당 팀이 있다면 LV4의 문턱이 크게 낮아집니다. 직접 클러스터를 만드는 건 이 덱의 범위가 아닙니다.
+      </aside>
+    </section>
+
+    <!-- ============= 컨테이너 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">CONTAINER · 상자에 담기</div>
+        <h2>이미지는 <span class="accent2">레시피</span>, 컨테이너는 <span class="accent4">그 레시피로 만든 요리</span></h2>
+        <div class="slot-row">
+          <div>
+            <p class="codecap">Dockerfile — FastAPI 대시보드 예시</p>
+            <pre class="code sm"><span class="kw">FROM</span> python:3.11-slim          <span class="cm"># 바탕 환경</span>
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> requirements.txt .
+<span class="kw">RUN</span> pip install --no-cache-dir -r requirements.txt
+<span class="kw">COPY</span> . .                        <span class="cm"># 내 코드</span>
+<span class="kw">EXPOSE</span> 8000
+<span class="kw">CMD</span> ["uvicorn", "main:app", "--host", "<span class="st">0.0.0.0</span>", "--port", "8000"]</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card"><h3>이미지 (image)</h3><p>코드 + 파이썬 + 패키지를 굳힌 파일. 한 번 만들면 어디서나 같은 결과.</p></div>
+            <div class="card"><h3>컨테이너 (container)</h3><p>이미지를 실행한 것. 같은 이미지로 여러 개를 띄울 수 있습니다.</p></div>
+            <div class="card bad"><h3>단골 함정: 127.0.0.1</h3><p>컨테이너 안에서 localhost에만 열면 밖에서 못 들어옵니다. <span class="mono">0.0.0.0</span>으로 엽니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        Dockerfile은 "이 프로그램이 돌려면 무엇이 필요한가"를 적은 레시피입니다. 이걸로 이미지를 굽고(build), 이미지를 실행하면 컨테이너.
+        0.0.0.0 함정은 처음 컨테이너를 만들면 거의 모두 겪습니다 — 로컬에선 되는데 컨테이너에선 접속이 안 되면 제일 먼저 확인.
+        requirements.txt를 먼저 복사하는 이유: 코드만 바뀌었을 때 패키지 설치 단계를 다시 하지 않게(캐시) — 질문 나오면 설명.
+      </aside>
+    </section>
+
+    <!-- ============= 선언과 조정 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">THE IDEA · 선언하면, 맞춰 준다</div>
+        <h2>"3개 띄워"라고 <span class="grad">적어 두면</span>, K8S가 계속 3개로 맞춥니다</h2>
+        <div class="loop3">
+          <div class="st autoshow"><b>📝 원하는 상태</b><span>"API 3개가 돌고 있어야 한다"</span></div>
+          <div class="ar">⇄</div>
+          <div class="st autoshow"><b>👀 현재 상태</b><span>"지금 2개 돌고 있다 (하나 죽음)"</span></div>
+          <div class="ar">→</div>
+          <div class="st autoshow" style="border-color:#2BEAD0;"><b>🔧 차이를 메움</b><span>"하나 새로 띄운다" — 사람 없이</span></div>
+        </div>
+        <div class="grid-2" style="margin-top:1.1rem; align-items:stretch;">
+          <div class="card"><h3>명령형 — 내가 한 단계씩</h3><p>"서버 접속해서, 프로세스 확인하고, 죽었으면 다시 실행해." 내가 안 하면 아무 일도 안 일어납니다.</p></div>
+          <div class="card good"><h3>선언형 — 결과만 적는다</h3><p>"이 이미지로 3개." 어떻게 맞출지는 K8S가 압니다. 이 문서가 YAML 파일입니다.</p></div>
+        </div>
+      </div>
+      <aside class="notes">
+        K8S를 이해하는 핵심 한 장입니다. 공정에 빗대면 "목표 두께를 정해 두면 장비가 측정하고 보정하는 피드백 제어"와 비슷합니다(대략적인 비유).
+        이 선언 문서(YAML)를 git에 두면, 무엇이 어떻게 떠 있어야 하는지가 전부 파일로 남습니다 — 하네스 덱의 "말 대신 파일"과 같은 생각입니다.
+      </aside>
+    </section>
+
+    <!-- ============= 지도 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">THE MAP · 요청이 지나가는 길</div>
+        <h2>사용자의 요청은 <span class="accent2">이 순서</span>로 도착합니다</h2>
+        <div class="reqflow">
+          <div class="rq autoshow"><div class="ico">🧑‍💻</div><b>사용자</b><span>브라우저에서<br/>dashboard.사내</span></div>
+          <div class="rqa">→</div>
+          <div class="rq k autoshow"><div class="ico">🚪</div><b>Ingress</b><span>바깥 입구<br/>주소 보고 길 안내</span></div>
+          <div class="rqa">→</div>
+          <div class="rq k autoshow"><div class="ico">☎️</div><b>Service</b><span>변하지 않는 내부 주소<br/>Pod들에 나눠 전달</span></div>
+          <div class="rqa">→</div>
+          <div class="rq k autoshow"><div class="ico">📦</div><b>Pod</b><span>컨테이너가 실제로 도는 곳</span>
+            <div class="pods"><i>API</i><i>API</i><i class="dead">API</i><i>API</i></div></div>
+        </div>
+        <div class="nodebox"><strong>Deployment</strong>가 "Pod 3개 유지"를 지킵니다 — 하나가 죽으면(빨간색) 새로 띄웁니다. 이 모든 Pod는 <strong>Node</strong>(서버 한 대) 위에서 실행되고, Node 여러 대를 묶은 것이 <strong>클러스터</strong>입니다.</div>
+      </div>
+      <aside class="notes">
+        왼쪽에서 오른쪽으로 요청을 따라갑니다. 질문을 던져 봅니다: "Pod가 죽었다가 새로 뜨면 주소가 바뀌는데, 사용자는 어떻게 계속 접속하죠?" → 그래서 Service가 고정 주소 역할을 합니다.
+        Ingress는 사내 도메인 이름을 보고 어느 Service로 보낼지 정합니다. 사내에서는 보통 인프라 팀이 Ingress 설정 규칙을 정해 둡니다.
+      </aside>
+    </section>
+
+    <!-- ============= 용어 사전 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">GLOSSARY · 낯선 단어를 일상 말로</div>
+        <h2>단어 여덟 개면 <span class="accent4">대화가 통합니다</span></h2>
+        <table class="xt">
+          <tr><th>용어</th><th>한 줄 뜻</th><th>비유 (대략적)</th></tr>
+          <tr><td>Cluster · Node</td><td>서버 여러 대의 묶음 · 그중 한 대</td><td>팹 · 설비 한 대</td></tr>
+          <tr><td>Pod</td><td>컨테이너를 담은 최소 실행 단위 (보통 1 Pod = 1 컨테이너)</td><td>설비에서 도는 작업 한 건</td></tr>
+          <tr><td>Deployment</td><td>Pod 개수와 버전을 유지하는 선언서</td><td>"이 레시피로 3대 가동" 지시서</td></tr>
+          <tr><td>Service</td><td>Pod가 바뀌어도 그대로인 내부 주소</td><td>대표 전화번호</td></tr>
+          <tr><td>Ingress</td><td>바깥 HTTP 요청을 도메인·경로 보고 안내</td><td>건물 정문 안내 데스크</td></tr>
+          <tr><td>Namespace</td><td>한 클러스터를 팀·용도별로 나눈 칸</td><td>부서별 구역</td></tr>
+          <tr><td>ConfigMap · Secret</td><td>설정값 · 비밀값을 코드 밖에 보관</td><td>설정 파일 · 금고</td></tr>
+          <tr><td>kubectl</td><td>클러스터에 명령을 보내는 CLI</td><td>설비 제어 단말</td></tr>
+        </table>
+      </div>
+      <aside class="notes">
+        비유는 이해를 돕기 위한 것이고 1:1 대응은 아니라고 꼭 덧붙입니다.
+        인프라 담당자와 대화할 때 이 단어들만 알아도 "어느 네임스페이스에, 어떤 Service로 열어 주세요"처럼 정확하게 요청할 수 있습니다.
+      </aside>
+    </section>
+
+    <!-- ============= YAML 읽기 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">READ THE YAML · 선언서 한 장 읽기</div>
+        <h2>쓰는 건 AI가 해도, <span class="accent2">읽을 줄은 알아야</span> 합니다</h2>
+        <div class="grid-2" style="align-items:start; gap:1.3rem; margin-top:.2rem;">
+          <pre class="code sm"><span class="kw">apiVersion</span>: apps/v1
+<span class="kw">kind</span>: Deployment                <span class="cm"># 개수 유지 선언서</span>
+<span class="kw">metadata</span>:
+  <span class="kw">name</span>: dashboard-api
+<span class="kw">spec</span>:
+  <span class="kw">replicas</span>: <span class="nm">3</span>                     <span class="cm"># ① 3개 유지</span>
+  <span class="kw">selector</span>:
+    <span class="kw">matchLabels</span>: { app: dashboard-api }
+  <span class="kw">template</span>:                       <span class="cm"># 찍어낼 Pod 모양</span>
+    <span class="kw">metadata</span>:
+      <span class="kw">labels</span>: { app: <span class="st">dashboard-api</span> }  <span class="cm"># ② 이름표</span>
+    <span class="kw">spec</span>:
+      <span class="kw">containers</span>:
+        - <span class="kw">name</span>: api
+          <span class="kw">image</span>: <span class="st">&lt;사내-레지스트리&gt;/dashboard-api:1.0.0</span> <span class="cm"># ③</span>
+          <span class="kw">ports</span>: [ { containerPort: <span class="nm">8000</span> } ]</pre>
+          <div class="stack" style="gap:.55rem;">
+            <pre class="code sm"><span class="kw">apiVersion</span>: v1
+<span class="kw">kind</span>: Service                   <span class="cm"># 고정 주소</span>
+<span class="kw">metadata</span>:
+  <span class="kw">name</span>: dashboard-api
+<span class="kw">spec</span>:
+  <span class="kw">selector</span>: { app: <span class="st">dashboard-api</span> }   <span class="cm"># ② 같은 이름표</span>
+  <span class="kw">ports</span>:
+    - <span class="kw">port</span>: <span class="nm">80</span>                <span class="cm"># 밖에서 부르는 번호</span>
+      <span class="kw">targetPort</span>: <span class="nm">8000</span>        <span class="cm"># Pod 안 번호</span></pre>
+            <div class="card"><h3>세 군데만 보면 됩니다</h3><p>① 몇 개 띄우나 ② <strong class="accent4">이름표가 서로 맞나</strong> ③ 어느 이미지를 쓰나. ②가 어긋나면 Service가 Pod를 못 찾습니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        YAML은 AI가 잘 씁니다. 대신 사람이 확인할 곳을 세 군데로 좁혀 줍니다.
+        특히 ② 라벨 불일치는 "Pod는 잘 떠 있는데 접속이 안 된다"의 가장 흔한 원인입니다. Service의 selector와 Pod의 labels가 글자까지 같아야 합니다.
+        targetPort는 Dockerfile의 8000과 같아야 합니다 — 앞 장과 연결.
+      </aside>
+    </section>
+
+    <!-- ============= 배포 흐름 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">DEPLOY · 코드에서 서비스까지</div>
+        <h2>배포는 <span class="grad">네 걸음</span>입니다</h2>
+        <div class="ratchet">
+          <div class="st autoshow"><b>① 이미지 굽기</b><span class="mono" style="font-size:.82rem;">docker build -t &lt;레지스트리&gt;/dashboard-api:1.0.1 .</span></div>
+          <div class="ar">→</div>
+          <div class="st autoshow"><b>② 사내 저장소에 올리기</b><span class="mono" style="font-size:.82rem;">docker push &lt;레지스트리&gt;/dashboard-api:1.0.1</span></div>
+          <div class="ar">→</div>
+          <div class="st autoshow"><b>③ 선언서에 새 태그 적고 적용</b><span class="mono" style="font-size:.82rem;">kubectl apply -f k8s/</span></div>
+          <div class="ar">→</div>
+          <div class="st end autoshow"><b>④ 교체 지켜보기</b><span class="mono" style="font-size:.82rem;">kubectl rollout status deployment/dashboard-api</span></div>
+        </div>
+        <div class="grid-2" style="margin-top:1rem; align-items:stretch;">
+          <div class="card"><h3>새 버전은 한 개씩 교체</h3><p>새 Pod가 준비되면 옛 Pod를 하나씩 내립니다. 사용자는 끊김을 거의 못 느낍니다.</p></div>
+          <div class="card"><h3>망가지면 되돌리기</h3><p><span class="mono">kubectl rollout undo deployment/dashboard-api</span> — 직전 버전으로 돌아갑니다.</p></div>
+        </div>
+      </div>
+      <aside class="notes">
+        태그(1.0.1)는 매번 새 번호로 올립니다. latest 하나만 계속 덮어쓰면 무엇이 떠 있는지, 어디로 되돌릴지 알 수 없습니다.
+        회사에 CI/CD(자동 배포 파이프라인)가 있다면 ①~③은 커밋하면 자동으로 일어납니다. 그래도 흐름을 알고 있어야 막혔을 때 어디서 멈췄는지 압니다.
+      </aside>
+    </section>
+
+    <!-- ============= 설정과 비밀 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip warn">⚠️ CONFIG · 설정과 비밀은 코드 밖으로</div>
+        <h2>DB 주소와 비밀번호를 <span class="accent3">이미지에 굽지 않습니다</span></h2>
+        <div class="slot-row">
+          <div>
+            <pre class="code bad sm"><span class="cm"># ❌ 코드·이미지 안에</span>
+DB_PASSWORD = "p@ssw0rd"</pre>
+            <pre class="code good sm" style="margin-top:.6rem;"><span class="cm"># ✅ Deployment 에서 Secret 을 연결</span>
+<span class="kw">env</span>:
+  - <span class="kw">name</span>: DB_PASSWORD
+    <span class="kw">valueFrom</span>:
+      <span class="kw">secretKeyRef</span>: { name: dashboard-db, key: password }</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card"><h3>ConfigMap — 바뀌는 설정</h3><p>DB 주소, 로그 수준처럼 환경마다 다른 값. 이미지는 그대로 두고 값만 바꿉니다.</p></div>
+            <div class="card"><h3>Secret — 비밀값</h3><p>기본 상태의 Secret은 암호화가 아니라 <strong class="accent4">base64 인코딩</strong>입니다. 누가 읽을 수 있는지는 권한으로 막아야 합니다.</p></div>
+          </div>
+        </div>
+        <p class="note-line">Secret YAML을 git에 올리거나 AI에게 보여주지 않습니다 — <a href="../security/#/promises">보안 약속 2</a>.</p>
+      </div>
+      <aside class="notes">
+        base64는 누구나 디코딩할 수 있습니다. Secret이 "안전한 금고"인 건 저장 암호화와 접근 권한을 클러스터 쪽에서 설정했을 때입니다 — 사내 정책을 확인.
+        AI에게 YAML을 만들게 할 때도 비밀값은 TODO로 비워 두게 하고, 실제 값은 사람이 사내 절차로 넣습니다.
+      </aside>
+    </section>
+
+    <!-- ============= 사내망 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">INTRANET · 사내망이라서 달라지는 것</div>
+        <h2>외부 인터넷이 막혀 있으면, <span class="accent3">이 세 가지</span>가 달라집니다</h2>
+        <div class="grid-3" style="margin-top:.5rem;">
+          <div class="card autoshow"><h3>① 이미지는 사내 저장소에서</h3><p>Docker Hub 같은 외부 저장소에 못 나갑니다. 바탕 이미지(python:3.11-slim)도 사내 레지스트리에 있는 것을 씁니다.</p></div>
+          <div class="card autoshow"><h3>② 패키지는 사내 미러로</h3><p>이미지를 구울 때 pip·npm이 외부로 못 나갑니다. 사내 미러 주소를 빌드 설정에 넣어야 합니다.</p></div>
+          <div class="card autoshow"><h3>③ 사내 인증서</h3><p>사내 HTTPS는 사내 CA를 쓰는 경우가 많습니다. 컨테이너 안에도 그 인증서를 넣어야 "인증서 오류"가 사라집니다.</p></div>
+        </div>
+        <table class="xt" style="margin-top:1rem;">
+          <tr><th>우리 회사 값 (인프라 담당에게 확인해서 채우기)</th><th>값</th></tr>
+          <tr><td>사내 레지스트리 주소 · 로그인 방법</td><td class="muted">______________________</td></tr>
+          <tr><td>pip / npm 미러 주소</td><td class="muted">______________________</td></tr>
+          <tr><td>우리 팀 네임스페이스 · Ingress 도메인 규칙</td><td class="muted">______________________</td></tr>
+        </table>
+      </div>
+      <aside class="notes">
+        이 장이 외부 튜토리얼과 가장 다른 부분입니다. 인터넷 튜토리얼을 그대로 따라 하면 첫 줄(FROM python...)부터 막힙니다.
+        빈칸 표는 일부러 비워 둡니다. 발표 전에 각 회사의 인프라 담당에게 받아서 채워 넣거나, 청중이 직접 채우게 합니다.
+        AI에게 Dockerfile을 시킬 때 이 세 값을 미리 알려 주면 수정 횟수가 크게 줄어듭니다 — CLAUDE.md에 적어 둘 1순위 후보.
+      </aside>
+    </section>
+
+    <!-- ============= 막혔을 때 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">TROUBLESHOOT · 막혔을 때</div>
+        <h2>상태 이름을 보고, <span class="accent2">명령 셋</span>으로 이유를 찾습니다</h2>
+        <div class="grid-2" style="align-items:start; gap:1.3rem;">
+          <table class="xt">
+            <tr><th>보이는 상태</th><th>먼저 의심할 것</th></tr>
+            <tr><td class="mono">Pending</td><td>자원 부족 · 놓을 Node가 없음</td></tr>
+            <tr><td class="mono">ImagePullBackOff</td><td>이미지 이름·태그 오타 · 레지스트리 로그인</td></tr>
+            <tr><td class="mono">CrashLoopBackOff</td><td>프로그램이 켜지자마자 죽음 → logs</td></tr>
+            <tr><td class="mono">OOMKilled</td><td>메모리 한도 초과</td></tr>
+            <tr><td>Running인데 접속 불가</td><td>Service 이름표 불일치 · 포트 · 0.0.0.0</td></tr>
+          </table>
+          <div>
+            <p class="codecap">복사해서 쓰는 명령 (읽기만 함)</p>
+            <pre class="code sm"><span class="cm"># 1) 상태 보기</span>
+kubectl get pods -n &lt;네임스페이스&gt;
+
+<span class="cm"># 2) 이유 보기 — 맨 아래 Events</span>
+kubectl describe pod &lt;이름&gt; -n &lt;네임스페이스&gt;
+
+<span class="cm"># 3) 프로그램이 남긴 말 — 죽기 직전 것</span>
+kubectl logs &lt;이름&gt; -n &lt;네임스페이스&gt; --previous
+
+<span class="cm"># 접속 불가면: Endpoints 가 비었나?</span>
+kubectl describe service &lt;이름&gt; -n &lt;네임스페이스&gt;</pre>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        순서가 중요합니다: get으로 상태 이름을 보고 → describe의 Events에서 이유를 보고 → 프로그램 문제면 logs.
+        --previous는 재시작되기 전 컨테이너의 로그입니다. CrashLoopBackOff에서 현재 로그가 비어 있을 때 씁니다.
+        describe service에서 Endpoints가 비어 있으면 Service가 Pod를 못 찾는 것 — 대부분 라벨 불일치입니다.
+        이 명령들은 모두 읽기 전용이라 AI에게 맡겨도 안전한 편입니다(다음 장).
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">REF</span>
+        <a href="https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/" target="_blank" rel="noopener">Kubernetes Docs · Debug Pods</a>
+      </div>
+    </section>
+
+    <!-- ============= AI와 함께 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">WITH AI · 에이전트에게 kubectl을 맡길 때</div>
+        <h2>읽기는 맡기고, <span class="accent3">바꾸는 건 물어보게</span> 합니다</h2>
+        <table class="xt">
+          <tr><th>명령 종류</th><th>예</th><th>권한</th></tr>
+          <tr><td>보기</td><td class="mono">get · describe · logs</td><td style="color:#8FF0E2 !important; font-weight:800;">허용 (allow)</td></tr>
+          <tr><td>미리 보기</td><td class="mono">apply --dry-run=client · diff</td><td style="color:#8FF0E2 !important; font-weight:800;">허용 (allow)</td></tr>
+          <tr><td>바꾸기</td><td class="mono">apply · rollout undo · scale</td><td style="color:#FFE29A !important; font-weight:800;">물어보기 (ask)</td></tr>
+          <tr class="hl"><td>지우기 · 비밀 보기</td><td class="mono">delete · get secret -o yaml</td><td style="color:#FF9FB0 !important; font-weight:800;">막기 (deny)</td></tr>
+        </table>
+        <div class="grid-2" style="margin-top:1rem; align-items:stretch;">
+          <div class="card"><h3>네임스페이스를 못 박기</h3><p>"항상 -n &lt;우리팀&gt;을 붙여"를 CLAUDE.md에. 남의 팀 서비스를 건드리는 사고를 막습니다.</p></div>
+          <div class="card"><h3>운영 클러스터는 사람이</h3><p>연습·개발 클러스터에서 AI와 시도하고, 운영 반영은 사람이 확인하고 실행합니다.</p></div>
+        </div>
+      </div>
+      <aside class="notes">
+        하네스 덱의 "③ 권한" 칸을 K8S에 적용한 장입니다. kubeconfig(클러스터 접속 정보)도 비밀이므로 AI가 읽지 않게 deny 대상입니다.
+        회사 정책상 AI 에이전트가 클러스터에 접근하는 것 자체가 허용되는지 먼저 확인합니다(보안 약속 3).
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../harness/">하네스 엔지니어링 — ③ 권한</a>
+        <a href="../security/">보안과 거버넌스</a>
+      </div>
+    </section>
+
+    <!-- ============= 심화: 건강 검진과 자원 ============= -->
+    <section data-depth="extra">
+      <div class="vfill">
+        <div class="chip">DEEPER · 오래 잘 돌게 하는 두 줄</div>
+        <h2>"살아 있나"와 "얼마나 먹나"를 <span class="accent2">적어 두면</span> K8S가 더 똑똑해집니다</h2>
+        <div class="slot-row">
+          <pre class="code sm"><span class="kw">containers</span>:
+  - <span class="kw">name</span>: api
+    <span class="kw">readinessProbe</span>:           <span class="cm"># 손님 받을 준비 됐나</span>
+      <span class="kw">httpGet</span>: { path: /health, port: <span class="nm">8000</span> }
+    <span class="kw">livenessProbe</span>:            <span class="cm"># 아직 살아 있나</span>
+      <span class="kw">httpGet</span>: { path: /health, port: <span class="nm">8000</span> }
+    <span class="kw">resources</span>:
+      <span class="kw">requests</span>: { cpu: <span class="st">250m</span>, memory: <span class="st">256Mi</span> }  <span class="cm"># 최소 보장</span>
+      <span class="kw">limits</span>:   { memory: <span class="st">512Mi</span> }              <span class="cm"># 넘으면 OOMKilled</span></pre>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card"><h3>readiness · liveness</h3><p>준비 안 된 Pod엔 요청을 안 보내고, 멈춘 Pod는 다시 시작합니다. 앱에 <span class="mono">/health</span> 하나만 만들면 됩니다.</p></div>
+            <div class="card"><h3>requests · limits</h3><p>너무 크게 잡으면 Pending, 너무 작게 잡으면 OOMKilled. 처음엔 인프라 팀 기본값부터.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        핵심 모드에서는 접히는 심화 장입니다. 수치는 예시이며, 실제 값은 앱을 돌려 보며 맞춥니다.
+        FastAPI라면 /health 엔드포인트를 AI에게 한 줄로 추가해 달라고 하면 됩니다.
+      </aside>
+    </section>
+
+    <!-- ============= 실습 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip live">🖐 실습 · 내 도구의 배포 서류 만들기 (20분)</div>
+        <h2>클러스터 없이도, <span class="accent2">올릴 준비</span>는 끝낼 수 있습니다</h2>
+        <p class="lab-learn"><b>배우는 것</b> — AI가 만든 Dockerfile·YAML을 세 군데(개수·이름표·이미지)만 보고 검토하는 법.</p>
+        <div class="grid-2" style="align-items:start; gap:1.6rem;">
+          <div class="prompt-card">
+            <div class="pc-label">💬 에이전트에게 이렇게 말하세요</div>
+            <pre class="code">이 프로젝트용 Dockerfile과 k8s/ 폴더에 Deployment·Service YAML을 만들어줘.
+- 0.0.0.0으로 열고, 포트는 Dockerfile과 YAML에서 같게
+- 이미지 주소·비밀값은 TODO로 비워 두기
+- 각 줄에 한국어 주석
+만든 뒤 replicas · 라벨 일치 · 이미지 주소를 표로 정리해줘.
+실제 클러스터에는 아무것도 적용하지 마.</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="done-box">
+              <p class="bx-t">✅ 완료 기준</p>
+              <ul>
+                <li>Service의 selector와 Pod의 labels가 <strong>글자까지 같다</strong></li>
+                <li>Dockerfile 포트 = <span class="mono">targetPort</span></li>
+                <li>비밀값이 파일 어디에도 <strong>없다</strong> (TODO만)</li>
+                <li>(kubectl이 있다면) <span class="mono">kubectl apply --dry-run=client -f k8s/</span> 통과</li>
+              </ul>
+            </div>
+            <div class="stuck-box">
+              <p class="bx-t">🧯 막히면</p>
+              <p>올릴 도구가 없다 → "FastAPI로 /health 하나만 있는 앱을 만들어줘"부터. 사내 레지스트리 주소를 모르면 TODO로 두고 다음 칸으로.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        클러스터 접근 권한이 없는 청중도 할 수 있게 설계한 실습입니다. dry-run=client는 문법만 검사하고 클러스터를 바꾸지 않습니다.
+        완료 기준 1·2는 지난 장들의 단골 함정을 직접 확인하게 하는 장치입니다. 다 만든 폴더는 인프라 담당에게 그대로 들고 가면 대화가 훨씬 빨라집니다.
+      </aside>
+    </section>
+
+    <!-- ============= 정리 ============= -->
+    <section>
+      <div class="vfill center">
+        <div class="chip">정리</div>
+        <h2>오늘 가져갈 그림 세 장</h2>
+        <div style="display:flex; flex-direction:column; gap:1rem; max-width:1000px; margin:.6rem auto 0;">
+          <div class="card" style="text-align:left;"><h3>1. 상자에 담고, 선언한다</h3><p>컨테이너로 환경째 담고, "몇 개를 어떻게"는 <strong class="accent2">YAML 선언서</strong>로 남깁니다.</p></div>
+          <div class="card" style="text-align:left;"><h3>2. 길은 Ingress → Service → Pod</h3><p>접속이 안 되면 이 길을 따라가며 <strong class="accent4">어디서 끊겼는지</strong> 봅니다. 이름표와 포트가 단골입니다.</p></div>
+          <div class="card" style="text-align:left;"><h3>3. get · describe · logs</h3><p>막히면 상태 → 이유 → 프로그램의 말 순서로. 바꾸는 명령은 사람이 확인하고.</p></div>
+        </div>
+      </div>
+      <aside class="notes">
+        세 장의 그림으로 마무리하고 Q&amp;A. 다음 단계로 사내 인프라 담당자와 "우리 회사 값" 표 채우기를 권합니다.
+      </aside>
+    </section>
+
+    <!-- ============= 참고 ============= -->
+    <section data-depth="extra">
+      <div class="vfill">
+        <div class="chip">REFERENCES</div>
+        <h2>더 깊이 보기</h2>
+        <div class="grid-2" style="align-items:stretch; margin-top:.4rem;">
+          <div class="card ref-col">
+            <h3>☸️ 공식 문서</h3>
+            <ul>
+              <li><a href="https://kubernetes.io/ko/docs/concepts/" target="_blank" rel="noopener">Kubernetes 개념 (한국어)</a><span class="rd">Pod · Deployment · Service의 정본</span></li>
+              <li><a href="https://kubernetes.io/docs/reference/kubectl/quick-reference/" target="_blank" rel="noopener">kubectl Quick Reference</a><span class="rd">자주 쓰는 명령 모음</span></li>
+              <li><a href="https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/" target="_blank" rel="noopener">Debug Pods</a><span class="rd">Pending · CrashLoop 진단</span></li>
+              <li><a href="https://docs.docker.com/get-started/" target="_blank" rel="noopener">Docker Get Started</a><span class="rd">이미지와 컨테이너 첫걸음</span></li>
+            </ul>
+          </div>
+          <div class="card ref-col">
+            <h3>🔗 시리즈 안에서</h3>
+            <ul>
+              <li><a href="../harness/">하네스 엔지니어링</a><span class="rd">에이전트 권한 설계 — kubectl을 맡길 때</span></li>
+              <li><a href="../automation/">내 도구가 혼자 돌게</a><span class="rd">팀이 같이 쓰는 앱까지의 단계</span></li>
+              <li><a href="../security/">보안과 거버넌스</a><span class="rd">비밀값 · 보안 약속</span></li>
+              <li><a href="../debugging/">AI와 함께 디버깅하기</a><span class="rd">재현 → 가설 → 한 번에 하나</span></li>
+              <li><a href="../github/">최소한의 Git &amp; GitHub</a><span class="rd">YAML도 커밋으로 관리</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        Kubernetes 공식 문서는 한국어 번역이 잘 되어 있습니다. 개념 페이지부터 읽기를 권합니다.
+      </aside>
+    </section>
+  </div>
+</div>
+
+<!-- reveal.js 5.1.0 — inlined for offline/self-contained deck (MIT, Hakim El Hattab) -->
+<script src="../vendor/reveal/reveal.js"></script>
+<!-- 핵심만 보기: data-depth="extra" 장 접기 + 3분 요약 (Reveal.initialize 보다 먼저) -->
+<script src="../assets/core.js"></script>
+<script src="../vendor/reveal/notes.js"></script>
+<script>
+  Reveal.initialize({
+    plugins: typeof RevealNotes !== 'undefined' ? [RevealNotes] : [],
+    hash: true,
+    hashOneBasedIndex: true,
+    controls: true,
+    controlsLayout: 'edges',
+    progress: true,
+    slideNumber: 'c/t',
+    transition: 'fade',
+    backgroundTransition: 'fade',
+    width: 1280,
+    height: 800,
+    margin: 0.04,
+    minScale: 0.2,
+    maxScale: 2.0,
+    center: false,
+  });
+
+  // ===== 목차 드롭다운 =====
+  (function () {
+    const sel = document.getElementById('tocSelect');
+    if (!sel) return;
+    const slides = Array.from(document.querySelectorAll('.reveal .slides > section'));
+    const clean = (t) => (t || '').replace(/\s+/g, ' ').trim().slice(0, 34);
+    // <br/>는 textContent 에서 사라져 단어가 붙는다 — 공백으로 바꿔 읽는다
+    const brText = (el) => { const c = el.cloneNode(true); c.querySelectorAll('br').forEach((b) => b.replaceWith(' ')); return c.textContent; };
+    slides.forEach((s, i) => {
+      const h = s.querySelector('h1, h2');
+      const label = clean(h ? brText(h) : '') || ('페이지 ' + (i + 1));
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = (i + 1) + '. ' + label;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', () => {
+      const i = Number(sel.value);
+      if (!Number.isNaN(i)) Reveal.slide(i);
+      sel.blur(); // 방향키가 다시 슬라이드 내비게이션으로 가도록
+    });
+    Reveal.on('slidechanged', (e) => { sel.value = String(e.indexh); });
+    Reveal.on('ready', (e) => { sel.value = String(e.indexh); });
+  })();
+
+  // ===== 전체화면 =====
+  (function () {
+    const fsBtn = document.getElementById('fullscreenBtn');
+    if (!fsBtn) return;
+    if (!document.fullscreenEnabled) { document.documentElement.classList.add('no-fullscreen'); return; }
+    fsBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    });
+  })();
+</script>
+
+
+<!-- 통합 발표 플랫폼: 질문·이모지·슬라이드 동기화는 모든 덱이 공유하는 assets/qa.js 하나가 담당한다. -->
+<link rel="stylesheet" href="../assets/qa.css">
+<script src="../assets/qa.js" defer></script>
+
+</body>
+</html>

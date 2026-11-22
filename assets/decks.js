@@ -21,10 +21,12 @@ window.SEMINAR_DECKS = [
   { track: '02 더 깊이', id: 'verification', emoji: '⚖️', title: 'AI가 쓴 코드를 믿는 법 — 검증과 테스트', desc: '검증의 사다리 · 분석 숫자 믿는 법 · TDD · AI 리뷰' },
   { track: '02 더 깊이', id: 'orchestration', emoji: '🤖', title: '서브에이전트와 오케스트레이션', desc: '위임→격리→보고 · 패턴 4가지 · 팀이냐 혼자냐' },
   { track: '02 더 깊이', id: 'security', emoji: '🔐', title: '사내 환경에서의 AI — 보안과 거버넌스', desc: '보안 약속 정본 · 데이터 경로 · 인젝션 · 권한 설계' },
+  { track: '02 더 깊이', id: 'harness', emoji: '🧰', title: '하네스 엔지니어링 — 모델은 그대로, 환경을 고친다', desc: '에이전트 = 모델 + 하네스 · 여섯 칸 · 래칫 · 증상별 처방표' },
 
   { track: '03 직접 해보기', id: 'agent-skills', emoji: '🧬', title: '내 노하우를 AI에게 물려주는 법 — CLAUDE.md · Agent Skills', desc: '반복 설명을 파일로 · 반도체 실무 예제 7종' },
   { track: '03 직접 해보기', id: 'making-slides', emoji: '🎬', title: '바이브 코딩으로 슬라이드 자료 만들기', desc: '레퍼런스 앵커링 → 좌표+증상 피드백 → 스킬' },
   { track: '03 직접 해보기', id: 'automation', emoji: '🔌', title: '내 도구가 혼자 돌게 — 연결 · 예약 실행 · 팀 공유', desc: '커넥터(MCP) · 예약 실행 · 팀이 같이 쓰는 앱' },
+  { track: '03 직접 해보기', id: 'k8s', emoji: '☸️', title: 'K8S 첫걸음 — 내 도구를 팀이 쓰는 서버로', desc: '컨테이너 · Pod·Deployment·Service·Ingress · 사내망 · get·describe·logs' },
 
   { track: '번외', id: 'forChildren', emoji: '🎮', title: '나만의 게임 만들기', desc: '어린이 × 부모 — AI와 함께 게임 만들기' },
   { track: '번외', id: 'herdr', emoji: '🐑', title: 'herdr — 에이전트를 무리로', desc: 'space → tab 정리 · 답변 대기 알림 · 에이전트 여럿을 한 화면에서' },
