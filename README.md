@@ -36,7 +36,9 @@
 | 다음 지도 · 입문 | `python-env/` | 파이썬 환경 관리 — venv · pip · requirements.txt **추가 덱** |
 | 다음 지도 · 입문 | `file-formats/` | 파일 형식 기초 — CSV · JSON · YAML · 인코딩 **추가 덱** |
 | 다음 지도 · 심화 | `docker/` | Docker — 컨테이너와 샌드박스, 상자에 담기 (이미지 · Dockerfile · 볼륨 · compose · 샌드박스 · dev container) **추가 덱** |
-| 다음 지도 | (허브 `#roadmap`) | 준비 중 9개 — API · 사내 LLM API · 화면 실전 · 로그 · CI/CD · 성능 · 기술 부채 · 요구사항 · 실패 사례집 |
+| 다음 지도 · 중급 | `api/` | API 이해하고 만들기 — 엔드포인트 · 메서드 · 상태 코드 (단어장 · URL · JSON · 인증 · FastAPI) **추가 덱** |
+| 다음 지도 · 심화 | `logs/` | 로그와 모니터링 — 와치독과 슈퍼바이저 (logging · 회전 · 알림 · 하트비트 · 재시작 한도) **추가 덱** |
+| 다음 지도 | (허브 `#roadmap`) | 준비 중 7개 — 사내 LLM API · 화면 실전 · CI/CD · 성능 · 기술 부채 · 요구사항 · 실패 사례집 |
 | 번외 | `forChildren/` | 나만의 게임 만들기 (어린이 × 부모) |
 | 번외 | `herdr/` | herdr — 여러 AI 코딩 에이전트를 한 화면에서 부리는 터미널 (space → tab · 상태 표시) |
 | 번외 | `ai-map/` | AI 업계 지도 — 각 진영의 전략 (입문 덱 부록에서 분리, 분기마다 갱신) |
