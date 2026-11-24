@@ -1130,6 +1130,14 @@
           </span>
           <p class="mdesc">첫 5분 들여다보기, 질문으로 차트 고르기, 평균이 숨기는 두 덩어리, 차트가 거짓말하는 다섯 가지, 관리도, AI 분석 결과 검산.</p>
         </a>
+        <a class="card mini" href="e2e/">
+          <span class="emoji">🧪</span>
+          <span class="mini-main">
+            <h3>E2E 테스트 — 사용자처럼, 처음부터 끝까지</h3>
+            <span class="sym">"다 됐어요"인데 열어 보면 버튼이 안 눌린다</span>
+          </span>
+          <p class="mdesc">부품 검사와 완성품 검사, 테스트 피라미드, 핵심 길 고르기, Playwright 네 동작, 이름으로 찾기, sleep 대신 expect, codegen 녹화, 실패 증거, AI의 완료 기준으로.</p>
+        </a>
         <div class="card mini plan">
           <span class="emoji">🔌</span>
           <span class="mini-main">
@@ -1208,6 +1216,14 @@
           </span>
           <p class="mdesc">diff 읽는 법, 크기 신호, 다섯 질문(범위 · 삭제 · 비밀 · 증거 · 되돌리기), 문제가 숨은 diff 예시, 빨간 깃발, 설명 · 독립 리뷰 · 반려 문장.</p>
         </a>
+        <a class="card mini" href="mcp-skill-md/">
+          <span class="emoji">🧩</span>
+          <span class="mini-main">
+            <h3>MCP · Skill · .MD — 규칙은 .MD, 절차는 Skill, 연결은 MCP</h3>
+            <span class="sym">같은 설명을 반복하고, AI가 사내 시스템에 못 닿는다</span>
+          </span>
+          <p class="mdesc">신입 온보딩 비유(게시판 · SOP · 출입증), 언제 상자에 들어가나, CLAUDE.md 세 층, description 한 줄, MCP 연결과 .mcp.json, 안전 수칙, 판단표.</p>
+        </a>
         <div class="card mini plan">
           <span class="emoji">🚧</span>
           <span class="mini-main">
@@ -1237,7 +1253,7 @@
     <div class="path-note roadmap-order"><b>추천 순서</b>
       <a class="step" href="architecture/">① 구조 한 장</a><a class="step" href="errors/">에러 읽기</a><span class="arr">→</span>
       <a class="step" href="sql/">② SQL</a><a class="step" href="data-viz/">데이터 분석</a><span class="arr">→</span>
-      <a class="step" href="refactor/">③ 코드 관리</a><a class="step" href="review/">리뷰</a><span class="arr">→</span>
+      <a class="step" href="refactor/">③ 코드 관리</a><a class="step" href="e2e/">E2E</a><a class="step" href="review/">리뷰</a><a class="step" href="mcp-skill-md/">MCP · Skill · .MD</a><span class="arr">→</span>
       <span class="step">④ Docker (준비 중)</span><span class="arr">→</span>
       <a class="step" href="k8s/">☸️ K8S 첫걸음</a>
     </div>
@@ -2351,6 +2367,8 @@
     { ico: "🧱", label: "프로그램의 구조 한 장 — 프론트 · 백엔드 · API · DB", meta: "architecture/", run: function () { location.href = "architecture/"; } },
     { ico: "🧾", label: "에러 메시지 읽는 법 — 아래에서부터, 줄 번호부터", meta: "errors/", run: function () { location.href = "errors/"; } },
     { ico: "🗄️", label: "SQL과 데이터베이스 입문 — 엑셀 표에서 테이블로", meta: "sql/", run: function () { location.href = "sql/"; } },
+    { ico: "🧪", label: "E2E 테스트 — 사용자처럼, 처음부터 끝까지", meta: "e2e/", run: function () { location.href = "e2e/"; } },
+    { ico: "🧩", label: "MCP · Skill · .MD — 규칙은 .MD, 절차는 Skill, 연결은 MCP", meta: "mcp-skill-md/", run: function () { location.href = "mcp-skill-md/"; } },
     { ico: "📊", label: "데이터 분석과 시각화 — pandas와 믿을 수 있는 차트", meta: "data-viz/", run: function () { location.href = "data-viz/"; } },
     { ico: "🧹", label: "커진 코드 관리하기 — 리팩터링 · 폴더 구조", meta: "refactor/", run: function () { location.href = "refactor/"; } },
     { ico: "👀", label: "사람이 리뷰하는 법 — 비개발자의 승인 체크리스트", meta: "review/", run: function () { location.href = "review/"; } },

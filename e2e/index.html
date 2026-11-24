@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>E2E 테스트 — 사용자처럼, 처음부터 끝까지 | 바이브 코딩 세미나</title>
+  <meta name="description" content="부품 검사는 통과했는데 완성품이 안 돈다면. 브라우저를 로봇이 직접 눌러 화면·API·DB를 한 번에 확인하는 E2E 테스트를 Playwright로. 테스트 피라미드, 기다림 함정, 실패 증거, AI의 완료 기준으로 쓰는 법." />
+  <meta name="keywords" content="E2E 테스트, end-to-end, Playwright, pytest-playwright, 테스트 피라미드, flaky test, codegen, trace, 바이브 코딩, Claude Code" />
+  <meta name="author" content="Kang-dongho" />
+  <meta name="theme-color" content="#06080F" />
+  <!-- 형식: geniuskey/vibe-coding (CC BY-NC 4.0) 덱 구조 재사용 · 이 덱의 내용은 추가 작성분 -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOUI4MkZGIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMkJFQUQwIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgeD0iMS41IiB5PSIxLjUiIHdpZHRoPSIyOSIgaGVpZ2h0PSIyOSIgcng9IjgiIGZpbGw9IiMwRTEyMjAiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTkgMTFsNiA1LTYgNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTE3IDIxaDYiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPgo=" />
+  <link rel="stylesheet" href="../vendor/reveal/reveal.css">
+  <link rel="stylesheet" href="../vendor/fonts/pretendard.css">
+  <style>
+    :root {
+      --bg-0: #06080F;
+      --bg-1: #0E1220;
+      --bg-2: #161B30;
+      --fg: #FFFFFF;
+      --fg-dim: #E2E6F0;
+      --fg-soft: #B8BFD0;
+      --accent: #9B82FF;
+      --accent-2: #2BEAD0;
+      --accent-3: #FF7A95;
+      --accent-4: #FFD46B;
+      --danger: #FF4D5E;
+    }
+
+    html { color-scheme: dark; }
+    html, body { background: var(--bg-0) !important; }
+    /* gradient mesh background — 원본 데크와 동일한 분위기 */
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(124,92,255,0.13), transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(0,224,199,0.10), transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(255,94,126,0.04), transparent 60%);
+    }
+    body::after {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(124,92,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,92,255,0.05) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 75%);
+    }
+    .reveal { background: transparent; position: relative; z-index: 1; }
+
+    .reveal { font-family: 'Pretendard', system-ui, sans-serif; color: #FFFFFF; }
+    .reveal .slides { text-align: left; }
+    .reveal section { padding: 16px 52px; box-sizing: border-box; height: 100%; word-break: keep-all; }
+
+    /* HARD RULE: every text descendant defaults to pure white. */
+    .reveal section,
+    .reveal section p,
+    .reveal section li,
+    .reveal section span,
+    .reveal section em,
+    .reveal section strong,
+    .reveal section h1,
+    .reveal section h2,
+    .reveal section h3,
+    .reveal section h4 {
+      color: #FFFFFF;
+    }
+
+    .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+      font-family: 'Pretendard', system-ui, sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: none;
+      margin: 0 0 0.4em 0;
+      line-height: 1.15;
+      color: #FFFFFF !important;
+      text-shadow:
+        0 1px 0 rgba(0,0,0,0.85),
+        0 2px 4px rgba(0,0,0,0.55);
+    }
+    .reveal section p,
+    .reveal section li {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.75);
+    }
+    .reveal .quote, .reveal .quote * {
+      text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+    }
+    .reveal .grad {
+      text-shadow: none !important; /* background-clip:text 위 그림자는 그라데이션을 탁하게 만든다 */
+    }
+    .reveal h1 { font-size: 4.2rem; }
+    .reveal h2 { font-size: 2.9rem; }
+    .reveal h3 { font-size: 2.0rem; }
+    .reveal p, .reveal li { font-size: 1.45rem; line-height: 1.6; }
+
+    .reveal a { color: #5BFFE0 !important; }
+
+    /* Toolbar — fixed top-right */
+    .dl-toolbar {
+      position: fixed;
+      top: 16px; right: 16px;
+      z-index: 9999;
+      display: flex;
+      gap: 8px;
+    }
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: rgba(20, 22, 44, 0.85);
+      border: 1px solid rgba(155, 130, 255, 0.5);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #E6D9FF !important;
+      text-decoration: none !important;
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      white-space: nowrap;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .dl-btn:hover {
+      opacity: 1;
+      transform: translateY(-2px);
+      background: rgba(124, 92, 255, 0.4);
+      border-color: rgba(91, 255, 224, 0.7);
+    }
+    .dl-btn:focus-visible,
+    .transition-select:focus-visible {
+      opacity: 1;
+      outline: 2px solid #5BFFE0;
+      outline-offset: 2px;
+    }
+    .transition-select {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 14px;
+      background: rgba(20, 22, 44, 0.85);
+      border: 1px solid rgba(155, 130, 255, 0.5);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #E6D9FF !important;
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .transition-select:hover { opacity: 1; transform: translateY(-2px); }
+    .transition-select option { background: #14162C; color: #E1D9FF; }
+    #tocSelect { width: 340px; max-width: 340px; }
+    @media (max-width: 760px) {
+      .dl-toolbar { top: 8px; right: 8px; left: 8px; gap: 6px; justify-content: flex-end; }
+      #tocSelect { flex: 1 1 auto; width: auto; min-width: 0; max-width: 340px; text-overflow: ellipsis; }
+      .dl-toolbar .dl-btn { flex: none; padding: 7px 11px; }
+      .dl-toolbar .dl-btn > span:not([aria-hidden]) {
+        position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+      }
+      .dl-toolbar .dl-btn > span[aria-hidden] { font-size: 0.95rem; }
+    }
+    /* 전체화면을 못 쓰는 브라우저(iOS Safari 등)에서는 버튼을 숨긴다 */
+    .no-fullscreen #fullscreenBtn { display: none; }
+
+    .reveal .slide-number {
+      color: #E6D9FF;
+      right: auto;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      background: rgba(20, 22, 44, 0.6);
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .reveal .controls { color: #B5A1FF; }
+    .reveal .controls[data-controls-layout="edges"] .navigate-left,
+    .reveal .controls[data-controls-layout="edges"] .navigate-right {
+      top: auto;
+      bottom: 8px;
+      margin-top: 0;
+    }
+    .reveal .controls[data-controls-layout="edges"] .navigate-left { left: 20px; }
+    .reveal .controls[data-controls-layout="edges"] .navigate-right { right: 20px; }
+    .reveal .controls .controls-arrow { opacity: 0.55; transition: opacity 0.3s ease; }
+    .reveal .controls .controls-arrow:hover { opacity: 1; }
+    .reveal .progress { color: #B5A1FF; }
+
+    /* utility */
+    .reveal .accent  { color: #B5A1FF !important; }
+    .reveal .accent2 { color: #5BFFE0 !important; }
+    .reveal .accent3 { color: #FF94AC !important; }
+    .reveal .accent4 { color: #FFE08A !important; }
+    .reveal .muted   { color: #E6D9FF !important; }
+    .reveal .danger  { color: #FF8A96 !important; }
+    .reveal em       { color: #FFE08A !important; font-style: italic; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .center { text-align: center; }
+    .stack { display: flex; flex-direction: column; gap: 1.2rem; }
+    .row { display: flex; gap: 2rem; align-items: center; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .small { font-size: 1.18rem; }
+    .tiny  { font-size: 1.0rem; }
+    .reveal p.small, .reveal li.small, .reveal span.small { font-size: 1.18rem; }
+    .reveal p.tiny, .reveal span.tiny { font-size: 1.0rem; }
+    .vfill { height: 100%; display: flex; flex-direction: column; justify-content: center; }
+    /* flex 컨테이너에서 chip이 가로로 늘어나지 않도록 */
+    .vfill > .chip { align-self: flex-start; }
+    .vfill.center > .chip { align-self: center; }
+
+    /* gradient text (정적) */
+    .reveal .grad, .reveal section .grad {
+      background: linear-gradient(120deg, #B5A1FF 0%, #5BFFE0 50%, #FF94AC 100%) !important;
+      background-size: 100% 100% !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      color: transparent !important;
+      font-weight: 800;
+      filter: drop-shadow(0 0 22px rgba(155,130,255,0.28));
+    }
+
+    .chip {
+      display:inline-block; padding: .35em 1em;
+      border-radius: 6px; font-family: 'JetBrains Mono', monospace;
+      font-size: .95rem; color: #FFFFFF !important;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: #2A2150;
+      border: 1px solid rgba(155, 130, 255, 0.8);
+      margin-bottom: 1.5rem;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 0.35em 0.9em;
+      border-radius: 999px;
+      background: #2A2150;
+      border: 1px solid rgba(155,130,255,0.8);
+      color: #E1D9FF !important;
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .pill.green { background: #0D3D38; border-color: rgba(43,234,208,0.85); color: #C5FFF5 !important; }
+    .pill.pink  { background: #4A1A26; border-color: rgba(255,122,149,0.85); color: #FFD0DA !important; }
+    .pill.amber { background: #463817; border-color: rgba(255,212,107,0.85); color: #FFEFC2 !important; }
+
+    /* card — glassmorphism */
+    .card {
+      background: linear-gradient(160deg, rgba(40, 30, 80, 0.55), rgba(20, 50, 60, 0.45));
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(155,130,255,0.45);
+      border-radius: 18px;
+      padding: 1.6rem 1.8rem;
+      box-shadow:
+        0 30px 60px -20px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.10);
+      transition: border-color .25s ease-out;
+    }
+    .card:hover { border-color: rgba(155,130,255,0.9); }
+    .card h3 { font-size: 1.5rem; margin: 0 0 0.8rem 0; color: #FFFFFF !important; }
+    .card p { font-size: 1.15rem; line-height: 1.6; margin: 0; color: #E8ECF5 !important; }
+    .card p + p { margin-top: 0.5rem; }
+    .card.bad  { border-color: rgba(255,122,149,0.55); background: linear-gradient(160deg, rgba(80,25,45,0.5), rgba(45,18,35,0.45)); }
+    .card.good { border-color: rgba(43,234,208,0.6); background: linear-gradient(160deg, rgba(15,60,55,0.55), rgba(12,42,48,0.45)); }
+
+    .quote {
+      font-size: 1.7rem;
+      line-height: 1.5;
+      padding: 1.4rem 1.8rem;
+      border-left: 4px solid #2BEAD0;
+      background: #131829;
+      border-radius: 0 12px 12px 0;
+      color: #FFFFFF !important;
+      font-style: italic;
+    }
+    .quote * { color: #FFFFFF !important; }
+    .quote .grad { color: transparent !important; }
+
+    .big {
+      font-size: 7.5rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    /* code / chat block */
+    pre.code {
+      background: #131829;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 14px;
+      padding: 1.1rem 1.3rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.02rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #FFFFFF;
+      margin: 0;
+      white-space: pre-wrap;
+      font-variant-ligatures: none;
+    }
+    .code .kw { color: var(--accent); font-weight: 600; }
+    .code .st { color: var(--accent-2); }
+    .code .cm { color: #E6D9FF; font-style: italic; }
+    .code .nm { color: var(--accent-4); }
+    pre.code.bad  { border-color: rgba(255,122,149,0.55); }
+    pre.code.good { border-color: rgba(43,234,208,0.6); }
+
+    kbd.key {
+      display: inline-block;
+      padding: 0.2em 0.65em;
+      margin: 0 0.1em;
+      border-radius: 7px;
+      background: #201A3D;
+      border: 1px solid rgba(155,130,255,0.6);
+      border-bottom: 3px solid rgba(155,130,255,0.6);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.92em;
+      font-weight: 700;
+      color: #E1D9FF;
+    }
+
+    /* ========= 순서를 돕는 짧은 등장 — 300ms ease-out, 한 장 안에서 최대 0.3s 지연 ========= */
+    .autoshow { opacity: 0; }
+    section.present .autoshow { animation: asFadeUp .32s cubic-bezier(.2,.7,.3,1) forwards; }
+    section.present .autoshow.fade-in { animation-name: asFadeIn; }
+    @keyframes asFadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+    @keyframes asFadeIn { from { opacity:0; } to { opacity:1; } }
+    .autoshow:nth-child(2) { animation-delay: .06s; }
+    .autoshow:nth-child(3) { animation-delay: .12s; }
+    .autoshow:nth-child(4) { animation-delay: .18s; }
+    .autoshow:nth-child(5) { animation-delay: .24s; }
+    .autoshow:nth-child(n+6) { animation-delay: .3s; }
+
+    /* ========= 리스트 유틸 ========= */
+    .list-clean { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .55rem; }
+    .list-clean li { font-size: 1.22rem !important; line-height: 1.5; }
+
+    /* ========= 사다리(단계 목록) ========= */
+    .ladder { display: flex; flex-direction: column; gap: .45rem; }
+    .ladder .rung {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .55rem 1.2rem; border-radius: 10px;
+      border: 1px solid rgba(155,130,255,0.35);
+      background: rgba(40,30,80,0.28);
+      font-size: 1.18rem; font-weight: 700;
+    }
+    .ladder .rung .no {
+      font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1rem;
+      color: #B5A1FF !important; width: 1.6em; flex: 0 0 auto;
+    }
+    .ladder .rung .w {
+      margin-left: auto; font-family: 'JetBrains Mono', monospace;
+      font-size: .9rem; color: #C9D2E4 !important; white-space: nowrap; padding-left: 1rem;
+    }
+
+    /* ========= 4단계 루프 ========= */
+    .loop-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; }
+    .loop-step {
+      display: flex; flex-direction: column; gap: .25rem; align-items: flex-start;
+      padding: .7rem .9rem; border-radius: 12px;
+      border: 1px solid rgba(190,200,224,0.4);
+      background: rgba(230,236,249,0.06);
+    }
+    .loop-step .no { font-family: 'JetBrains Mono', monospace; font-size: .8rem; font-weight: 800; color: #B5A1FF !important; }
+    .loop-step .nm2 { font-size: 1.12rem; font-weight: 800; }
+    .loop-step.hot { border-color: rgba(43,234,208,.65); background: rgba(43,234,208,.08); }
+    .loop-step.hot .no { color: #5BFFE0 !important; }
+
+    /* ========= SVG 글자 가독성 ========= */
+    .reveal section svg text { paint-order: stroke fill; stroke: #06080F; stroke-width: 1.2px; stroke-linejoin: round; }
+
+    /* ========= 슬라이드 하단 레퍼런스 링크 ========= */
+    .slide-refs {
+      position: absolute; left: 56px; bottom: 12px; z-index: 3;
+      display: flex; gap: 1.1rem; align-items: center; flex-wrap: wrap;
+      max-width: 40%;
+      font-family: 'JetBrains Mono', monospace; font-size: .78rem;
+      opacity: .8;
+    }
+    .slide-refs .rl { color: #9BA6C0 !important; font-weight: 800; letter-spacing: .12em; }
+    .slide-refs a {
+      color: #8FF5E2 !important; text-decoration: none !important;
+      border-bottom: 1px dotted rgba(91,255,224,.45); white-space: nowrap;
+    }
+    .slide-refs a:hover { color: #5BFFE0 !important; border-bottom-color: #5BFFE0; }
+
+    /* ========= 참고자료 슬라이드 ========= */
+    .ref-col h3 { font-size: 1.3rem; }
+    .ref-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
+    .ref-col li { font-size: 1.02rem !important; line-height: 1.45; }
+    .ref-col li a { font-weight: 700; }
+    .ref-col li .rd { display: block; font-size: .88rem; color: #B8BFD0 !important; }
+
+    /* ========= 실습 박스 — 배우는 것 · 완료 기준 · 막히면 ========= */
+    .lab-learn { font-size: 1.12rem !important; color: #E2E6F0 !important; margin: 0 0 .7rem; }
+    .lab-learn b { color: #C5FFF5 !important; }
+    .done-box, .stuck-box {
+      border-radius: 12px; padding: .7rem 1rem .8rem;
+      display: flex; flex-direction: column; gap: .3rem;
+    }
+    .done-box  { border: 1.5px solid rgba(43,234,208,.75); background: rgba(13,61,56,.45); }
+    .stuck-box { border: 1px dashed rgba(255,212,107,.6); background: rgba(70,56,23,.18); }
+    .done-box .bx-t, .stuck-box .bx-t {
+      font-family: 'JetBrains Mono', monospace; font-size: .85rem; font-weight: 800; letter-spacing: .05em; margin: 0;
+    }
+    .done-box .bx-t  { color: #8FF5E2 !important; }
+    .stuck-box .bx-t { color: #FFE08A !important; }
+    .done-box p, .stuck-box p, .done-box li, .stuck-box li { font-size: 1rem !important; line-height: 1.45; margin: 0; color: #E8ECF5 !important; }
+    .done-box ul, .stuck-box ul { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: .2rem; }
+
+    /* ========= 보안 약속 (시리즈 공통) ========= */
+    .promise-list { display: flex; flex-direction: column; gap: .6rem; }
+    .promise {
+      display: grid; grid-template-columns: 2.4rem 1fr; gap: .2rem 1rem; align-items: baseline;
+      padding: .75rem 1.2rem; border-radius: 14px;
+      border: 1px solid rgba(255,122,149,.55); background: rgba(80,25,45,.32);
+    }
+    .promise .pn { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 900; color: #FF94AC !important; grid-row: span 2; }
+    .promise b { font-size: 1.28rem; line-height: 1.4; }
+    .promise span.why { font-size: 1rem; color: #D6DCEA !important; line-height: 1.45; }
+    .plus-one {
+      margin-top: .7rem; padding: .6rem 1.1rem; border-radius: 12px;
+      border: 1px dashed rgba(155,130,255,.6); background: rgba(40,30,80,.3);
+      font-size: 1.05rem;
+    }
+    .plus-one .po-t { font-family: 'JetBrains Mono', monospace; font-size: .82rem; font-weight: 800; color: #CBBDFF !important; margin-right: .6rem; }
+
+    /* ========= security 전용 시그니처 컴포넌트 ========= */
+    /* ① 데이터 흐름 지도 — 내 상자에서 외부 모델로 나가는 경로 */
+    .flowmap { display:flex; align-items:stretch; gap:0; justify-content:center; margin:.6rem 0; flex-wrap:nowrap; }
+    .flow-node {
+      flex:1 1 0; min-width:0; padding:1rem .9rem; border-radius:14px;
+      border:1px solid rgba(155,130,255,.4); background:rgba(230,236,249,.05);
+      display:flex; flex-direction:column; gap:.3rem; text-align:center;
+    }
+    .flow-node h4 { font-size:1.15rem; font-weight:800; margin:0; }
+    .flow-node p { font-size:.98rem; color:#D6DCEA !important; margin:0; }
+    .flow-node.mine { border-color:rgba(43,234,208,.7); background:rgba(43,234,208,.08); }
+    .flow-node.out  { border-color:rgba(255,122,149,.7); background:rgba(255,122,149,.08); }
+    .flow-arrow { flex:0 0 auto; align-self:center; padding:0 .5rem; font-size:1.7rem; color:#FFD46B; }
+    .flow-arrow small { display:block; font-size:.72rem; color:#9BA6C0; letter-spacing:.03em; }
+
+    /* ② 신뢰 경계선 — 내가 쓴 것 vs 외부에서 온 것 */
+    .trustzone { display:grid; grid-template-columns:1fr auto 1fr; align-items:stretch; gap:0; margin:.5rem 0; }
+    .tz-side { padding:1rem 1.1rem; border-radius:14px; display:flex; flex-direction:column; gap:.5rem; }
+    .tz-side.trusted { border:1px solid rgba(43,234,208,.55); background:rgba(43,234,208,.06); }
+    .tz-side.untrusted { border:1px solid rgba(255,122,149,.55); background:rgba(255,122,149,.06); }
+    .tz-side h4 { margin:0; font-size:1.18rem; font-weight:800; }
+    .tz-side .tz-item { font-size:1rem; color:#E2E6F0 !important; }
+    .tz-fence {
+      width:0; border-left:3px dashed rgba(255,212,107,.8); margin:0 1.2rem;
+      position:relative;
+    }
+    .tz-fence::after {
+      content:"🚧 신뢰 경계"; position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%) rotate(90deg); white-space:nowrap;
+      font-family:'JetBrains Mono',monospace; font-size:.78rem; font-weight:800;
+      color:#FFD46B !important; background:var(--bg-0); padding:.2rem .5rem;
+    }
+
+    /* ③ 프롬프트 인젝션 무대 — 숨은 지시가 도구를 움직인다 */
+    .inj-stage { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:center; gap:0; margin:.5rem 0; }
+    .inj-card {
+      padding:.9rem 1rem; border-radius:14px; border:1px solid rgba(155,130,255,.4);
+      background:rgba(230,236,249,.05); text-align:center; display:flex; flex-direction:column; gap:.35rem;
+    }
+    .inj-card .inj-ico { font-size:2rem; line-height:1; }
+    .inj-card h4 { margin:0; font-size:1.08rem; font-weight:800; }
+    .inj-card p { margin:0; font-size:.92rem; color:#D6DCEA !important; }
+    .inj-card.hidden-cmd { border-color:rgba(255,122,149,.75); background:rgba(255,122,149,.1); }
+    .inj-card.boom { border-color:var(--danger); background:rgba(255,77,94,.12); }
+    .inj-flow { flex:0 0 auto; text-align:center; padding:0 .4rem; }
+    .inj-flow .a { font-size:1.6rem; color:#FF7A95; }
+    .inj-flow small { display:block; font-size:.72rem; color:#9BA6C0; }
+
+    /* 삼각 위험(치명적 3요소) 배지 */
+    .triad { display:flex; gap:.8rem; justify-content:center; flex-wrap:wrap; margin-top:.5rem; }
+    .triad .tbadge {
+      padding:.55rem 1rem; border-radius:999px; font-weight:800; font-size:1.02rem;
+      border:1px solid rgba(255,122,149,.6); background:rgba(255,122,149,.09);
+    }
+
+    /* ④ 권한 다이얼 — plan · manual · auto(기본) · bypass */
+    .permrow { display:flex; align-items:stretch; gap:.7rem; justify-content:center; flex-wrap:nowrap; margin:.5rem 0; }
+    .perm-step {
+      flex:1 1 0; min-width:0; padding:.85rem .8rem; border-radius:14px; text-align:center;
+      border:1px solid rgba(190,200,224,.35); background:rgba(230,236,249,.05);
+      display:flex; flex-direction:column; gap:.3rem;
+    }
+    .perm-step h4 { margin:0; font-size:1.06rem; font-weight:800; }
+    .perm-step p { margin:0; font-size:.9rem; color:#D6DCEA !important; }
+    .perm-step.p1 { border-color:rgba(43,234,208,.6); }
+    .perm-step.p2 { border-color:rgba(155,130,255,.6); }
+    .perm-step.p3 { border-color:rgba(255,212,107,.6); }
+    .perm-step.p4 { border-color:rgba(255,122,149,.65); background:rgba(255,122,149,.08); }
+    .perm-step.is-default { box-shadow:0 0 0 2px rgba(255,212,107,.85); }
+    .perm-default { align-self:center; font-size:.7rem; font-weight:800; padding:.1rem .5rem; border-radius:999px; background:rgba(255,212,107,.18); color:#FFE08A !important; }
+    .perm-gauge { font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.05em; color:#9BA6C0 !important; }
+
+    /* 데이터 등급 매트릭스 */
+    .gov-table { width:100%; border-collapse:collapse; font-size:1rem; }
+    .gov-table th, .gov-table td { border:1px solid rgba(155,130,255,.25); padding:.55rem .7rem; text-align:center; }
+    .gov-table th { font-family:'JetBrains Mono',monospace; font-size:.86rem; color:#B5A1FF !important; letter-spacing:.04em; }
+    .gov-table td.yes { color:#8FF0E2 !important; font-weight:800; }
+    .gov-table td.no  { color:#FF9FB0 !important; font-weight:800; }
+    .gov-table td.ask { color:#FFE29A !important; font-weight:800; }
+
+    @media (max-width: 1100px) {
+      .flowmap, .permrow { flex-wrap:wrap; }
+      .inj-stage, .trustzone { grid-template-columns:1fr; }
+      .tz-fence { display:none; }
+    }
+
+    /* 실습 배지 · 프롬프트 카드 (github 덱과 같은 모양) */
+    .chip.live { background: #0D3D38; border-color: rgba(43,234,208,0.85); color: #C5FFF5 !important; }
+    .chip.warn { background: #4A1A26; border-color: rgba(255,122,149,0.85); color: #FFD0DA !important; }
+    .prompt-card {
+      background: linear-gradient(160deg, rgba(38,30,82,0.72), rgba(16,22,44,0.72));
+      border: 1.5px solid rgba(155,130,255,0.65); border-radius: 16px;
+      padding: .9rem 1.15rem 1rem; margin: 0;
+    }
+    .prompt-card .pc-label {
+      font-family: 'JetBrains Mono', monospace; font-size: .88rem; font-weight: 800; letter-spacing: .06em;
+      color: #CBBDFF !important; margin-bottom: .45rem;
+    }
+    .prompt-card pre.code {
+      margin: 0; border: 0; background: rgba(6,8,15,0.55);
+      font-family: 'Pretendard', system-ui, sans-serif; font-size: 1.12rem; font-weight: 600; line-height: 1.55;
+      white-space: pre-wrap; word-break: keep-all;
+    }
+
+    /* ========= fallbacks: overview / print / reduced-motion ========= */
+    .reveal.overview .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+    .reveal.overview .slides section {
+      display: block !important;
+      cursor: pointer;
+      outline: 1px solid rgba(181, 161, 255, 0.28);
+      outline-offset: -1px;
+      border-radius: 6px;
+    }
+    .reveal.overview .slides section:hover { outline: 2px solid #B5A1FF; }
+    .reveal.overview .slides section.present { outline: 3px solid #5BFFE0; }
+    @media print {
+      .reveal .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .dl-toolbar { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .reveal .fragment { transition: none !important; }
+      .card, .dl-btn, .transition-select, .copy-btn { transition: none !important; }
+    }
+  </style>
+  <style>
+    /* ===== 추가 덱 공통 (harness · k8s) ===== */
+    .credit { font-size: .82rem !important; color: #8E96AB !important; margin-top: 1.4rem; }
+    .credit a { color: #B8A6FF !important; }
+
+    /* 표 */
+    .xt { width: 100%; border-collapse: collapse; font-size: 1.02rem; margin-top: .4rem; }
+    .xt th { text-align: left; padding: .5rem .75rem; font: 800 .82rem/1.2 'JetBrains Mono', monospace; letter-spacing: .06em;
+      color: #2BEAD0 !important; border-bottom: 1.5px solid rgba(43,234,208,.45); }
+    .xt td { padding: .55rem .75rem; border-bottom: 1px solid rgba(155,130,255,.22); vertical-align: top; color: #E2E6F0 !important; line-height: 1.45; }
+    .xt td:first-child { font-weight: 700; color: #fff !important; }
+    .xt td .mono, .xt td.mono { font-size: .92em; }
+    .xt tr.hl td { background: rgba(255,212,107,.07); }
+
+    /* 하네스 지도: 모델 + 6칸 */
+    .hmap { display: grid; grid-template-columns: 260px 1fr; gap: 1.4rem; align-items: stretch; margin-top: .5rem; }
+    .hmodel { border: 2px solid #9B82FF; border-radius: 18px; background: rgba(155,130,255,.13);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 1rem; }
+    .hmodel .ico { font-size: 3.4rem; line-height: 1; }
+    .hmodel b { font-size: 1.7rem; margin-top: .4rem; }
+    .hmodel span { font-size: .98rem; color: #B8BFD0 !important; margin-top: .3rem; }
+    .hcells { border: 2px dashed rgba(43,234,208,.75); border-radius: 18px; padding: .9rem; background: rgba(43,234,208,.05);
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; position: relative; }
+    .hcells::before { content: "HARNESS · 내가 고칠 수 있는 부분"; position: absolute; top: -.75rem; left: 1rem; padding: 0 .5rem;
+      background: #0B0F1C; font: 800 .78rem/1.5 'JetBrains Mono', monospace; letter-spacing: .08em; color: #2BEAD0; }
+    .hcell { border: 1px solid rgba(155,130,255,.4); border-radius: 12px; padding: .65rem .8rem; background: rgba(6,8,15,.6); }
+    .hcell b { display: block; font-size: 1.15rem; }
+    .hcell span { display: block; font-size: .9rem; color: #B8BFD0 !important; margin-top: .2rem; line-height: 1.4; }
+    .hcell.on { border-color: #FFD46B; background: rgba(255,212,107,.10); }
+    .hcell.on b { color: #FFD46B !important; }
+
+    /* 한 칸 상세 장 공통 머리 */
+    .slot-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; align-items: start; margin-top: .4rem; }
+    .mini6 { display: inline-grid; grid-template-columns: repeat(6, auto); gap: .25rem; margin-left: .6rem; vertical-align: middle; }
+    .mini6 i { width: .7rem; height: .7rem; border-radius: 3px; background: rgba(155,130,255,.35); display: inline-block; }
+    .mini6 i.on { background: #FFD46B; box-shadow: 0 0 8px #FFD46B; }
+
+    /* 층 (프롬프트 → 컨텍스트 → 하네스) */
+    .layers { display: flex; flex-direction: column; gap: .55rem; margin-top: .5rem; }
+    .layer { display: grid; grid-template-columns: 220px 1fr 1fr; gap: 1rem; align-items: center; padding: .7rem 1rem;
+      border-radius: 14px; border: 1px solid rgba(155,130,255,.35); background: rgba(6,8,15,.5); }
+    .layer b { font-size: 1.2rem; }
+    .layer span { font-size: .98rem; color: #B8BFD0 !important; }
+    .layer.l3 { border-color: rgba(43,234,208,.7); background: rgba(43,234,208,.07); }
+    .layer.l3 b { color: #2BEAD0 !important; }
+
+    /* 래칫 흐름 */
+    .ratchet { display: flex; align-items: stretch; gap: .6rem; margin-top: .6rem; }
+    .ratchet .st { flex: 1; border: 1px solid rgba(155,130,255,.4); border-radius: 14px; padding: .8rem .9rem; background: rgba(6,8,15,.55); }
+    .ratchet .st b { display: block; font-size: 1.12rem; }
+    .ratchet .st span { display: block; font-size: .92rem; color: #B8BFD0 !important; margin-top: .25rem; line-height: 1.45; }
+    .ratchet .ar { align-self: center; color: #2BEAD0; font-size: 1.6rem; }
+    .ratchet .st.end { border-color: #2BEAD0; background: rgba(43,234,208,.08); }
+
+    /* 요청 경로 (k8s) */
+    .reqflow { display: flex; align-items: stretch; gap: .5rem; margin-top: .6rem; }
+    .rq { flex: 1; text-align: center; border-radius: 14px; border: 1px solid rgba(155,130,255,.45); padding: .8rem .5rem; background: rgba(6,8,15,.6); }
+    .rq .ico { font-size: 1.9rem; line-height: 1.2; }
+    .rq b { display: block; font-size: 1.2rem; }
+    .rq span { display: block; font-size: .9rem; color: #B8BFD0 !important; line-height: 1.4; margin-top: .2rem; }
+    .rq.k { border-color: rgba(43,234,208,.7); }
+    .rqa { align-self: center; color: #2BEAD0; font-size: 1.5rem; }
+    .pods { display: flex; justify-content: center; gap: .3rem; margin-top: .45rem; }
+    .pods i { font-style: normal; font: 700 .72rem/1 'JetBrains Mono', monospace; padding: .3rem .4rem; border-radius: 6px;
+      border: 1px solid #2BEAD0; background: rgba(43,234,208,.2); color: #C5FFF5 !important; }
+    .pods i.dead { border-color: #FF7A95; background: rgba(255,122,149,.18); color: #FFD0DA !important; text-decoration: line-through; }
+    .nodebox { margin-top: .9rem; border: 1.5px dashed rgba(155,130,255,.6); border-radius: 14px; padding: .6rem 1rem;
+      font-size: 1rem; color: #B8BFD0 !important; }
+
+    /* 계단 (k8s) */
+    .stairs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; align-items: end; margin-top: .6rem; }
+    .stair { border-radius: 14px; border: 1px solid rgba(155,130,255,.45); background: rgba(6,8,15,.6); padding: .8rem .9rem; }
+    .stair .lv { font: 800 .8rem/1 'JetBrains Mono', monospace; color: #2BEAD0 !important; letter-spacing: .06em; }
+    .stair b { display: block; font-size: 1.15rem; margin: .35rem 0 .3rem; }
+    .stair p { font-size: .9rem !important; color: #B8BFD0 !important; line-height: 1.45; margin: 0; }
+    .stair .when { display: block; margin-top: .5rem; font-size: .85rem; color: #FFD46B !important; }
+    .stair.s1 { min-height: 200px; } .stair.s2 { min-height: 240px; } .stair.s3 { min-height: 280px; } .stair.s4 { min-height: 320px; border-color: #2BEAD0; }
+
+    /* 조정 루프 (k8s) */
+    .loop3 { display: flex; align-items: center; gap: .7rem; margin-top: .6rem; }
+    .loop3 .st { flex: 1; text-align: center; border: 1px solid rgba(155,130,255,.45); border-radius: 14px; padding: .9rem .6rem; background: rgba(6,8,15,.6); }
+    .loop3 .st b { display: block; font-size: 1.25rem; }
+    .loop3 .st span { display: block; font-size: .92rem; color: #B8BFD0 !important; margin-top: .2rem; }
+    .loop3 .ar { color: #2BEAD0; font-size: 1.5rem; }
+
+    pre.code.sm { font-size: .84rem; line-height: 1.5; }
+    .reveal p.codecap, .codecap { font: 800 .78rem/1 'JetBrains Mono', monospace; letter-spacing: .06em; color: #CBBDFF !important; margin: 0 0 .35rem; font-size: .78rem !important; }
+    .note-line { font-size: 1rem !important; color: #B8BFD0 !important; margin-top: .7rem; }
+
+    /* ===== 시각화 · 예시 보강 (v2) ===== */
+    /* 원본 context 덱의 sim-line 패턴 */
+    .sim-list { list-style: none; display: flex; flex-direction: column; gap: .5rem; margin: 0; padding: 0; }
+    .sim-list > li { margin: 0; }
+    .sim-line { display: flex; align-items: center; gap: .8rem; padding: .5rem 1rem; border-radius: 12px;
+      border: 1px solid rgba(190,200,224,0.3); background: rgba(230,236,249,0.05); font-size: 1.02rem !important; line-height: 1.45; }
+    .sim-line .tok { margin-left: auto; font: 800 .82rem/1 'JetBrains Mono', monospace; white-space: nowrap; padding: .3rem .55rem; border-radius: 999px; }
+    .tok.ok   { background: rgba(43,234,208,.16); color: #8FF0E2 !important; border: 1px solid rgba(43,234,208,.5); }
+    .tok.ask  { background: rgba(255,212,107,.14); color: #FFE29A !important; border: 1px solid rgba(255,212,107,.5); }
+    .tok.no   { background: rgba(255,122,149,.14); color: #FF9FB0 !important; border: 1px solid rgba(255,122,149,.5); }
+    .tok.info { background: rgba(155,130,255,.16); color: #CBBDFF !important; border: 1px solid rgba(155,130,255,.5); }
+    .sim-line.fail { border-color: rgba(255,122,149,.55); background: rgba(255,122,149,.07); }
+    .sim-line.pass { border-color: rgba(43,234,208,.55); background: rgba(43,234,208,.07); }
+
+    /* 대화·터미널 재현 */
+    .tx { border-radius: 14px; border: 1px solid rgba(155,130,255,.4); background: #05070E; padding: .7rem .9rem; display: flex; flex-direction: column; gap: .4rem; }
+    .tx-h { font: 800 .76rem/1 'JetBrains Mono', monospace; letter-spacing: .06em; color: #8E96AB !important; padding-bottom: .35rem;
+      border-bottom: 1px solid rgba(155,130,255,.2); display: flex; gap: .5rem; align-items: center; }
+    .tx-h i { width: .55rem; height: .55rem; border-radius: 50%; display: inline-block; background: #FF7A95; }
+    .tx-h i + i { background: #FFD46B; } .tx-h i + i + i { background: #2BEAD0; }
+    .tx-l { font-size: .95rem !important; line-height: 1.45; margin: 0; padding: .3rem .55rem; border-radius: 8px; }
+    .tx-l.me  { background: rgba(155,130,255,.14); color: #E8E2FF !important; }
+    .tx-l.ai  { background: rgba(230,236,249,.05); color: #E2E6F0 !important; }
+    .tx-l.sys { font-family: 'JetBrains Mono', monospace; font-size: .84rem !important; color: #B8BFD0 !important; background: rgba(230,236,249,.03); }
+    .tx-l.bad { background: rgba(255,122,149,.12); color: #FFD0DA !important; }
+    .tx-l.good{ background: rgba(43,234,208,.12); color: #C5FFF5 !important; }
+    .tx-l b.who { font: 800 .74rem/1 'JetBrains Mono', monospace; margin-right: .45rem; letter-spacing: .04em; opacity: .85; }
+    pre.term-out { margin: 0; padding: .7rem .9rem; border-radius: 12px; background: #04060C; border: 1px solid rgba(43,234,208,.4);
+      font: 500 .8rem/1.55 'JetBrains Mono', monospace; color: #D7DCE8 !important; white-space: pre; overflow: hidden; }
+    pre.term-out .hl-r { color: #FF9FB0 !important; font-weight: 800; }
+    pre.term-out .hl-y { color: #FFE29A !important; font-weight: 800; }
+    pre.term-out .hl-g { color: #8FF0E2 !important; font-weight: 800; }
+    pre.term-out .dim  { color: #6E768A !important; }
+
+    /* 에이전트 루프 (SVG + 움직이는 점) */
+    .loopfig { width: 100%; height: auto; display: block; }
+    .loopfig .lbox { fill: rgba(6,8,15,.85); stroke: rgba(155,130,255,.55); stroke-width: 1.5; }
+    .loopfig .lbox.gate { stroke: #FFD46B; stroke-width: 2; }
+    .loopfig .lbox.core { fill: rgba(155,130,255,.18); stroke: #9B82FF; stroke-width: 2.5; }
+    .loopfig text { font-family: 'Pretendard', sans-serif; fill: #E2E6F0; font-size: 15px; font-weight: 700; }
+    .loopfig text.s { font-size: 12px; font-weight: 600; fill: #B8BFD0; }
+    .loopfig text.g { fill: #FFD46B; font-size: 12px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+    .loopfig .track { fill: none; stroke: rgba(43,234,208,.45); stroke-width: 2; stroke-dasharray: 6 6; }
+    .loopfig .runner { fill: none; stroke: #2BEAD0; stroke-width: 16; stroke-linecap: round; stroke-dasharray: 0.5 999.5;
+      stroke-dashoffset: 1000; filter: drop-shadow(0 0 6px #2BEAD0); }
+    section.present .loopfig .runner { animation: runLoop 7s linear infinite; }
+    @keyframes runLoop { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+
+    /* 래칫 톱니 (한 방향으로만, 한 칸씩) */
+    .gear-wrap { display: flex; align-items: center; justify-content: center; }
+    .gear { width: 120px; height: 120px; }
+    .gear .teeth { fill: rgba(43,234,208,.2); stroke: #2BEAD0; stroke-width: 2; transform-origin: 75px 75px; }
+    section.present .gear .teeth { animation: gearStep 4.8s steps(1, end) infinite; }
+    @keyframes gearStep {
+      0% { transform: rotate(0deg); } 16.6% { transform: rotate(30deg); } 33.3% { transform: rotate(60deg); }
+      50% { transform: rotate(90deg); } 66.6% { transform: rotate(120deg); } 83.3% { transform: rotate(150deg); } 100% { transform: rotate(180deg); }
+    }
+    .gear .pawl { fill: #FFD46B; }
+
+    /* 겹친 상자: 프롬프트 ⊂ 컨텍스트 ⊂ 하네스 */
+    .nest { position: relative; height: 330px; }
+    .nest .ring { position: absolute; border-radius: 22px; display: flex; align-items: flex-start; padding: .6rem .9rem; }
+    .nest .ring b { font-size: 1.08rem; }
+    .nest .ring span { display: block; font-size: .84rem; color: #B8BFD0 !important; margin-top: .1rem; }
+    .nest .r3 { inset: 0; border: 2px dashed rgba(43,234,208,.8); background: rgba(43,234,208,.05); }
+    .nest .r3 b { color: #2BEAD0 !important; }
+    .nest .r2 { inset: 92px 26px 26px 26px; border: 1.5px solid rgba(155,130,255,.7); background: rgba(155,130,255,.07); }
+    .nest .r1 { inset: 186px 52px 52px 52px; border: 1.5px solid #FFD46B; background: rgba(255,212,107,.08); }
+    .nest .r1 b { color: #FFD46B !important; }
+    .nest .side { position: absolute; right: 1rem; top: .65rem; display: flex; gap: .3rem; flex-wrap: wrap; max-width: 62%; justify-content: flex-end; }
+    .nest .side i { font-style: normal; font: 700 .72rem/1 'JetBrains Mono', monospace; padding: .28rem .45rem; border-radius: 6px;
+      border: 1px solid rgba(43,234,208,.5); color: #A9FFF0 !important; background: rgba(43,234,208,.08); }
+    section.present .nest .ring { animation: asZoomIn2 .45s cubic-bezier(.2,.7,.3,1) both; }
+    section.present .nest .r2 { animation-delay: .18s; } section.present .nest .r1 { animation-delay: .36s; }
+    @keyframes asZoomIn2 { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+
+    /* K8S — 자가 회복 */
+    .heal { display: flex; justify-content: center; gap: 1rem; margin: .4rem 0 .2rem; }
+    .hpod { width: 118px; height: 78px; border-radius: 14px; border: 2px solid #2BEAD0; background: rgba(43,234,208,.14);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; font: 800 .9rem/1.2 'JetBrains Mono', monospace; color: #C5FFF5 !important; }
+    .hpod small { font-size: .7rem; font-weight: 600; color: #8FF0E2 !important; }
+    section.present .hpod.victim { animation: podDie 6s ease-in-out infinite; }
+    @keyframes podDie {
+      0%, 25%  { border-color: #2BEAD0; background: rgba(43,234,208,.14); opacity: 1; transform: none; }
+      32%, 45% { border-color: #FF7A95; background: rgba(255,122,149,.22); opacity: 1; transform: none; }
+      55%      { opacity: 0; transform: scale(.85); }
+      70%      { opacity: 0; transform: scale(.85); border-color: #2BEAD0; background: rgba(43,234,208,.14); }
+      82%,100% { opacity: 1; transform: none; border-color: #2BEAD0; background: rgba(43,234,208,.14); }
+    }
+    .heal-cap { display: flex; justify-content: center; gap: 1.6rem; font: 700 .86rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; }
+    section.present .heal-cap span:nth-child(1) { animation: capOn 6s infinite; animation-delay: 0s; }
+    section.present .heal-cap span:nth-child(2) { animation: capOn2 6s infinite; }
+    section.present .heal-cap span:nth-child(3) { animation: capOn3 6s infinite; }
+    @keyframes capOn  { 0%,28% { color: #8FF0E2; } 30%,100% { color: #6E768A; } }
+    @keyframes capOn2 { 0%,29% { color: #6E768A; } 31%,66% { color: #FF9FB0; } 68%,100% { color: #6E768A; } }
+    @keyframes capOn3 { 0%,67% { color: #6E768A; } 69%,100% { color: #8FF0E2; } }
+
+    /* K8S — 요청 패킷이 흘러가는 길 */
+    .rq-track { position: relative; height: 14px; margin: .5rem 4% 0; border-top: 2px dashed rgba(43,234,208,.35); }
+    .rq-track .pk { position: absolute; top: -8px; width: 14px; height: 14px; border-radius: 50%; background: #FFD46B; box-shadow: 0 0 10px #FFD46B; opacity: 0; }
+    section.present .rq-track .pk { animation: pkMove 3.2s linear infinite; }
+    section.present .rq-track .pk:nth-child(2) { animation-delay: 1.07s; }
+    section.present .rq-track .pk:nth-child(3) { animation-delay: 2.13s; }
+    @keyframes pkMove { 0% { left: 0; opacity: 0; } 8% { opacity: 1; } 90% { opacity: 1; } 100% { left: 98%; opacity: 0; } }
+    section.present .pods i:not(.dead) { animation: podHit 3.2s infinite; }
+    section.present .pods i:nth-child(2) { animation-delay: 1.07s; }
+    section.present .pods i:nth-child(4) { animation-delay: 2.13s; }
+    @keyframes podHit { 0%, 88% { box-shadow: none; } 94% { box-shadow: 0 0 12px #FFD46B; } 100% { box-shadow: none; } }
+
+    /* K8S — 이미지 층 쌓기 */
+    .layers-stack { display: flex; flex-direction: column-reverse; gap: .35rem; width: 100%; }
+    .lyr { border-radius: 10px; padding: .55rem .9rem; display: flex; justify-content: space-between; align-items: center;
+      font-size: 1rem; border: 1px solid rgba(155,130,255,.45); background: rgba(6,8,15,.7); }
+    .lyr .mono { font-size: .8rem; color: #B8BFD0 !important; }
+    .lyr.l1 { border-color: rgba(155,130,255,.8); background: rgba(155,130,255,.16); }
+    .lyr.l2 { border-color: rgba(155,130,255,.6); background: rgba(155,130,255,.10); }
+    .lyr.l3 { border-color: rgba(43,234,208,.6); background: rgba(43,234,208,.10); }
+    .lyr.l4 { border-color: #FFD46B; background: rgba(255,212,107,.12); }
+    section.present .lyr { animation: lyrDrop .4s cubic-bezier(.2,.7,.3,1) both; }
+    section.present .lyr.l2 { animation-delay: .25s; } section.present .lyr.l3 { animation-delay: .5s; } section.present .lyr.l4 { animation-delay: .75s; }
+    @keyframes lyrDrop { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: none; } }
+
+    /* K8S — 롤링 업데이트 */
+    .roll { display: flex; flex-direction: column; gap: .55rem; margin-top: .4rem; }
+    .roll-row { display: grid; grid-template-columns: 120px repeat(4, 1fr); gap: .5rem; align-items: center; }
+    .roll-row .lbl { font: 800 .8rem/1.2 'JetBrains Mono', monospace; color: #8E96AB !important; }
+    .rp { height: 46px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font: 800 .82rem/1 'JetBrains Mono', monospace; }
+    .rp.v1 { border: 2px solid #9B82FF; background: rgba(155,130,255,.18); color: #E2DAFF !important; }
+    .rp.v2 { border: 2px solid #2BEAD0; background: rgba(43,234,208,.18); color: #C5FFF5 !important; }
+    .rp.wait { border: 2px dashed #FFD46B; background: rgba(255,212,107,.08); color: #FFE29A !important; }
+    .rp.gone { border: 2px dashed rgba(110,118,138,.6); background: transparent; color: #6E768A !important; }
+
+    /* K8S — 이름표 맞추기 */
+    .match { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-top: .4rem; }
+    .mpanel { border-radius: 14px; padding: .8rem 1rem; border: 1px solid rgba(155,130,255,.4); background: rgba(6,8,15,.55); }
+    .mpanel.ok { border-color: rgba(43,234,208,.6); } .mpanel.ng { border-color: rgba(255,122,149,.6); }
+    .mpanel h3 { margin: 0 0 .5rem; font-size: 1.15rem; }
+    .mrow { display: grid; grid-template-columns: 1fr 70px 1fr; align-items: center; gap: .3rem; }
+    .mtag { border-radius: 10px; padding: .5rem .6rem; text-align: center; font: 700 .8rem/1.35 'JetBrains Mono', monospace; border: 1px solid rgba(155,130,255,.5); background: rgba(155,130,255,.08); }
+    .mtag small { display: block; font-family: 'Pretendard', sans-serif; font-size: .72rem; color: #8E96AB !important; font-weight: 700; }
+    .mwire { height: 3px; border-radius: 2px; position: relative; }
+    .mpanel.ok .mwire { background: #2BEAD0; box-shadow: 0 0 8px #2BEAD0; transform-origin: left; }
+    section.present .mpanel.ok .mwire { animation: wireOn .6s .4s cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes wireOn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    .mpanel.ng .mwire { background: repeating-linear-gradient(90deg, #FF7A95 0 8px, transparent 8px 14px); }
+    .mpanel.ng .mwire::after { content: "✕"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -55%); color: #FF7A95; font-weight: 900; font-size: 1.1rem; }
+    .mres { margin-top: .6rem; font: 700 .82rem/1.5 'JetBrains Mono', monospace; padding: .45rem .6rem; border-radius: 8px; background: #04060C; }
+    .mpanel.ok .mres { color: #8FF0E2 !important; } .mpanel.ng .mres { color: #FF9FB0 !important; }
+    .diff { background: rgba(255,122,149,.25); border-radius: 3px; padding: 0 .1rem; }
+
+    /* 정적 보기(개요·인쇄·모션 줄이기)에서는 최종 상태로 */
+    .reveal.overview .nest .ring, .reveal.overview .lyr, .reveal.overview .hpod, .reveal.overview .gear .teeth,
+    .reveal.overview .mwire, .reveal.overview .rq-track .pk, .reveal.overview .loopfig .runner, .reveal.overview .pods i, .reveal.overview .heal-cap span { animation: none !important; opacity: 1; }
+    .reveal.overview .rq-track .pk { opacity: 0; }
+    @media print {
+      .reveal .nest .ring, .reveal .lyr, .reveal .hpod, .reveal .gear .teeth, .reveal .mwire, .reveal .pods i, .reveal .heal-cap span { animation: none !important; opacity: 1 !important; transform: none !important; }
+      .reveal .rq-track .pk, .reveal .loopfig .runner { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal .nest .ring, .reveal .lyr, .reveal .hpod, .reveal .gear .teeth, .reveal .mwire, .reveal .pods i, .reveal .heal-cap span { animation: none !important; opacity: 1 !important; transform: none !important; }
+      .reveal .rq-track .pk, .reveal .loopfig .runner { display: none; }
+    }
+
+    /* ===== 다음 지도 덱 공통 (v3) ===== */
+    /* diff 보기 */
+    .dv { border-radius: 12px; border: 1px solid rgba(155,130,255,.4); background: #04060C; overflow: hidden; }
+    .dv-h { font: 700 .74rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; padding: .5rem .8rem; border-bottom: 1px solid rgba(155,130,255,.2); }
+    .dv pre { margin: 0; padding: .45rem 0; font: 500 .78rem/1.6 'JetBrains Mono', monospace; color: #D7DCE8 !important; white-space: pre; background: transparent; border: 0; box-shadow: none; }
+    .dv .ln { display: block; padding: 0 .8rem; }
+    .dv .add { background: rgba(43,234,208,.12); color: #C5FFF5 !important; }
+    .dv .del { background: rgba(255,122,149,.13); color: #FFD0DA !important; }
+    .dv .hunk { color: #9B82FF !important; }
+    .dv .flag { outline: 2px solid #FFD46B; outline-offset: -2px; }
+
+    /* 데이터 표 (엑셀 느낌) */
+    .dbt { border-collapse: collapse; font: 500 .92rem/1.4 'JetBrains Mono', monospace; }
+    .dbt th { background: rgba(155,130,255,.2); color: #E2DAFF !important; padding: .32rem .6rem; border: 1px solid rgba(155,130,255,.35); text-align: left; }
+    .dbt td { padding: .3rem .6rem; border: 1px solid rgba(155,130,255,.22); color: #D7DCE8 !important; }
+    .dbt tr.pick td { background: rgba(43,234,208,.13); color: #C5FFF5 !important; }
+    .dbt tr.dim td { opacity: .35; }
+    .dbt td.null { color: #FF9FB0 !important; font-style: italic; }
+    .dbt caption { caption-side: top; text-align: left; font: 800 .72rem/1.6 'JetBrains Mono', monospace; color: #8E96AB; letter-spacing: .05em; }
+
+    /* SVG 차트 공통 */
+    .chart { width: 100%; height: auto; display: block; }
+    .chart text { font-family: 'Pretendard', sans-serif; fill: #B8BFD0; font-size: 12px; }
+    .chart text.t { fill: #E2E6F0; font-size: 14px; font-weight: 700; }
+    .chart .ax { stroke: rgba(190,200,224,.4); stroke-width: 1; }
+    .chart .grid { stroke: rgba(190,200,224,.1); stroke-width: 1; }
+    .chart .b1 { fill: rgba(155,130,255,.65); } .chart .b2 { fill: rgba(43,234,208,.65); } .chart .b3 { fill: rgba(255,212,107,.7); }
+    .chart .lim { stroke: #FF7A95; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .chart .ctr { stroke: rgba(43,234,208,.7); stroke-width: 1.5; }
+    .chart .ln2 { fill: none; stroke: #9B82FF; stroke-width: 2; }
+    .chart .pt { fill: #2BEAD0; } .chart .pt.out { fill: #FF7A95; }
+    section.present .chart .grow { animation: growY .7s cubic-bezier(.2,.7,.3,1) both; transform-box: fill-box; transform-origin: bottom; }
+    section.present .chart .grow:nth-of-type(2n) { animation-delay: .06s; }
+    section.present .chart .grow:nth-of-type(3n) { animation-delay: .12s; }
+    @keyframes growY { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    section.present .chart .draw { stroke-dasharray: 1200; animation: drawLn 1.6s ease-out both; }
+    @keyframes drawLn { from { stroke-dashoffset: 1200; } to { stroke-dashoffset: 0; } }
+    section.present .chart .pop { animation: asZoomIn2 .4s both; animation-delay: 1.3s; transform-box: fill-box; transform-origin: center; }
+
+    /* 콜아웃 번호 */
+    .cn { display: inline-flex; align-items: center; justify-content: center; width: 1.35rem; height: 1.35rem; border-radius: 50%;
+      background: #FFD46B; color: #06080F !important; font: 900 .78rem/1 'JetBrains Mono', monospace; margin-right: .35rem; vertical-align: middle; }
+    pre.term-out .mark { background: rgba(255,212,107,.18); outline: 1.5px solid rgba(255,212,107,.7); border-radius: 3px; }
+
+    /* 파일 크기 막대 (리팩터링) */
+    .fbar { display: grid; grid-template-columns: 150px 1fr 70px; gap: .6rem; align-items: center; font: 600 .82rem/1 'JetBrains Mono', monospace; margin: .25rem 0; }
+    .fbar .track2 { height: 16px; border-radius: 8px; background: rgba(190,200,224,.08); overflow: hidden; }
+    .fbar .fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #9B82FF, #FF7A95); transform-origin: left; }
+    section.present .fbar .fill { animation: wireOn 1.1s cubic-bezier(.2,.7,.3,1) both; }
+    .fbar .fill.ok { background: linear-gradient(90deg, #2BEAD0, #9B82FF); }
+
+    .reveal.overview .chart .grow, .reveal.overview .chart .draw, .reveal.overview .chart .pop, .reveal.overview .fbar .fill { animation: none !important; }
+    @media print { .reveal .chart .grow, .reveal .chart .draw, .reveal .chart .pop, .reveal .fbar .fill { animation: none !important; transform: none !important; stroke-dasharray: none !important; } }
+    @media (prefers-reduced-motion: reduce) { .reveal .chart .grow, .reveal .chart .draw, .reveal .chart .pop, .reveal .fbar .fill { animation: none !important; transform: none !important; stroke-dasharray: none !important; } }
+
+    /* ===== E2E 덱 ===== */
+    /* 팹 라인 비유 */
+    .fab { position: relative; margin-top: .5rem; }
+    .fab-line { position: relative; display: grid; grid-template-columns: repeat(5, 1fr) 1.4fr; gap: .5rem; padding-bottom: .2rem; }
+    .fp { position: relative; text-align: center; border: 1px solid rgba(155,130,255,.45); border-radius: 12px; background: rgba(6,8,15,.6); padding: .75rem .4rem .6rem; }
+    .fp b { font-size: 1.1rem; display: block; }
+    .fp span { display: block; font-size: .82rem; color: #B8BFD0 !important; margin-top: .15rem; }
+    .fp .gauge { position: absolute; top: -.85rem; right: .4rem; font-style: normal; font-size: 1.1rem; }
+    .fp.eds { border-color: rgba(255,212,107,.6); }
+    .fab .wafer { position: absolute; left: 0; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: #FFD46B; box-shadow: 0 0 12px #FFD46B; opacity: 0; }
+    section.present .fab .wafer { animation: fabMove 6s linear infinite; }
+    @keyframes fabMove { 0% { left: 1%; opacity: 0; } 4% { opacity: 1; } 88% { left: 92%; opacity: 1; } 100% { left: 92%; opacity: 0; } }
+    section.present .fp.p1 .gauge { animation: gaugeHit 6s infinite; animation-delay: .55s; }
+    section.present .fp.p2 .gauge { animation: gaugeHit 6s infinite; animation-delay: 1.4s; }
+    section.present .fp.p4 .gauge { animation: gaugeHit 6s infinite; animation-delay: 3.1s; }
+    @keyframes gaugeHit { 0% { transform: scale(1); filter: none; } 4% { transform: scale(1.5); filter: drop-shadow(0 0 6px #2BEAD0); } 10%, 100% { transform: scale(1); filter: none; } }
+    section.present .fp.eds { animation: edsHit 6s infinite; }
+    @keyframes edsHit { 0%, 78% { box-shadow: none; border-color: rgba(255,212,107,.6); } 84%, 96% { box-shadow: 0 0 22px rgba(43,234,208,.55); border-color: #2BEAD0; } 100% { box-shadow: none; } }
+    .fab-brace { display: grid; grid-template-columns: repeat(5, 1fr) 1.4fr; gap: .5rem; margin-top: .35rem; }
+    .fab-brace span { grid-column: 2 / 5; text-align: center; border-top: 2px solid rgba(155,130,255,.55); padding-top: .2rem;
+      font: 700 .8rem/1.2 'JetBrains Mono', monospace; color: #CBBDFF !important; border-radius: 6px 6px 0 0; }
+
+    /* 테스트 피라미드 */
+    .pyr { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+    .py { text-align: center; padding: .9rem 0 .8rem; clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%); }
+    .py b { display: block; font-size: 1.25rem; }
+    .py span { font: 700 .85rem/1 'JetBrains Mono', monospace; color: #E8ECF6 !important; opacity: .85; }
+    .py.t1 { width: 100%; background: linear-gradient(180deg, rgba(43,234,208,.45), rgba(43,234,208,.2)); }
+    .py.t2 { width: 72%; background: linear-gradient(180deg, rgba(155,130,255,.55), rgba(155,130,255,.25)); }
+    .py.t3 { width: 44%; background: linear-gradient(180deg, rgba(255,212,107,.6), rgba(255,212,107,.28)); clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%); padding-top: 1.1rem; }
+
+    /* 로봇 브라우저 목업 */
+    .e2e-code .ln { display: inline-block; width: 100%; border-radius: 4px; transition: background .25s ease; }
+    section:has(.bm-step.s1.current-fragment) .e2e-code .ln.s1,
+    section:has(.bm-step.s2.current-fragment) .e2e-code .ln.s2,
+    section:has(.bm-step.s3.current-fragment) .e2e-code .ln.s3,
+    section:has(.bm-step.s4.current-fragment) .e2e-code .ln.s4 { background: rgba(255,212,107,.18); }
+    .bm { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,.25); background: #fff; box-shadow: 0 26px 50px -24px rgba(0,0,0,.75); }
+    .bm, .bm * { color: #14161F !important; }
+    .bm-step { display: none; }
+    .bm-bar { display: flex; align-items: center; gap: .35rem; padding: .45rem .6rem; background: #EEF0F5; border-bottom: 1px solid #D8DCE7; }
+    .bm-bar i { width: .55rem; height: .55rem; border-radius: 50%; background: #FF7A95; } .bm-bar i + i { background: #FFD46B; } .bm-bar i + i + i { background: #2BEAD0; }
+    .bm-bar span { margin-left: .5rem; flex: 1; font: 600 .78rem/1 'JetBrains Mono', monospace; background: #fff; border-radius: 6px; padding: .3rem .5rem; color: #5A6072 !important; }
+    .bm-body { position: relative; padding: .8rem .9rem 1rem; min-height: 250px; opacity: .25; transition: opacity .4s ease; }
+    .bm:has(.bm-step.s1.visible) .bm-body { opacity: 1; }
+    .bm-title { font-weight: 800; font-size: 1.05rem; margin-bottom: .6rem; }
+    .bm-row { display: flex; align-items: center; gap: .5rem; font-size: .9rem; }
+    .bm-row label { font-weight: 700; }
+    .bm-sel { border: 1px solid #D8DCE7; border-radius: 8px; padding: .3rem .6rem; min-width: 7.5rem; font-size: .88rem; transition: border-color .2s; }
+    .bm .bm-sel em { font-style: normal; color: #14161F !important; } .bm-sel .v1 { display: none; font-weight: 700; }
+    .bm:has(.bm-step.s2.visible) .bm-sel .v0 { display: none; }
+    .bm:has(.bm-step.s2.visible) .bm-sel .v1 { display: inline; }
+    .bm:has(.bm-step.s2.current-fragment) .bm-sel { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,.2); }
+    .bm-btn { background: #4F46E5; color: #fff !important; border-radius: 8px; padding: .32rem .8rem; font-weight: 700; font-size: .88rem; transition: transform .15s; }
+    .bm:has(.bm-step.s3.current-fragment) .bm-btn { transform: scale(.93); background: #3730A3; }
+    .bm-chart { margin-top: .8rem; border: 1px dashed #D8DCE7; border-radius: 10px; min-height: 120px; display: grid; place-items: center; padding: .6rem; }
+    .bm-empty { color: #9AA2B4 !important; font-size: .85rem; }
+    .bm-res { display: none; width: 100%; }
+    .bm-res b { display: block; font-size: .95rem; } .bm-res span { font: 800 1.3rem/1.2 'JetBrains Mono', monospace; color: #4F46E5 !important; }
+    .bm:has(.bm-step.s3.visible) .bm-empty { display: none; }
+    .bm:has(.bm-step.s3.visible) .bm-res { display: block; }
+    .bm:has(.bm-step.s4.visible) .bm-res b { outline: 3px solid #2BEAD0; outline-offset: 2px; border-radius: 4px; }
+    .bm-pass { position: absolute; right: .8rem; bottom: .7rem; background: #0F9D7A; color: #fff !important; font: 800 .8rem/1 'JetBrains Mono', monospace; padding: .35rem .6rem; border-radius: 999px; opacity: 0; transform: scale(.7); transition: all .3s ease; }
+    .bm:has(.bm-step.s4.visible) .bm-pass { opacity: 1; transform: none; }
+    .bm-cur { position: absolute; font-size: 1.4rem; left: 50%; top: 40%; opacity: 0; transition: left .6s ease, top .6s ease, opacity .3s; pointer-events: none; }
+    .bm:has(.bm-step.s1.visible) .bm-cur { opacity: 1; left: 70%; top: 22%; }
+    .bm:has(.bm-step.s2.visible) .bm-cur { left: 38%; top: 35%; }
+    .bm:has(.bm-step.s3.visible) .bm-cur { left: 66%; top: 35%; }
+    .bm:has(.bm-step.s4.visible) .bm-cur { left: 58%; top: 44%; }
+    .reveal.overview .bm-body { opacity: 1; }
+
+    /* 기다림 타임라인 */
+    .waitg { display: flex; flex-direction: column; gap: .45rem; margin-top: .3rem; }
+    .wg-lane { display: grid; grid-template-columns: 7rem 1fr; gap: .6rem; align-items: center; border: 1px solid rgba(255,122,149,.4); border-radius: 12px; padding: .45rem .7rem; background: rgba(255,122,149,.05); }
+    .wg-lane.good { border-color: rgba(43,234,208,.5); background: rgba(43,234,208,.05); }
+    .wg-lane > b { grid-row: span 3; font: 800 .95rem/1.2 'JetBrains Mono', monospace; }
+    .wg-run { grid-template-columns: 3.6rem 3rem 1fr 8.4rem; font-size: .84rem; }
+    .wg-run .lbl { color: #B8BFD0 !important; }
+    .wg-run .mono { font-size: .8rem; color: #8FB6FF !important; }
+    .wg-run .tok { justify-self: start; font: 800 .74rem/1 'JetBrains Mono', monospace; padding: .25rem .5rem; border-radius: 999px; }
+    .trk { position: relative; height: 18px; border-radius: 6px; background: rgba(230,236,249,.06); }
+    .trk i { position: absolute; left: 0; border-radius: 6px; }
+    .trk .srv { top: 10px; height: 8px; width: var(--w); background: #5B8CFF; }
+    .trk .wt { top: 0; height: 8px; width: 0; background: rgba(255,212,107,.8); }
+    .trk .wt.bad { background: #FF7A95; } .trk .wt.ok { background: #2BEAD0; }
+    section.present .trk .wt { animation: wtGrow 1.6s ease-out forwards; }
+    @keyframes wtGrow { to { width: var(--w); } }
+    .reveal.overview .trk .wt { width: var(--w); animation: none; }
+    @media print { .trk .wt { width: var(--w) !important; animation: none !important; } }
+
+    /* 트레이스 뷰어 목업 */
+    .trv { border-radius: 12px; border: 1px solid rgba(155,130,255,.4); background: #04060C; overflow: hidden; }
+    .trv-h { font: 700 .74rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; padding: .5rem .8rem; border-bottom: 1px solid rgba(155,130,255,.2); }
+    .trv-b { display: grid; grid-template-columns: 1fr 1.2fr; }
+    .trv-acts { list-style: none; margin: 0; padding: .5rem; border-right: 1px solid rgba(155,130,255,.2); display: flex; flex-direction: column; gap: .3rem; }
+    .trv-acts li { font: 600 .76rem/1.35 'JetBrains Mono', monospace; padding: .35rem .45rem; border-radius: 6px; background: rgba(230,236,249,.04); color: #D7DCE8 !important; margin: 0; }
+    .trv-acts li em { float: right; font-style: normal; color: #8E96AB !important; }
+    .trv-acts li.x { background: rgba(255,122,149,.14); color: #FFD0DA !important; outline: 1px solid rgba(255,122,149,.5); }
+    .trv-acts li.x em { color: #FF9FB0 !important; }
+    .trv-shot { padding: .6rem; display: flex; flex-direction: column; gap: .5rem; }
+    .mini-ui { background: #fff; border-radius: 8px; padding: .8rem .7rem; display: flex; gap: .45rem; align-items: center; min-height: 92px; }
+    .mini-ui, .mini-ui * { color: #14161F !important; }
+    .mini-ui .sel { border: 1px solid #D8DCE7; border-radius: 6px; padding: .25rem .5rem; font: 700 .8rem/1 'Pretendard', sans-serif; }
+    .mini-ui .btn.off { background: #E4E7EE; color: #9AA2B4 !important; border-radius: 6px; padding: .3rem .7rem; font-weight: 700; font-size: .8rem; outline: 3px solid #FF4D7A; outline-offset: 2px; }
+    .trv-err { font: 700 .74rem/1.4 'JetBrains Mono', monospace; color: #FF9FB0 !important; }
+    .wg-cap { margin: 0; font-size: .82rem !important; color: #B8BFD0 !important; display: flex; align-items: center; gap: .4rem; }
+    .wg-cap i { display: inline-block; width: 1.4rem; height: 7px; border-radius: 4px; }
+    .wg-cap i.k1 { background: #5B8CFF; } .wg-cap i.k2 { background: #2BEAD0; margin-left: .8rem; }
+    .wg-run { display: grid; gap: .6rem; align-items: center; }
+  </style>
+  <link rel="stylesheet" href="../assets/core.css">
+</head>
+<body>
+
+<div class="dl-toolbar">
+  <select id="tocSelect" class="transition-select" aria-label="목차 — 슬라이드로 바로 이동" title="목차 — 슬라이드로 바로 이동"></select>
+  <a class="dl-btn" href="../#board" title="시리즈 홈: 막혔을 때 펼쳐 보는 처방전">
+    <span aria-hidden="true">↖</span><span>시리즈 홈</span>
+  </a>
+  <button id="fullscreenBtn" class="dl-btn" title="전체화면 전환 (F)">
+    <span aria-hidden="true">⛶</span><span>FULL</span>
+  </button>
+</div>
+
+<div class="reveal">
+  <div class="slides">
+    <!-- ============= 타이틀 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="grid-2" style="align-items:center;">
+          <div>
+            <div class="chip">SEMINAR · 다음 지도 02 중급 · E2E TEST</div>
+            <h1 style="font-size:4rem;">사용자처럼,<br/><span class="grad">처음부터 끝까지</span></h1>
+            <p style="font-size:1.4rem; margin-top:1.1rem; max-width:600px;">
+              E2E 테스트 —<br/><strong class="accent2">로봇이 대신 눌러 보고</strong> "진짜 되나"를 확인합니다.
+            </p>
+            <p class="credit">덱 형식: <a href="https://github.com/geniuskey/vibe-coding" target="_blank" rel="noopener">geniuskey/vibe-coding</a> (CC BY-NC 4.0) · 이 덱은 추가 작성분입니다.</p>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:.7rem;">
+            <div style="font-size:6rem; line-height:1;">🤖🖱️</div>
+            <div class="chip" style="border-color:rgba(43,234,208,.55);">열기 · 고르기 · 누르기 · 확인</div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        인사. 첫 질문: "AI가 '다 됐어요'라고 했는데, 열어 보니 버튼이 안 눌린 적 있으신 분?"
+        오늘은 그 '열어 보기'를 사람 대신 로봇이 매번 해 주게 만드는 법입니다. 코드를 깊게 몰라도 시나리오는 우리가 제일 잘 압니다.
+      </aside>
+    </section>
+
+    <!-- ============= 3분 요약 ============= -->
+    <section class="tldr" data-depth="summary">
+      <div class="chip">3분 요약 · TL;DR</div>
+      <h2>결론부터 — 이 세 줄이면 됩니다</h2>
+      <p class="tldr-lede">E2E 테스트는 사람이 하던 "열어서 눌러 보기"를 로봇에게 맡기는 일입니다. 부품이 아니라 완성품을 검사합니다.</p>
+      <ol class="tldr-points">
+        <li><span class="n">1</span><div><strong>E2E = 화면에서 DB까지, 사용자가 가는 길을 통째로</strong><span class="sub">부품 검사(단위 테스트)가 다 통과해도 완성품은 안 돌 수 있습니다.</span></div></li>
+        <li><span class="n">2</span><div><strong>많이 말고, 핵심 길 3~5개만</strong><span class="sub">느리고 잘 깨지니 "이게 안 되면 큰일"인 시나리오만 고릅니다.</span></div></li>
+        <li><span class="n">3</span><div><strong>AI의 완료 기준을 "E2E 통과 + 스크린샷"으로</strong><span class="sub">"다 됐어요" 대신 증거를 받습니다. sleep 대신 expect로 기다립니다.</span></div></li>
+      </ol>
+      <div class="tldr-bottom">
+        <div class="tldr-prompt">
+          <div class="tldr-label">지금 바로 써 보는 프롬프트</div>
+          <pre>이 앱의 핵심 사용 흐름 하나를 Playwright(pytest) E2E 테스트로 써줘.
+흐름: 첫 화면 열기 → 설비 EQ-03 선택 → 조회 클릭 → "EQ-03 평균 두께"가 보이는지 확인.
+sleep은 쓰지 말고 expect로 기다리게, 실패하면 스크린샷이 남게 해줘. 테스트가 통과해야 완료야.</pre>
+        </div>
+        <div class="tldr-when">
+          <div class="tldr-label">이럴 때 이 덱을 다시 펼치세요</div>
+          <ul>
+            <li>"다 됐어요"를 믿기 어려울 때</li>
+            <li>고칠 때마다 다른 화면이 깨질 때</li>
+            <li>매번 손으로 눌러 보는 게 지칠 때</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============= PROBLEM ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">PROBLEM · 부품은 합격, 완성품은 불량</div>
+        <h2>테스트는 전부 통과했는데, <span class="accent3">버튼이 안 눌립니다</span></h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="tx">
+            <div class="tx-h"><i></i><i></i><i></i>대시보드에 "설비 필터" 추가하던 날</div>
+            <p class="tx-l me"><b class="who">나</b>설비 고르는 필터 추가하고, 테스트도 돌려줘</p>
+            <p class="tx-l sys fragment" data-fragment-index="1">🧪 pytest — test_api.py 12 passed ✅</p>
+            <p class="tx-l ai fragment" data-fragment-index="2"><b class="who">AI</b>필터를 추가했고 테스트 12개 모두 통과했습니다. 완료!</p>
+            <p class="tx-l bad fragment" data-fragment-index="3"><b class="who">회의 중</b>설비를 바꿔도 차트가 그대로 — 화면이 새 값을 API에 안 보냄</p>
+            <p class="tx-l me fragment" data-fragment-index="4"><b class="who">나</b>테스트는 다 통과했다며…?</p>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card fragment" data-fragment-index="3"><h3>테스트 12개가 본 곳</h3><p>API에 "EQ-03"을 직접 넣으면 맞는 숫자가 나오는지. <strong>API 혼자서는 멀쩡</strong>했습니다.</p></div>
+            <div class="card bad fragment" data-fragment-index="4"><h3>아무도 안 본 곳</h3><p>화면의 드롭다운 → API로 넘어가는 <strong>이음매</strong>. 사용자는 늘 이 길로 들어옵니다.</p></div>
+            <div class="card good fragment" data-fragment-index="5"><h3>E2E가 보는 곳</h3><p>사람처럼 화면을 열고, 고르고, 누르고, <strong>보이는 결과</strong>로 판정합니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        클릭할 때마다 한 줄씩. 숫자와 상황은 설명용 예시입니다.
+        AI가 거짓말을 한 게 아닙니다. 시킨 테스트는 정말 통과했습니다. 문제는 테스트가 "사용자가 가는 길"을 안 봤다는 것.
+      </aside>
+    </section>
+
+    <!-- ============= 공정 비유 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">ANALOGY · 팹으로 치면</div>
+        <h2>단위 테스트는 <span class="accent2">인라인 계측</span>, E2E는 <span class="accent4">최종 전기 검사(EDS)</span></h2>
+        <div class="fab" aria-hidden="true">
+          <div class="fab-line">
+            <div class="fp p1"><b>증착</b><i class="gauge">📏</i></div>
+            <div class="fp p2"><b>CMP</b><i class="gauge">📏</i></div>
+            <div class="fp p3"><b>포토</b></div>
+            <div class="fp p4"><b>식각</b><i class="gauge">📏</i></div>
+            <div class="fp p5"><b>배선</b></div>
+            <div class="fp eds"><b>EDS 🔌</b><span>칩이 실제로 동작?</span></div>
+            <span class="wafer"></span>
+          </div>
+          <div class="fab-brace"><span>모듈 검사 = 통합 테스트</span></div>
+        </div>
+        <table class="xt" style="margin-top:.7rem;">
+          <tr><th>테스트</th><th>팹으로 치면</th><th>보는 것</th><th>못 보는 것</th></tr>
+          <tr><td>단위 테스트</td><td>📏 공정 직후 두께 측정</td><td>함수 하나가 맞는 값을 내나</td><td>부품끼리 붙었을 때</td></tr>
+          <tr><td>통합 테스트</td><td>모듈 몇 공정 묶음 검사</td><td>API + DB가 함께 맞게 도나</td><td>화면에서의 조작</td></tr>
+          <tr class="hl"><td>E2E 테스트</td><td>🔌 완성 웨이퍼 전기 검사</td><td>사용자가 쓰는 그대로 되나</td><td>어디가 원인인지는 덜 친절</td></tr>
+        </table>
+      </div>
+      <aside class="notes">
+        웨이퍼(노란 점)가 공정을 지나며 중간중간 계측을 받고, 마지막에 EDS에서 칩이 실제로 동작하는지 봅니다.
+        두께가 모두 스펙 안이어도 칩이 안 돌 수 있죠 — 공정 사이의 상호작용 때문에. 소프트웨어도 같습니다.
+        마지막 칸이 중요합니다: E2E는 "안 된다"는 건 확실히 알려 주지만, "왜"는 단위 테스트가 더 잘 알려 줍니다. 그래서 둘 다 필요합니다.
+      </aside>
+    </section>
+
+    <!-- ============= E2E가 지나가는 길 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">DEFINITION · End-to-End</div>
+        <h2>끝(사용자)에서 끝(데이터)까지, <span class="accent2">한 번에 지나갑니다</span></h2>
+        <div class="reqflow">
+          <div class="rq autoshow"><div class="ico">🤖</div><b>로봇 브라우저</b><span>사람 대신<br/>열고 · 누르고 · 입력</span></div>
+          <div class="rqa">→</div>
+          <div class="rq k autoshow"><div class="ico">🖥️</div><b>화면</b><span>프론트엔드<br/>드롭다운 · 버튼</span></div>
+          <div class="rqa">→</div>
+          <div class="rq k autoshow"><div class="ico">⚙️</div><b>API</b><span>백엔드<br/>계산 · 조회</span></div>
+          <div class="rqa">→</div>
+          <div class="rq k autoshow"><div class="ico">🗄️</div><b>DB</b><span>측정 데이터</span></div>
+          <div class="rqa">→</div>
+          <div class="rq autoshow" style="border-color:rgba(43,234,208,.8);"><div class="ico">👀</div><b>다시 화면</b><span>"EQ-03 평균 두께"<br/>가 보이나?</span></div>
+        </div>
+        <div class="rq-track" aria-hidden="true"><span class="pk"></span><span class="pk"></span><span class="pk"></span></div>
+        <div class="grid-3" style="margin-top:.9rem;">
+          <div class="card autoshow"><h3>판정은 눈에 보이는 것으로</h3><p>"함수가 4005.5를 반환"이 아니라 <strong>"화면에 4005.5가 보인다"</strong>.</p></div>
+          <div class="card autoshow"><h3>속은 몰라도 된다</h3><p>코드 구조가 바뀌어도, 사용자 흐름이 같으면 테스트도 그대로입니다.</p></div>
+          <div class="card autoshow"><h3>대신 느리다</h3><p>브라우저를 실제로 띄우니 한 개에 수 초. 그래서 <strong>골라서</strong> 씁니다.</p></div>
+        </div>
+      </div>
+      <aside class="notes">
+        노란 점이 테스트 한 번이 지나가는 길입니다. 단위 테스트는 이 중 한 칸만 봅니다.
+        두 번째 카드가 바이브 코딩에 특히 좋습니다. AI가 내부를 크게 고쳐도, 사용자 흐름 테스트는 그대로 둔 채 "이게 여전히 통과하나"만 보면 됩니다.
+      </aside>
+    </section>
+
+    <!-- ============= 테스트 피라미드 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">PYRAMID · 얼마나 많이</div>
+        <h2>아래는 넓게, 위는 <span class="accent4">좁게</span> — 테스트 피라미드</h2>
+        <div class="grid-2" style="grid-template-columns:1fr 1fr; gap:1.4rem; align-items:center;">
+          <div class="pyr">
+            <div class="py t3 fragment" data-fragment-index="3"><b>E2E</b><span>3~5개</span></div>
+            <div class="py t2 fragment" data-fragment-index="2"><b>통합</b><span>수십 개</span></div>
+            <div class="py t1 fragment" data-fragment-index="1"><b>단위</b><span>수십~수백 개</span></div>
+          </div>
+          <table class="xt">
+            <tr><th></th><th>단위</th><th>E2E</th></tr>
+            <tr><td>한 개 실행</td><td>0.01초</td><td>3~10초</td></tr>
+            <tr><td>깨지기</td><td>잘 안 깨짐</td><td>디자인만 바꿔도</td></tr>
+            <tr><td>실패하면</td><td>"이 함수"가 범인</td><td>"어딘가" 고장</td></tr>
+            <tr class="hl"><td>잘 잡는 것</td><td>계산 실수</td><td>이음매 · 화면 · 설정</td></tr>
+          </table>
+        </div>
+        <p class="note-line fragment" data-fragment-index="4">피라미드를 뒤집으면(E2E만 수백 개) — 한 번 도는 데 30분, 매일 몇 개씩 이유 없이 빨간불. 결국 아무도 안 돌립니다.</p>
+      </div>
+      <aside class="notes">
+        클릭할 때마다 아래 층부터 쌓입니다. 숫자는 대략적인 감입니다.
+        개인 도구라면 E2E 1~3개로도 충분합니다. "이게 안 되면 아무도 이 도구를 안 쓴다"는 흐름부터.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../verification/">검증과 테스트</a>
+      </div>
+    </section>
+
+    <!-- ============= 무엇을 E2E로 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">PICK · 어떤 길을 고를까</div>
+        <h2>"이게 안 되면 <span class="accent3">큰일</span>"인 길부터 — 사내 대시보드 예시</h2>
+        <ul class="sim-list">
+          <li class="sim-line pass fragment"><span><span class="cn">1</span><b>첫 화면이 열린다</b> — 에러 없이 제목과 오늘 날짜가 보인다</span><span class="tok ok">가장 먼저</span></li>
+          <li class="sim-line pass fragment"><span><span class="cn">2</span><b>고르면 바뀐다</b> — 설비 EQ-03 선택 → 조회 → 차트 제목이 EQ-03</span><span class="tok ok">핵심 흐름</span></li>
+          <li class="sim-line pass fragment"><span><span class="cn">3</span><b>받은 파일이 맞다</b> — CSV 다운로드 → 행 수가 화면의 건수와 같다</span><span class="tok ok">데이터가 나감</span></li>
+          <li class="sim-line fragment"><span><span class="cn">4</span><b>잘못 넣으면 막는다</b> — 시작일 &gt; 종료일 → 빨간 안내 문구, 조회 안 됨</span><span class="tok ask">예외 하나</span></li>
+          <li class="sim-line fail fragment"><span><span class="cn">✕</span><b>버튼 색 · 글꼴 · 간격</b> — E2E로 잡지 않는다</span><span class="tok no">눈으로</span></li>
+        </ul>
+        <p class="note-line fragment">고르는 기준: 매일 쓰는 길 · 데이터가 밖으로 나가는 길 · 한 번 터져서 혼난 길.</p>
+      </div>
+      <aside class="notes">
+        클릭할 때마다 하나씩. 4번은 AI가 잘 빠뜨리는 "예외 길"입니다 — 해피 패스만 만들어 주기 때문에.
+        디자인은 E2E 대상이 아닙니다. 픽셀까지 비교하는 테스트(스크린샷 비교)도 있지만, 입문 단계에서는 깨지기만 하고 얻는 게 적습니다.
+      </aside>
+    </section>
+
+    <!-- ============= 첫 테스트 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">① PLAYWRIGHT · 첫 테스트</div>
+        <h2>네 줄이 <span class="accent2">사람의 네 동작</span>입니다</h2>
+        <div class="grid-2" style="grid-template-columns:1.08fr .92fr; gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.5rem;">
+            <pre class="code sm e2e-code"><span class="kw">from</span> playwright.sync_api <span class="kw">import</span> Page, expect
+
+<span class="kw">def</span> test_설비를_고르면_차트가_바뀐다(page: Page):
+<span class="ln s1">    page.goto(<span class="st">"http://localhost:5173"</span>)          <span class="cm"># ① 열기</span></span>
+<span class="ln s2">    page.get_by_label(<span class="st">"설비"</span>).select_option(<span class="st">"EQ-03"</span>) <span class="cm"># ② 고르기</span></span>
+<span class="ln s3">    page.get_by_role(<span class="st">"button"</span>, name=<span class="st">"조회"</span>).click()   <span class="cm"># ③ 누르기</span></span>
+<span class="ln s4">    expect(page.get_by_text(<span class="st">"EQ-03 평균 두께"</span>)).to_be_visible()  <span class="cm"># ④ 확인</span></span></pre>
+            <pre class="term-out fragment" data-fragment-index="5"><span class="dim">$</span> pytest tests/e2e -q
+.                                              <span class="hl-g">1 passed in 3.41s</span></pre>
+          </div>
+          <div class="bm">
+            <span class="fragment bm-step s1" data-fragment-index="1"></span><span class="fragment bm-step s2" data-fragment-index="2"></span>
+            <span class="fragment bm-step s3" data-fragment-index="3"></span><span class="fragment bm-step s4" data-fragment-index="4"></span>
+            <div class="bm-bar"><i></i><i></i><i></i><span>localhost:5173</span></div>
+            <div class="bm-body">
+              <div class="bm-title">CMP 두께 대시보드</div>
+              <div class="bm-row">
+                <label>설비</label>
+                <span class="bm-sel"><em class="v0">선택하세요</em><em class="v1">EQ-03</em> ▾</span>
+                <span class="bm-btn">조회</span>
+              </div>
+              <div class="bm-chart">
+                <span class="bm-empty">조회 결과가 여기 표시됩니다</span>
+                <div class="bm-res"><b>EQ-03 평균 두께</b><span>4005.5 Å</span>
+                  <svg viewBox="0 0 120 34" width="100%" height="34"><polyline points="0,24 20,18 40,22 60,12 80,16 100,9 120,14" fill="none" stroke="#4F46E5" stroke-width="2.5"/></svg></div>
+              </div>
+              <span class="bm-pass">✓ PASS</span>
+            </div>
+            <span class="bm-cur">🖱️</span>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        클릭할 때마다 코드 한 줄과 오른쪽 로봇 브라우저가 함께 움직입니다.
+        열기 · 고르기 · 누르기 · 확인. 사람이 손으로 하던 확인을 그대로 글로 적은 것뿐입니다.
+        pip install pytest-playwright, 그리고 브라우저 설치(playwright install)가 필요합니다. 사내망이라면 뒤의 사내 환경 장을 보세요.
+        주소와 화면은 예시입니다. Streamlit처럼 드롭다운을 직접 그리는 도구는 select_option 대신 클릭 두 번으로 고릅니다.
+      </aside>
+    </section>
+
+    <!-- ============= 찾는 법 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">② LOCATOR · 버튼을 어떻게 찾나</div>
+        <h2>"세 번째 div"가 아니라 <span class="accent2">사람이 부르는 이름</span>으로 찾습니다</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.55rem;">
+            <pre class="code bad sm"><span class="cm"># ❌ 화면 구조에 묶임 — 디자인만 바꿔도 깨짐</span>
+page.locator(<span class="st">"#root > div:nth-child(3) > button"</span>).click()</pre>
+            <pre class="code good sm"><span class="cm"># ✅ 사람이 보는 이름 — 위치가 바뀌어도 그대로</span>
+page.get_by_role(<span class="st">"button"</span>, name=<span class="st">"조회"</span>).click()
+page.get_by_label(<span class="st">"시작일"</span>).fill(<span class="st">"2026-11-17"</span>)
+page.get_by_text(<span class="st">"다운로드 완료"</span>)</pre>
+            <p class="note-line">이름으로 못 찾는 화면이라면, 그 화면은 <strong>스크린 리더 사용자에게도 안 보이는</strong> 화면입니다.</p>
+          </div>
+          <table class="xt">
+            <tr><th>순서</th><th>찾는 법</th><th>언제</th></tr>
+            <tr class="hl"><td>1</td><td><span class="mono">get_by_role</span></td><td>버튼 · 링크 · 체크박스 — 역할 + 이름</td></tr>
+            <tr><td>2</td><td><span class="mono">get_by_label</span></td><td>이름표가 붙은 입력칸</td></tr>
+            <tr><td>3</td><td><span class="mono">get_by_text</span></td><td>화면에 보이는 글자</td></tr>
+            <tr><td>4</td><td><span class="mono">get_by_test_id</span></td><td>이름이 자주 바뀌면 <span class="mono">data-testid</span>를 달아 둠</td></tr>
+            <tr><td>✕</td><td>CSS 경로 · 순번</td><td>마지막 수단</td></tr>
+          </table>
+        </div>
+      </div>
+      <aside class="notes">
+        AI가 테스트를 짜면 가끔 CSS 경로를 씁니다. "get_by_role 우선으로"라고 한 줄 붙이면 대부분 고쳐집니다.
+        접근성(UI/UX 덱의 aria-label)과 연결됩니다. 아이콘 버튼에 이름을 달면 테스트도 쉬워집니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../ui-ux/">UI/UX — 접근성</a>
+      </div>
+    </section>
+
+    <!-- ============= 기다림 함정 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip warn">⚠️ TRAP · sleep으로 기다리면</div>
+        <h2>가끔 실패하는 테스트의 범인은 대개 <span class="accent3">time.sleep(3)</span></h2>
+        <div class="waitg">
+          <p class="wg-cap"><i class="k1"></i>아래 막대 = 서버가 답하는 데 걸린 시간 · 위 막대 = 테스트가 기다린 시간 (빨강 = 답이 오기 전에 확인해 버림) · 전체 폭 = 5초</p>
+          <div class="wg-lane"><b>sleep(3)</b>
+            <div class="wg-run"><span class="lbl">빠른 날</span><span class="mono">1.2초</span><div class="trk"><i class="srv" style="--w:24%"></i><i class="wt" style="--w:60%"></i></div><span class="tok ask">1.8초 낭비</span></div>
+            <div class="wg-run"><span class="lbl">보통 날</span><span class="mono">2.8초</span><div class="trk"><i class="srv" style="--w:56%"></i><i class="wt" style="--w:60%"></i></div><span class="tok ok">통과</span></div>
+            <div class="wg-run"><span class="lbl">바쁜 날</span><span class="mono">3.6초</span><div class="trk"><i class="srv" style="--w:72%"></i><i class="wt bad" style="--w:60%"></i></div><span class="tok no">실패 ✕</span></div>
+          </div>
+          <div class="wg-lane good"><b>expect(...)</b>
+            <div class="wg-run"><span class="lbl">빠른 날</span><span class="mono">1.2초</span><div class="trk"><i class="srv" style="--w:24%"></i><i class="wt ok" style="--w:24%"></i></div><span class="tok ok">1.2초에 통과</span></div>
+            <div class="wg-run"><span class="lbl">보통 날</span><span class="mono">2.8초</span><div class="trk"><i class="srv" style="--w:56%"></i><i class="wt ok" style="--w:56%"></i></div><span class="tok ok">통과</span></div>
+            <div class="wg-run"><span class="lbl">바쁜 날</span><span class="mono">3.6초</span><div class="trk"><i class="srv" style="--w:72%"></i><i class="wt ok" style="--w:72%"></i></div><span class="tok ok">통과</span></div>
+          </div>
+        </div>
+        <div class="grid-2" style="gap:.9rem; margin-top:.7rem;">
+          <pre class="code bad sm">page.get_by_role(<span class="st">"button"</span>, name=<span class="st">"조회"</span>).click()
+time.sleep(<span class="nm">3</span>)   <span class="cm"># ❌ 3초면 되겠지</span></pre>
+          <pre class="code good sm">page.get_by_role(<span class="st">"button"</span>, name=<span class="st">"조회"</span>).click()
+expect(page.get_by_text(<span class="st">"평균 두께"</span>)).to_be_visible()  <span class="cm"># ✅ 보일 때까지</span></pre>
+        </div>
+      </div>
+      <aside class="notes">
+        파란 막대가 서버 응답 시간, 위쪽 막대가 테스트가 기다린 시간입니다. sleep은 늘 3초를 기다리고, 서버가 3초보다 느린 날엔 실패합니다.
+        expect는 "보일 때까지" 계속 다시 확인합니다(기본 최대 5초). 빠른 날엔 빨리 끝나고, 느린 날에도 통과합니다.
+        "가끔 실패하는 테스트(flaky test)"는 무시하게 되고, 결국 테스트 전체를 안 믿게 됩니다. AI에게 "sleep 금지"를 꼭 적으세요.
+      </aside>
+    </section>
+
+    <!-- ============= codegen ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">③ CODEGEN · 녹화해서 시작</div>
+        <h2>직접 눌러 보면 <span class="accent2">코드가 저절로 써집니다</span></h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.6rem;">
+            <pre class="term-out"><span class="dim">$</span> playwright codegen http://localhost:5173
+<span class="dim"># 브라우저 창 + 코드 창이 함께 열림</span></pre>
+            <div class="tx">
+              <div class="tx-h"><i></i><i></i><i></i>Playwright Inspector — 녹화 중 ●</div>
+              <p class="tx-l sys fragment">page.goto("http://localhost:5173/")</p>
+              <p class="tx-l sys fragment">page.get_by_label("설비").select_option("EQ-03")</p>
+              <p class="tx-l sys fragment">page.get_by_role("button", name="조회").click()</p>
+              <p class="tx-l good fragment">👁 "EQ-03 평균 두께" 글자 확인 추가</p>
+            </div>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card autoshow"><h3>1. 사람이 한 번 시연</h3><p>평소 확인하던 대로 화면을 누릅니다. 클릭 하나마다 코드 한 줄.</p></div>
+            <div class="card autoshow"><h3>2. 확인 칸 찍기</h3><p>Inspector의 확인 버튼으로 "이 글자가 보여야 한다"를 추가합니다.</p></div>
+            <div class="card autoshow good"><h3>3. AI에게 다듬기</h3><p>"이 녹화를 pytest 테스트로 정리해줘. 함수 이름은 시나리오대로, sleep 없이, 주소는 설정으로 빼줘."</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        코드를 몰라도 시나리오는 우리가 제일 잘 압니다. 녹화는 그 시나리오를 코드로 옮겨 주는 통역사입니다.
+        녹화 결과는 지저분할 수 있습니다(불필요한 클릭, 위치 기반 선택자). 그래서 3번 — AI에게 다듬기를 붙입니다.
+      </aside>
+    </section>
+
+    <!-- ============= 실패 증거 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">④ EVIDENCE · 실패하면 증거를 남긴다</div>
+        <h2>"어딘가 고장"을 <span class="accent2">어느 순간 무엇이</span>로 바꿉니다</h2>
+        <div class="grid-2" style="grid-template-columns:1.1fr .9fr; gap:1.2rem; align-items:start;">
+          <div class="trv">
+            <div class="trv-h">trace.zip — Playwright Trace Viewer</div>
+            <div class="trv-b">
+              <ol class="trv-acts">
+                <li>goto localhost:5173 <em>0.4s</em></li>
+                <li>select_option "EQ-03" <em>0.1s</em></li>
+                <li class="x">click "조회" <em>5.0s ✕</em></li>
+              </ol>
+              <div class="trv-shot">
+                <div class="mini-ui"><span class="sel">EQ-03 ▾</span><span class="btn off">조회</span></div>
+                <div class="trv-err">TimeoutError: 버튼이 disabled 상태 — 클릭할 수 없음</div>
+              </div>
+            </div>
+          </div>
+          <div class="stack" style="gap:.55rem;">
+            <pre class="term-out" style="font-size:.76rem;"><span class="dim">$</span> pytest tests/e2e \
+    --screenshot only-on-failure \
+    --tracing retain-on-failure
+<span class="hl-r">1 failed</span> → test-results/…/trace.zip
+<span class="dim">$</span> playwright show-trace test-results/…/trace.zip</pre>
+            <div class="card autoshow"><h3>📸 스크린샷</h3><p>실패한 순간의 화면. 이것만 봐도 절반은 풀립니다.</p></div>
+            <div class="card autoshow"><h3>🎞️ 트레이스</h3><p>동작마다 전후 화면 · 네트워크 · 콘솔을 되감아 봅니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        통과할 때는 아무것도 안 남기고, 실패할 때만 남기는 설정입니다. 저장 공간도 아끼고, 증거도 남습니다.
+        이 스크린샷을 그대로 AI에게 붙여 주면 "날짜를 안 고르면 버튼이 비활성"이라는 원인을 바로 짚습니다.
+        영상이 필요하면 --video retain-on-failure.
+      </aside>
+    </section>
+
+    <!-- ============= AI와 E2E ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">⑤ AI · 완료 기준으로 쓰기</div>
+        <h2>"다 됐어요" 대신 <span class="accent4">"E2E 통과했습니다 + 스크린샷"</span></h2>
+        <div class="grid-2" style="grid-template-columns:1.15fr .85fr; gap:1.2rem; align-items:start;">
+          <div class="tx">
+            <div class="tx-h"><i></i><i></i><i></i>에이전트 작업 기록 — 클릭해서 진행</div>
+            <p class="tx-l me"><b class="who">나</b>기간 필터 추가해줘. tests/e2e 전부 통과가 완료 기준이야</p>
+            <p class="tx-l sys fragment">✏️ DateRange.tsx · api/thk.py 수정</p>
+            <p class="tx-l bad fragment"><b class="who">E2E</b>FAIL test_설비를_고르면_차트가_바뀐다 — "조회" disabled</p>
+            <p class="tx-l ai fragment"><b class="who">AI</b>스크린샷 확인: 날짜가 비면 버튼을 막게 바꿨는데, 기존 흐름엔 날짜가 없네요 → 기본값을 최근 7일로</p>
+            <p class="tx-l good fragment"><b class="who">E2E</b>4 passed · 스크린샷 4장 저장</p>
+            <p class="tx-l ai fragment"><b class="who">AI</b>완료했습니다. 새 필터 테스트 1개 추가, 기존 흐름 3개 그대로 통과</p>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card autoshow"><h3>기존 E2E = 안전망</h3><p>새 기능이 <strong>옛 흐름을 깨뜨리면</strong> 바로 걸립니다. 위 기록이 그 장면입니다.</p></div>
+            <div class="card autoshow"><h3>테스트는 AI가 못 고치게</h3><p>"통과시키려고 테스트를 고치지 마"를 규칙에. 채점지를 고치면 의미가 없습니다.</p></div>
+            <div class="card autoshow good"><h3>AI가 직접 눌러 보기</h3><p>Playwright MCP를 연결하면 AI가 브라우저를 직접 열어 확인합니다 → 다음 덱.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        하네스 덱의 "검증 칸"을 E2E로 채우는 장면입니다. 완료 기준을 테스트로 주면, AI는 실패를 보고 스스로 고칩니다.
+        두 번째 카드가 중요합니다. 테스트 파일은 하네스의 deny 또는 ask 칸에 넣어 둘 수 있습니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../harness/">하네스 엔지니어링 — ④ 검증</a>
+        <a href="../mcp-skill-md/">MCP · Skill · .MD</a>
+      </div>
+    </section>
+
+    <!-- ============= 데이터와 환경 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip warn">⚠️ SETUP · 테스트가 서로 싸우지 않게</div>
+        <h2>E2E는 <span class="accent3">실서버 · 실데이터</span>에 돌리지 않습니다</h2>
+        <div class="grid-3" style="margin-top:.4rem;">
+          <div class="card bad autoshow"><h3>❌ 운영 DB에 대고 실행</h3><p>"삭제 버튼 테스트"가 진짜 데이터를 지웁니다. 숫자도 매일 바뀌어 기대값이 흔들립니다.</p></div>
+          <div class="card bad autoshow"><h3>❌ 테스트끼리 순서 의존</h3><p>A가 만든 데이터를 B가 씁니다. B만 따로 돌리면 실패합니다.</p></div>
+          <div class="card bad autoshow"><h3>❌ 오늘 날짜에 의존</h3><p>"오늘 측정값 3건"은 내일 0건이 됩니다.</p></div>
+        </div>
+        <div class="grid-3" style="margin-top:.7rem;">
+          <div class="card good autoshow"><h3>✅ 테스트용 DB 파일</h3><p>예시 5행짜리 SQLite를 매번 새로 깔고 시작. 기대값이 고정됩니다.</p></div>
+          <div class="card good autoshow"><h3>✅ 테스트마다 새 브라우저</h3><p>pytest-playwright는 테스트마다 깨끗한 page를 줍니다. 로그인도 각자.</p></div>
+          <div class="card good autoshow"><h3>✅ 날짜는 고정</h3><p>"2026-11-17~23"처럼 예시 데이터의 기간을 직접 지정합니다.</p></div>
+        </div>
+      </div>
+      <aside class="notes">
+        위가 흔한 실수, 아래가 짝이 되는 처방입니다.
+        SQL 덱의 5행짜리 thk 표를 그대로 테스트 데이터로 쓰면, 기대값(4005.5)을 손으로 검산할 수 있습니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../sql/">SQL과 데이터베이스 입문</a>
+      </div>
+    </section>
+
+    <!-- ============= 사내 환경 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">INTRANET · 사내망에서 돌리기</div>
+        <h2>브라우저 다운로드가 막혀도, <span class="accent2">PC에 있는 Chrome</span>으로 됩니다</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.55rem;">
+            <pre class="term-out"><span class="dim"># 외부망이면 보통 이렇게 (사내망에선 막힐 수 있음)</span>
+pip install pytest-playwright
+playwright install chromium
+
+<span class="dim"># 사내망: 설치된 Chrome / Edge를 그대로 사용</span>
+pytest tests/e2e <span class="hl-g">--browser-channel chrome</span>
+pytest tests/e2e <span class="hl-g">--browser-channel msedge</span>
+
+<span class="dim"># 눈으로 보면서 (처음 만들 때)</span>
+pytest tests/e2e --headed --slowmo 500</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card autoshow"><h3>패키지는 사내 저장소로</h3><p>pip이 막혀 있으면 사내 PyPI 미러 주소를 쓰는 방법을 인프라 담당에게 확인합니다.</p></div>
+            <div class="card autoshow"><h3>headless가 기본</h3><p>평소엔 창 없이 빠르게. 처음 만들 때만 <span class="mono">--headed</span>로 로봇이 누르는 걸 구경합니다.</p></div>
+            <div class="card autoshow"><h3>매일 아침 자동으로</h3><p>배포 전 · 매일 정해진 시간에 돌리면, 고장을 사용자보다 먼저 압니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        사내 보안 정책에 따라 다릅니다. 브라우저 바이너리 다운로드가 막혀 있다면 channel 옵션으로 설치된 Chrome·Edge를 씁니다.
+        --slowmo 500은 동작마다 0.5초씩 쉬어서, 사람이 따라 보기 좋게 합니다. 시연할 때 좋습니다.
+        자동 실행은 CI/CD 덱(준비 중)에서 이어집니다.
+      </aside>
+    </section>
+
+    <!-- ============= 실습 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip live">🖐 실습 · 내 도구의 핵심 길 하나 (20분)</div>
+        <h2>내 앱의 <span class="accent2">"이게 안 되면 큰일"</span> 하나를 E2E로</h2>
+        <p class="lab-learn"><b>배우는 것</b> — 시나리오를 네 동작으로 쪼개고, 이름으로 찾고, expect로 기다리고, 실패 증거를 남기는 법.</p>
+        <div class="grid-2" style="align-items:start; gap:1.6rem;">
+          <div class="prompt-card">
+            <div class="pc-label">💬 에이전트에게 이렇게 말하세요</div>
+            <pre class="code">tests/e2e/에 Playwright(pytest) 테스트를 하나 만들어줘.
+시나리오: (열기) → (고르기/입력) → (누르기) → (보여야 할 글자)
+규칙: get_by_role · get_by_label 우선, sleep 금지,
+     테스트용 데이터만 사용, 실패 시 스크린샷 · 트레이스.
+먼저 --headed로 한 번 돌려 보여주고,
+앱 코드를 고쳐서 통과시켜. 테스트 파일은 내가 승인할 때만 수정.</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="done-box">
+              <p class="bx-t">✅ 완료 기준</p>
+              <ul>
+                <li>테스트가 <strong>세 번 연속</strong> 통과한다 (가끔 실패 없음)</li>
+                <li>기대 글자를 일부러 틀리게 바꾸면 <strong>실패하고 스크린샷이 남는다</strong></li>
+                <li>코드에 <span class="mono">sleep</span>이 없다</li>
+              </ul>
+            </div>
+            <div class="stuck-box">
+              <p class="bx-t">🧯 막히면</p>
+              <p>요소를 못 찾으면 <span class="mono">playwright codegen</span>으로 한 번 눌러 보고, 나온 선택자를 AI에게 붙여 주세요. 앱 서버가 먼저 켜져 있어야 합니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        20분. "일부러 틀리게 바꿔서 실패 확인"이 핵심입니다 — 절대 실패하지 않는 테스트는 아무것도 검사하지 않는 테스트일 수 있습니다.
+        세 번 연속 통과는 flaky 여부를 보는 가장 싼 방법입니다.
+      </aside>
+    </section>
+
+    <!-- ============= 정리 ============= -->
+    <section>
+      <div class="vfill center">
+        <div class="chip">정리</div>
+        <h2>오늘 가져갈 습관 세 가지</h2>
+        <div style="display:flex; flex-direction:column; gap:1rem; max-width:1000px; margin:.6rem auto 0;">
+          <div class="card" style="text-align:left;"><h3>1. 완성품은 완성품으로 검사한다</h3><p>단위 테스트는 <strong class="accent2">부품</strong>, E2E는 <strong class="accent2">사용자가 가는 길</strong>. 판정은 화면에 보이는 것으로.</p></div>
+          <div class="card" style="text-align:left;"><h3>2. 적게, 이름으로, expect로</h3><p>핵심 길 <strong class="accent4">3~5개</strong>, 버튼은 <strong class="accent4">get_by_role</strong>, 기다림은 <strong class="accent4">sleep 대신 expect</strong>.</p></div>
+          <div class="card" style="text-align:left;"><h3>3. AI의 완료 기준으로 쓴다</h3><p>"E2E 통과 + 스크린샷"을 받고, 테스트 파일은 사람이 지킵니다.</p></div>
+        </div>
+      </div>
+      <aside class="notes">세 습관으로 마무리. 다음 단계로 "MCP · Skill · .MD" 덱을 안내합니다 — AI가 브라우저를 직접 다루게 하는 법. Q&amp;A.</aside>
+    </section>
+
+    <!-- ============= 참고 ============= -->
+    <section data-depth="extra">
+      <div class="vfill">
+        <div class="chip">REFERENCES</div>
+        <h2>더 깊이 보기</h2>
+        <div class="grid-2" style="align-items:stretch; margin-top:.4rem;">
+          <div class="card ref-col">
+            <h3>🎭 공식 문서</h3>
+            <ul>
+              <li><a href="https://playwright.dev/python/docs/intro" target="_blank" rel="noopener">Playwright for Python — 시작하기</a><span class="rd">설치 · 첫 테스트</span></li>
+              <li><a href="https://playwright.dev/python/docs/locators" target="_blank" rel="noopener">Locators</a><span class="rd">get_by_role 등 찾는 법</span></li>
+              <li><a href="https://playwright.dev/python/docs/test-runners" target="_blank" rel="noopener">pytest 플러그인 옵션</a><span class="rd">--browser-channel · --tracing</span></li>
+              <li><a href="https://martinfowler.com/articles/practical-test-pyramid.html" target="_blank" rel="noopener">The Practical Test Pyramid</a><span class="rd">피라미드의 원조 설명</span></li>
+            </ul>
+          </div>
+          <div class="card ref-col">
+            <h3>🔗 시리즈 안에서</h3>
+            <ul>
+              <li><a href="../verification/">검증과 테스트</a><span class="rd">테스트 먼저 쓰기 · 검증 강도</span></li>
+              <li><a href="../harness/">하네스 엔지니어링</a><span class="rd">E2E를 검증 칸에</span></li>
+              <li><a href="../mcp-skill-md/">MCP · Skill · .MD</a><span class="rd">AI가 브라우저를 직접 다루기</span></li>
+              <li><a href="../errors/">에러 메시지 읽는 법</a><span class="rd">TimeoutError 읽기</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">Playwright 문서는 언어별로 나뉩니다. 주소에 /python/이 들어간 문서를 보세요.</aside>
+    </section>
+  </div>
+</div>
+
+<!-- reveal.js 5.1.0 — inlined for offline/self-contained deck (MIT, Hakim El Hattab) -->
+<script src="../vendor/reveal/reveal.js"></script>
+<!-- 핵심만 보기: data-depth="extra" 장 접기 + 3분 요약 (Reveal.initialize 보다 먼저) -->
+<script src="../assets/core.js"></script>
+<script src="../vendor/reveal/notes.js"></script>
+<script>
+  Reveal.initialize({
+    plugins: typeof RevealNotes !== 'undefined' ? [RevealNotes] : [],
+    hash: true,
+    hashOneBasedIndex: true,
+    controls: true,
+    controlsLayout: 'edges',
+    progress: true,
+    slideNumber: 'c/t',
+    transition: 'fade',
+    backgroundTransition: 'fade',
+    width: 1280,
+    height: 800,
+    margin: 0.04,
+    minScale: 0.2,
+    maxScale: 2.0,
+    center: false,
+  });
+
+  // ===== 목차 드롭다운 =====
+  (function () {
+    const sel = document.getElementById('tocSelect');
+    if (!sel) return;
+    const slides = Array.from(document.querySelectorAll('.reveal .slides > section'));
+    const clean = (t) => (t || '').replace(/\s+/g, ' ').trim().slice(0, 34);
+    // <br/>는 textContent 에서 사라져 단어가 붙는다 — 공백으로 바꿔 읽는다
+    const brText = (el) => { const c = el.cloneNode(true); c.querySelectorAll('br').forEach((b) => b.replaceWith(' ')); return c.textContent; };
+    slides.forEach((s, i) => {
+      const h = s.querySelector('h1, h2');
+      const label = clean(h ? brText(h) : '') || ('페이지 ' + (i + 1));
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = (i + 1) + '. ' + label;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', () => {
+      const i = Number(sel.value);
+      if (!Number.isNaN(i)) Reveal.slide(i);
+      sel.blur(); // 방향키가 다시 슬라이드 내비게이션으로 가도록
+    });
+    Reveal.on('slidechanged', (e) => { sel.value = String(e.indexh); });
+    Reveal.on('ready', (e) => { sel.value = String(e.indexh); });
+  })();
+
+  // ===== 전체화면 =====
+  (function () {
+    const fsBtn = document.getElementById('fullscreenBtn');
+    if (!fsBtn) return;
+    if (!document.fullscreenEnabled) { document.documentElement.classList.add('no-fullscreen'); return; }
+    fsBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    });
+  })();
+</script>
+
+
+<!-- 통합 발표 플랫폼: 질문·이모지·슬라이드 동기화는 모든 덱이 공유하는 assets/qa.js 하나가 담당한다. -->
+<link rel="stylesheet" href="../assets/qa.css">
+<script src="../assets/qa.js" defer></script>
+
+</body>
+</html>

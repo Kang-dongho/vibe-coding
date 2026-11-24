@@ -1852,6 +1852,88 @@
       .spec:hover .uic .ix-lift, .spec:hover .uic .ix-sw-row, .uic .ix-caret { animation: none; }
       .uic .ix-file, .uic .ix-drop { transition: none; }
     }
+  
+    /* ---- 텍스트 모션 표본 (s-textmotion, s-textmotion2) ---- */
+    .tm-stage { font-size: 1.15rem; font-weight: 800; min-height: 74px !important; letter-spacing: -.01em; }
+    .tm-stage.tm-dark { background: #0B0F1C; }
+    .uic.tm-dark, .uic.tm-dark * { color: #E8ECF6 !important; }
+    .tm-caret { display: inline-block; width: 2px; height: 1.15em; background: #4F46E5; margin-left: 2px; vertical-align: -.15em; animation: tmBlink .9s steps(1) infinite; }
+    @keyframes tmBlink { 50% { opacity: 0; } }
+
+    .tm-stagger i { font-style: normal; display: inline-block; opacity: 0; }
+    .reveal section.present .tm-stagger i { animation: tmStag 3.6s ease-out infinite; }
+    .tm-stagger i:nth-child(2) { animation-delay: .15s !important; } .tm-stagger i:nth-child(3) { animation-delay: .3s !important; }
+    .tm-stagger i:nth-child(4) { animation-delay: .45s !important; } .tm-stagger i:nth-child(5) { animation-delay: .6s !important; }
+    @keyframes tmStag { 0% { opacity: 0; transform: translateY(.7em); } 12%, 82% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+
+    .tm-mask { display: inline-block; overflow: hidden; vertical-align: bottom; padding: .05em 0; }
+    .tm-mask b { display: inline-block; transform: translateY(110%); font-size: 1.3rem; }
+    .reveal section.present .tm-mask b { animation: tmMask 3.2s cubic-bezier(.2,.7,.2,1) infinite; }
+    @keyframes tmMask { 0% { transform: translateY(110%); } 20%, 85% { transform: none; } 100% { transform: translateY(-110%); } }
+
+    .tm-blur { display: inline-block; opacity: 0; }
+    .reveal section.present .tm-blur { animation: tmBlur 3.2s ease-out infinite; }
+    @keyframes tmBlur { 0% { opacity: 0; filter: blur(10px); letter-spacing: .25em; } 30%, 85% { opacity: 1; filter: blur(0); letter-spacing: -.01em; } 100% { opacity: 0; filter: blur(6px); } }
+
+    .tm-scramble { font-size: 1.2rem; }
+    .tm-rot { display: inline-block; overflow: hidden; vertical-align: bottom; padding: 0 .1em; }
+    .tm-rot b { display: inline-block; color: #4F46E5 !important; }
+    .tm-rot b.in { animation: tmRotIn .45s cubic-bezier(.2,.7,.2,1); }
+    @keyframes tmRotIn { from { transform: translateY(100%); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    .tm-flap { display: inline-flex; gap: 3px; perspective: 300px; }
+    .tm-flap .fl { display: inline-grid; place-items: center; width: 1.25em; height: 1.6em; border-radius: 4px;
+      background: linear-gradient(#1E2638 49%, #0B0F1C 50%, #1E2638 51%); font: 800 1.1rem/1 'JetBrains Mono', monospace; color: #FFD46B !important; }
+    .tm-flap .fl.sp { background: transparent; width: .5em; }
+    .tm-flap .fl.flip { animation: tmFlip .09s linear; }
+    @keyframes tmFlip { 0% { transform: rotateX(0); } 50% { transform: rotateX(-80deg); } 100% { transform: rotateX(0); } }
+
+    .tm-count { font-variant-numeric: tabular-nums; color: #4F46E5 !important; font-size: 1.35rem; }
+
+    .tm-shiny { font-size: 1.3rem; letter-spacing: .08em;
+      background: linear-gradient(110deg, #14161F 40%, #A5B4FC 50%, #14161F 60%); background-size: 260% 100%; background-position: 100% 0;
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .reveal section.present .tm-shiny { animation: tmShine 2.6s linear infinite; }
+    @keyframes tmShine { to { background-position: -60% 0; } }
+
+    .uic mark.tm-hl { background: linear-gradient(transparent 55%, #FDE047 55%) no-repeat 0 0 / 0% 100%; padding: 0 .1em; }
+    .reveal section.present .uic mark.tm-hl { animation: tmHl 3.4s ease-out infinite; }
+    @keyframes tmHl { 0%, 10% { background-size: 0% 100%; } 40%, 90% { background-size: 100% 100%; } 100% { background-size: 0% 100%; } }
+
+    .tm-glitch { position: relative; display: inline-block; font: 800 1.35rem/1.2 'JetBrains Mono', monospace; }
+    .tm-glitch::before, .tm-glitch::after { content: attr(data-text); position: absolute; inset: 0; opacity: 0; }
+    .uic .tm-glitch::before { color: #FF4D7A !important; }
+    .uic .tm-glitch::after { color: #2BEAD0 !important; }
+    .reveal section.present .tm-glitch::before { animation: tmGl1 2.4s steps(1) infinite; }
+    .reveal section.present .tm-glitch::after { animation: tmGl2 2.4s steps(1) infinite; }
+    .reveal section.present .tm-glitch { animation: tmGl0 2.4s steps(1) infinite; }
+    @keyframes tmGl0 { 0%, 70%, 100% { transform: none; } 72% { transform: translateX(2px) skewX(8deg); } 76% { transform: translateX(-3px); } 80% { transform: none; } }
+    @keyframes tmGl1 { 0%, 70%, 84%, 100% { opacity: 0; } 72% { opacity: .9; clip-path: inset(10% 0 55% 0); transform: translate(-4px, -1px); }
+      77% { opacity: .9; clip-path: inset(60% 0 8% 0); transform: translate(3px, 1px); } }
+    @keyframes tmGl2 { 0%, 70%, 84%, 100% { opacity: 0; } 73% { opacity: .9; clip-path: inset(40% 0 30% 0); transform: translate(4px, 0); }
+      79% { opacity: .9; clip-path: inset(5% 0 70% 0); transform: translate(-3px, 1px); } }
+
+    .tm-marq-wrap { justify-content: flex-start !important; flex-wrap: nowrap !important; font-size: 1rem; padding: .7rem 0 !important; }
+    .tm-marq { display: flex; white-space: nowrap; width: max-content; }
+    .tm-marq span { padding-right: .4em; }
+    .reveal section.present .tm-marq { animation: tmMarq 11s linear infinite; }
+    @keyframes tmMarq { to { transform: translateX(-50%); } }
+
+    /* 정적 보기(개요·인쇄·동작 줄이기): 최종 상태로 */
+    .reveal.overview .tm-stagger i, .reveal.overview .tm-blur { opacity: 1 !important; animation: none !important; }
+    .reveal.overview .tm-mask b { transform: none !important; animation: none !important; }
+    .reveal.overview .uic mark.tm-hl { background-size: 100% 100% !important; animation: none !important; }
+    @media print {
+      .tm-stagger i, .tm-blur { opacity: 1 !important; animation: none !important; }
+      .tm-mask b { transform: none !important; animation: none !important; }
+      .uic mark.tm-hl { background-size: 100% 100% !important; animation: none !important; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .tm-stagger i, .tm-blur { opacity: 1 !important; animation: none !important; filter: none !important; }
+      .tm-mask b { transform: none !important; animation: none !important; }
+      .uic mark.tm-hl { background-size: 100% 100% !important; animation: none !important; }
+      .tm-shiny, .tm-glitch, .tm-glitch::before, .tm-glitch::after, .tm-marq, .tm-caret { animation: none !important; }
+    }
   </style>
   <link rel="stylesheet" href="../assets/core.css">
 </head>
@@ -3685,6 +3767,104 @@
       </aside>
     </section>
 
+    <!-- ============= 30-a. 텍스트 모션 1 — 나타나기 ============= -->
+    <section id="s-textmotion" data-depth="extra" data-tm>
+      <div class="vfill">
+        <div class="chip">TEXT MOTION · 1/2 · 나타나기</div>
+        <h2>글자가 <span class="accent2">나타나는</span> 여섯 가지 — 이름을 알면 한 줄로 시킵니다</h2>
+        <div class="spec-grid c3">
+          <div class="spec">
+            <div class="uic tm-stage"><span class="tm-type" data-text="보고서를 세 줄로 요약해 줘"></span><span class="tm-caret"></span></div>
+            <div class="sp-name">1. 타자기 효과<span class="sp-en">typewriter</span></div>
+            <p class="sp-desc">한 글자씩 타이핑되듯 나타납니다. 챗봇 답변·첫 화면 문구에.</p>
+          </div>
+          <div class="spec">
+            <div class="uic tm-stage"><span class="tm-stagger"><i>측정</i> <i>→</i> <i>분석</i> <i>→</i> <i>보고</i></span></div>
+            <div class="sp-name">2. 스태거 텍스트<span class="sp-en">stagger</span></div>
+            <p class="sp-desc">단어(글자)가 <b>시간 차</b>를 두고 차례로 등장. 목록·단계 설명에.</p>
+          </div>
+          <div class="spec">
+            <div class="uic tm-stage"><span class="tm-mask"><b>수율 리포트 W47</b></span></div>
+            <div class="sp-name">3. 마스크 리빌<span class="sp-en">mask reveal</span></div>
+            <p class="sp-desc">숨어 있던 글이 <b>아래에서 위로</b> 올라오며 등장. 큰 제목에 가장 무난.</p>
+          </div>
+          <div class="spec">
+            <div class="uic tm-stage"><span class="tm-blur">흐릿하다가 선명하게</span></div>
+            <div class="sp-name">4. 블러 인<span class="sp-en">blur in</span></div>
+            <p class="sp-desc">흐릿한 글자가 점점 선명해집니다. 부드럽고 고급스러운 인상.</p>
+          </div>
+          <div class="spec">
+            <div class="uic tm-stage"><span class="tm-scramble mono" data-text="분석 완료 ✓">분석 완료 ✓</span></div>
+            <div class="sp-name">5. 스크램블 텍스트<span class="sp-en">scramble / decode</span></div>
+            <p class="sp-desc">뒤섞인 문자가 바뀌다가 <b>진짜 글자로 맞춰집니다</b>. "계산 끝" 연출에.</p>
+          </div>
+          <div class="spec">
+            <div class="uic tm-stage"><span>AI로 <span class="tm-rot" data-words="보고서|회의록|메일 초안|대시보드"><b>보고서</b></span> 만들기</span></div>
+            <div class="sp-name">6. 단어 로테이터<span class="sp-en">word rotator</span></div>
+            <p class="sp-desc">문장은 그대로, <b>한 단어만</b> 계속 바뀝니다. 랜딩 페이지 헤드라인 단골.</p>
+          </div>
+        </div>
+        <div class="prompt-card mini good" style="margin-top:.8rem;">
+          <div class="pc-label">이름 + 시간 + 횟수로 시키기</div>
+          <pre class="code">제목은 마스크 리빌(0.6초, 아래→위), 부제는 단어 단위 스태거(80ms 간격)로 한 번만 재생해줘.
+prefers-reduced-motion이면 애니메이션 없이 바로 보이게.</pre>
+        </div>
+      </div>
+      <aside class="notes">
+        여섯 개 모두 실제로 움직이는 표본입니다. 이름을 모르면 "글자가 막 멋있게 나오게"라고 말하게 되고, AI는 여섯 개를 다 섞어 버립니다.
+        마스크 리빌이 가장 무난하고, 스크램블은 숫자·영문에 어울립니다. 한글은 조합형이라 스크램블이 조금 요란해 보일 수 있습니다.
+      </aside>
+    </section>
+
+    <!-- ============= 30-b. 텍스트 모션 2 — 바뀌고 강조하기 ============= -->
+    <section id="s-textmotion2" data-depth="extra" data-tm>
+      <div class="vfill">
+        <div class="chip">TEXT MOTION · 2/2 · 바뀌고 강조하기</div>
+        <h2>글자가 <span class="accent2">바뀌고 눈길을 끄는</span> 여섯 가지</h2>
+        <div class="spec-grid c3">
+          <div class="spec">
+            <div class="uic tm-stage tm-dark"><span class="tm-flap" data-text="GATE A7"></span></div>
+            <div class="sp-name">7. 스플릿 플랩<span class="sp-en">split-flap</span></div>
+            <p class="sp-desc">공항 전광판처럼 글자판이 <b>넘어가며</b> 바뀝니다. 상태판·설비 번호에.</p>
+          </div>
+          <div class="spec">
+            <div class="uic tm-stage"><span>처리한 웨이퍼 <b class="tm-count" data-to="1284">1,284</b> 장</span></div>
+            <div class="sp-name">8. 숫자 카운트업<span class="sp-en">count-up</span></div>
+            <p class="sp-desc">숫자가 0부터 빠르게 올라갑니다. KPI 카드에 — <b>1~1.5초</b>면 충분.</p>
+          </div>
+          <div class="spec">
+            <div class="uic tm-stage"><span class="tm-shiny">PREMIUM REPORT</span></div>
+            <div class="sp-name">9. 샤이니 텍스트<span class="sp-en">shiny / shimmer</span></div>
+            <p class="sp-desc">글자 위로 <b>빛이 스르륵</b> 지나갑니다. 배지·로고 한 곳에만.</p>
+          </div>
+          <div class="spec">
+            <div class="uic tm-stage"><span>이번 주 <mark class="tm-hl">수율 2% 개선</mark> 확인</span></div>
+            <div class="sp-name">10. 형광펜 하이라이트<span class="sp-en">highlight / marker</span></div>
+            <p class="sp-desc">중요한 단어에 <b>형광펜을 칠하듯</b> 색이 그어집니다. 발표 자료의 핵심어에.</p>
+          </div>
+          <div class="spec">
+            <div class="uic tm-stage tm-dark"><span class="tm-glitch" data-text="ERROR 503">ERROR 503</span></div>
+            <div class="sp-name">11. 글리치 텍스트<span class="sp-en">glitch</span></div>
+            <p class="sp-desc">화면이 고장 난 듯 <b>지지직 깨지며</b> 흔들립니다. 오류·게임풍 장식용.</p>
+          </div>
+          <div class="spec">
+            <div class="uic tm-stage tm-marq-wrap"><div class="tm-marq"><span>📢 15:00 EQ-03 PM 예정 · 사내 LLM 점검 22시 · 주간보고 마감 금요일 · </span><span aria-hidden="true">📢 15:00 EQ-03 PM 예정 · 사내 LLM 점검 22시 · 주간보고 마감 금요일 · </span></div></div>
+            <div class="sp-name">12. 텍스트 마키<span class="sp-en">marquee / ticker</span></div>
+            <p class="sp-desc">글이 끊기지 않고 <b>옆으로 계속</b> 흐릅니다. 공지 띠·뉴스 티커에.</p>
+          </div>
+        </div>
+        <div class="grid-2" style="gap:.8rem; margin-top:.75rem; align-items:stretch;">
+          <div class="card good" style="padding:.6rem .85rem;"><h3 style="font-size:1rem; margin:0 0 .2rem;">✅ 쓰는 기준</h3><p style="font-size:.9rem; margin:0;">한 화면에 <b>하나만</b>, 한 번만. 제목엔 마스크 리빌, 숫자엔 카운트업, 핵심어엔 형광펜.</p></div>
+          <div class="card bad" style="padding:.6rem .85rem;"><h3 style="font-size:1rem; margin:0 0 .2rem;">⛔ 피하는 곳</h3><p style="font-size:.9rem; margin:0;">본문·표·에러 안내엔 글리치·마키 금지. <b>읽어야 할 글</b>이 움직이면 못 읽습니다.</p></div>
+        </div>
+      </div>
+      <aside class="notes">
+        후반 여섯 개는 이미 있는 글자를 바꾸거나 강조합니다. 대시보드에서 실제로 쓸 만한 건 카운트업과 형광펜 정도입니다.
+        글리치와 마키는 눈길은 끌지만 읽기를 방해합니다. 업무 화면에서는 장식 이상으로 쓰지 않도록 안내합니다.
+        모든 표본은 운영체제의 "동작 줄이기" 설정이 켜져 있으면 움직이지 않고 최종 상태로 보입니다.
+      </aside>
+    </section>
+
     <!-- ============= 31. 접근성 ============= -->
     <section data-depth="extra">
       <div class="vfill">
@@ -4546,6 +4726,116 @@
 
 <!-- 통합 발표 플랫폼: 질문·이모지·슬라이드 동기화는 모든 덱이 공유하는 assets/qa.js 하나가 담당한다. -->
 <link rel="stylesheet" href="../assets/qa.css">
+<script>
+  // ===== 텍스트 모션 표본 (타자기 · 스크램블 · 로테이터 · 스플릿 플랩 · 카운트업) =====
+  (function () {
+    if (typeof Reveal === 'undefined') return;
+    const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let timers = [];
+    const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
+    const every = (fn, ms) => { const t = setInterval(fn, ms); timers.push(t); return t; };
+    const stop = () => { timers.forEach((t) => { clearTimeout(t); clearInterval(t); }); timers = []; };
+
+    function finalState(root) {
+      root.querySelectorAll('.tm-type').forEach((el) => { el.textContent = el.dataset.text; });
+      root.querySelectorAll('.tm-scramble').forEach((el) => { el.textContent = el.dataset.text; });
+      root.querySelectorAll('.tm-count').forEach((el) => { el.textContent = Number(el.dataset.to).toLocaleString('ko-KR'); });
+      root.querySelectorAll('.tm-flap').forEach((el) => buildFlap(el, el.dataset.text));
+    }
+
+    function typewriter(el) {
+      const text = el.dataset.text; let i = 0;
+      const step = () => {
+        el.textContent = text.slice(0, i);
+        if (i <= text.length) { i++; later(step, 90); }
+        else later(() => { i = 0; step(); }, 1800);
+      };
+      el.textContent = ''; step();
+    }
+
+    const POOL = '가나다라마바사아자차카타파하#%&@*01';
+    function scramble(el) {
+      const text = el.dataset.text;
+      const run = () => {
+        let frame = 0; const total = 22;
+        const tick = () => {
+          el.textContent = [...text].map((ch, i) => {
+            if (ch === ' ') return ' ';
+            return frame >= total * (i + 1) / text.length ? ch : POOL[Math.floor(Math.random() * POOL.length)];
+          }).join('');
+          if (frame++ < total) later(tick, 55); else later(run, 1900);
+        };
+        tick();
+      };
+      run();
+    }
+
+    function rotator(el) {
+      const words = el.dataset.words.split('|'); let i = 0;
+      every(() => {
+        i = (i + 1) % words.length;
+        el.innerHTML = '<b class="in">' + words[i] + '</b>';
+      }, 1700);
+    }
+
+    function buildFlap(el, text) {
+      el.innerHTML = [...text].map((c) => '<span class="fl' + (c === ' ' ? ' sp' : '') + '">' + (c === ' ' ? '' : c) + '</span>').join('');
+    }
+    const FLAP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    function flap(el) {
+      const targets = [el.dataset.text, 'EQ-03 OK', 'PM 15:00'];
+      let k = 0;
+      const show = (text) => {
+        const len = Math.max(...targets.map((t) => t.length));
+        const padded = text.padEnd(len, ' ');
+        buildFlap(el, padded);
+        [...el.children].forEach((cell, i) => {
+          if (padded[i] === ' ') return;
+          let n = 6 + i * 2;
+          const spin = () => {
+            cell.classList.remove('flip'); void cell.offsetWidth; cell.classList.add('flip');
+            cell.textContent = n > 0 ? FLAP[Math.floor(Math.random() * FLAP.length)] : padded[i];
+            if (n-- > 0) later(spin, 70);
+          };
+          spin();
+        });
+        later(() => { k = (k + 1) % targets.length; show(targets[k]); }, 3200);
+      };
+      show(targets[0]);
+    }
+
+    function countUp(el) {
+      const to = Number(el.dataset.to);
+      const run = () => {
+        const t0 = performance.now(), dur = 1300;
+        const tick = () => {
+          const p = Math.min(1, (performance.now() - t0) / dur);
+          el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))).toLocaleString('ko-KR');
+          if (p < 1) later(tick, 16); else later(run, 2200);
+        };
+        tick();
+      };
+      run();
+    }
+
+    function start(slide) {
+      stop();
+      if (!slide || !slide.hasAttribute('data-tm')) return;
+      if (REDUCED) { finalState(slide); return; }
+      slide.querySelectorAll('.tm-type').forEach(typewriter);
+      slide.querySelectorAll('.tm-scramble').forEach(scramble);
+      slide.querySelectorAll('.tm-rot').forEach(rotator);
+      slide.querySelectorAll('.tm-flap').forEach(flap);
+      slide.querySelectorAll('.tm-count').forEach(countUp);
+    }
+
+    document.querySelectorAll('section[data-tm]').forEach(finalState);
+    Reveal.on('slidechanged', (e) => start(e.currentSlide));
+    Reveal.on('overviewshown', stop);
+    if (Reveal.isReady()) start(Reveal.getCurrentSlide());
+    else Reveal.on('ready', (e) => start(e.currentSlide));
+  })();
+</script>
 <script src="../assets/qa.js" defer></script>
 
 </body>
