@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>파일 형식 기초 — CSV · JSON · YAML · 인코딩 | 바이브 코딩 세미나</title>
+  <meta name="description" content="한글이 깨지고 경로가 안 맞는다면. 표는 CSV, 구조는 JSON, 설정은 YAML로 고르는 기준, 각 형식의 함정, 글자가 바이트가 되는 원리와 UTF-8 · CP949 · utf-8-sig, 경로의 \ 와 / 와 pathlib." />
+  <meta name="keywords" content="CSV, JSON, YAML, 인코딩, UTF-8, CP949, utf-8-sig, BOM, 한글 깨짐, pathlib, 경로, 바이브 코딩, 입문" />
+  <meta name="author" content="Kang-dongho" />
+  <meta name="theme-color" content="#06080F" />
+  <!-- 형식: geniuskey/vibe-coding (CC BY-NC 4.0) 덱 구조 재사용 · 이 덱의 내용은 추가 작성분 -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOUI4MkZGIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMkJFQUQwIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgeD0iMS41IiB5PSIxLjUiIHdpZHRoPSIyOSIgaGVpZ2h0PSIyOSIgcng9IjgiIGZpbGw9IiMwRTEyMjAiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTkgMTFsNiA1LTYgNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTE3IDIxaDYiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPgo=" />
+  <link rel="stylesheet" href="../vendor/reveal/reveal.css">
+  <link rel="stylesheet" href="../vendor/fonts/pretendard.css">
+  <style>
+    :root {
+      --bg-0: #06080F;
+      --bg-1: #0E1220;
+      --bg-2: #161B30;
+      --fg: #FFFFFF;
+      --fg-dim: #E2E6F0;
+      --fg-soft: #B8BFD0;
+      --accent: #9B82FF;
+      --accent-2: #2BEAD0;
+      --accent-3: #FF7A95;
+      --accent-4: #FFD46B;
+      --danger: #FF4D5E;
+    }
+
+    html { color-scheme: dark; }
+    html, body { background: var(--bg-0) !important; }
+    /* gradient mesh background — 원본 데크와 동일한 분위기 */
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(124,92,255,0.13), transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(0,224,199,0.10), transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(255,94,126,0.04), transparent 60%);
+    }
+    body::after {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(124,92,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,92,255,0.05) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 75%);
+    }
+    .reveal { background: transparent; position: relative; z-index: 1; }
+
+    .reveal { font-family: 'Pretendard', system-ui, sans-serif; color: #FFFFFF; }
+    .reveal .slides { text-align: left; }
+    .reveal section { padding: 16px 52px; box-sizing: border-box; height: 100%; word-break: keep-all; }
+
+    /* HARD RULE: every text descendant defaults to pure white. */
+    .reveal section,
+    .reveal section p,
+    .reveal section li,
+    .reveal section span,
+    .reveal section em,
+    .reveal section strong,
+    .reveal section h1,
+    .reveal section h2,
+    .reveal section h3,
+    .reveal section h4 {
+      color: #FFFFFF;
+    }
+
+    .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+      font-family: 'Pretendard', system-ui, sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: none;
+      margin: 0 0 0.4em 0;
+      line-height: 1.15;
+      color: #FFFFFF !important;
+      text-shadow:
+        0 1px 0 rgba(0,0,0,0.85),
+        0 2px 4px rgba(0,0,0,0.55);
+    }
+    .reveal section p,
+    .reveal section li {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.75);
+    }
+    .reveal .quote, .reveal .quote * {
+      text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+    }
+    .reveal .grad {
+      text-shadow: none !important; /* background-clip:text 위 그림자는 그라데이션을 탁하게 만든다 */
+    }
+    .reveal h1 { font-size: 4.2rem; }
+    .reveal h2 { font-size: 2.9rem; }
+    .reveal h3 { font-size: 2.0rem; }
+    .reveal p, .reveal li { font-size: 1.45rem; line-height: 1.6; }
+
+    .reveal a { color: #5BFFE0 !important; }
+
+    /* Toolbar — fixed top-right */
+    .dl-toolbar {
+      position: fixed;
+      top: 16px; right: 16px;
+      z-index: 9999;
+      display: flex;
+      gap: 8px;
+    }
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: rgba(20, 22, 44, 0.85);
+      border: 1px solid rgba(155, 130, 255, 0.5);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #E6D9FF !important;
+      text-decoration: none !important;
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      white-space: nowrap;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .dl-btn:hover {
+      opacity: 1;
+      transform: translateY(-2px);
+      background: rgba(124, 92, 255, 0.4);
+      border-color: rgba(91, 255, 224, 0.7);
+    }
+    .dl-btn:focus-visible,
+    .transition-select:focus-visible {
+      opacity: 1;
+      outline: 2px solid #5BFFE0;
+      outline-offset: 2px;
+    }
+    .transition-select {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 14px;
+      background: rgba(20, 22, 44, 0.85);
+      border: 1px solid rgba(155, 130, 255, 0.5);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #E6D9FF !important;
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .transition-select:hover { opacity: 1; transform: translateY(-2px); }
+    .transition-select option { background: #14162C; color: #E1D9FF; }
+    #tocSelect { width: 340px; max-width: 340px; }
+    @media (max-width: 760px) {
+      .dl-toolbar { top: 8px; right: 8px; left: 8px; gap: 6px; justify-content: flex-end; }
+      #tocSelect { flex: 1 1 auto; width: auto; min-width: 0; max-width: 340px; text-overflow: ellipsis; }
+      .dl-toolbar .dl-btn { flex: none; padding: 7px 11px; }
+      .dl-toolbar .dl-btn > span:not([aria-hidden]) {
+        position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+      }
+      .dl-toolbar .dl-btn > span[aria-hidden] { font-size: 0.95rem; }
+    }
+    /* 전체화면을 못 쓰는 브라우저(iOS Safari 등)에서는 버튼을 숨긴다 */
+    .no-fullscreen #fullscreenBtn { display: none; }
+
+    .reveal .slide-number {
+      color: #E6D9FF;
+      right: auto;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      background: rgba(20, 22, 44, 0.6);
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .reveal .controls { color: #B5A1FF; }
+    .reveal .controls[data-controls-layout="edges"] .navigate-left,
+    .reveal .controls[data-controls-layout="edges"] .navigate-right {
+      top: auto;
+      bottom: 8px;
+      margin-top: 0;
+    }
+    .reveal .controls[data-controls-layout="edges"] .navigate-left { left: 20px; }
+    .reveal .controls[data-controls-layout="edges"] .navigate-right { right: 20px; }
+    .reveal .controls .controls-arrow { opacity: 0.55; transition: opacity 0.3s ease; }
+    .reveal .controls .controls-arrow:hover { opacity: 1; }
+    .reveal .progress { color: #B5A1FF; }
+
+    /* utility */
+    .reveal .accent  { color: #B5A1FF !important; }
+    .reveal .accent2 { color: #5BFFE0 !important; }
+    .reveal .accent3 { color: #FF94AC !important; }
+    .reveal .accent4 { color: #FFE08A !important; }
+    .reveal .muted   { color: #E6D9FF !important; }
+    .reveal .danger  { color: #FF8A96 !important; }
+    .reveal em       { color: #FFE08A !important; font-style: italic; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .center { text-align: center; }
+    .stack { display: flex; flex-direction: column; gap: 1.2rem; }
+    .row { display: flex; gap: 2rem; align-items: center; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .small { font-size: 1.18rem; }
+    .tiny  { font-size: 1.0rem; }
+    .reveal p.small, .reveal li.small, .reveal span.small { font-size: 1.18rem; }
+    .reveal p.tiny, .reveal span.tiny { font-size: 1.0rem; }
+    .vfill { height: 100%; display: flex; flex-direction: column; justify-content: center; }
+    /* flex 컨테이너에서 chip이 가로로 늘어나지 않도록 */
+    .vfill > .chip { align-self: flex-start; }
+    .vfill.center > .chip { align-self: center; }
+
+    /* gradient text (정적) */
+    .reveal .grad, .reveal section .grad {
+      background: linear-gradient(120deg, #B5A1FF 0%, #5BFFE0 50%, #FF94AC 100%) !important;
+      background-size: 100% 100% !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      color: transparent !important;
+      font-weight: 800;
+      filter: drop-shadow(0 0 22px rgba(155,130,255,0.28));
+    }
+
+    .chip {
+      display:inline-block; padding: .35em 1em;
+      border-radius: 6px; font-family: 'JetBrains Mono', monospace;
+      font-size: .95rem; color: #FFFFFF !important;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: #2A2150;
+      border: 1px solid rgba(155, 130, 255, 0.8);
+      margin-bottom: 1.5rem;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 0.35em 0.9em;
+      border-radius: 999px;
+      background: #2A2150;
+      border: 1px solid rgba(155,130,255,0.8);
+      color: #E1D9FF !important;
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .pill.green { background: #0D3D38; border-color: rgba(43,234,208,0.85); color: #C5FFF5 !important; }
+    .pill.pink  { background: #4A1A26; border-color: rgba(255,122,149,0.85); color: #FFD0DA !important; }
+    .pill.amber { background: #463817; border-color: rgba(255,212,107,0.85); color: #FFEFC2 !important; }
+
+    /* card — glassmorphism */
+    .card {
+      background: linear-gradient(160deg, rgba(40, 30, 80, 0.55), rgba(20, 50, 60, 0.45));
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(155,130,255,0.45);
+      border-radius: 18px;
+      padding: 1.6rem 1.8rem;
+      box-shadow:
+        0 30px 60px -20px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.10);
+      transition: border-color .25s ease-out;
+    }
+    .card:hover { border-color: rgba(155,130,255,0.9); }
+    .card h3 { font-size: 1.5rem; margin: 0 0 0.8rem 0; color: #FFFFFF !important; }
+    .card p { font-size: 1.15rem; line-height: 1.6; margin: 0; color: #E8ECF5 !important; }
+    .card p + p { margin-top: 0.5rem; }
+    .card.bad  { border-color: rgba(255,122,149,0.55); background: linear-gradient(160deg, rgba(80,25,45,0.5), rgba(45,18,35,0.45)); }
+    .card.good { border-color: rgba(43,234,208,0.6); background: linear-gradient(160deg, rgba(15,60,55,0.55), rgba(12,42,48,0.45)); }
+
+    .quote {
+      font-size: 1.7rem;
+      line-height: 1.5;
+      padding: 1.4rem 1.8rem;
+      border-left: 4px solid #2BEAD0;
+      background: #131829;
+      border-radius: 0 12px 12px 0;
+      color: #FFFFFF !important;
+      font-style: italic;
+    }
+    .quote * { color: #FFFFFF !important; }
+    .quote .grad { color: transparent !important; }
+
+    .big {
+      font-size: 7.5rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    /* code / chat block */
+    pre.code {
+      background: #131829;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 14px;
+      padding: 1.1rem 1.3rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.02rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #FFFFFF;
+      margin: 0;
+      white-space: pre-wrap;
+      font-variant-ligatures: none;
+    }
+    .code .kw { color: var(--accent); font-weight: 600; }
+    .code .st { color: var(--accent-2); }
+    .code .cm { color: #E6D9FF; font-style: italic; }
+    .code .nm { color: var(--accent-4); }
+    pre.code.bad  { border-color: rgba(255,122,149,0.55); }
+    pre.code.good { border-color: rgba(43,234,208,0.6); }
+
+    kbd.key {
+      display: inline-block;
+      padding: 0.2em 0.65em;
+      margin: 0 0.1em;
+      border-radius: 7px;
+      background: #201A3D;
+      border: 1px solid rgba(155,130,255,0.6);
+      border-bottom: 3px solid rgba(155,130,255,0.6);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.92em;
+      font-weight: 700;
+      color: #E1D9FF;
+    }
+
+    /* ========= 순서를 돕는 짧은 등장 — 300ms ease-out, 한 장 안에서 최대 0.3s 지연 ========= */
+    .autoshow { opacity: 0; }
+    section.present .autoshow { animation: asFadeUp .32s cubic-bezier(.2,.7,.3,1) forwards; }
+    section.present .autoshow.fade-in { animation-name: asFadeIn; }
+    @keyframes asFadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+    @keyframes asFadeIn { from { opacity:0; } to { opacity:1; } }
+    .autoshow:nth-child(2) { animation-delay: .06s; }
+    .autoshow:nth-child(3) { animation-delay: .12s; }
+    .autoshow:nth-child(4) { animation-delay: .18s; }
+    .autoshow:nth-child(5) { animation-delay: .24s; }
+    .autoshow:nth-child(n+6) { animation-delay: .3s; }
+
+    /* ========= 리스트 유틸 ========= */
+    .list-clean { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .55rem; }
+    .list-clean li { font-size: 1.22rem !important; line-height: 1.5; }
+
+    /* ========= 사다리(단계 목록) ========= */
+    .ladder { display: flex; flex-direction: column; gap: .45rem; }
+    .ladder .rung {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .55rem 1.2rem; border-radius: 10px;
+      border: 1px solid rgba(155,130,255,0.35);
+      background: rgba(40,30,80,0.28);
+      font-size: 1.18rem; font-weight: 700;
+    }
+    .ladder .rung .no {
+      font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1rem;
+      color: #B5A1FF !important; width: 1.6em; flex: 0 0 auto;
+    }
+    .ladder .rung .w {
+      margin-left: auto; font-family: 'JetBrains Mono', monospace;
+      font-size: .9rem; color: #C9D2E4 !important; white-space: nowrap; padding-left: 1rem;
+    }
+
+    /* ========= 4단계 루프 ========= */
+    .loop-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; }
+    .loop-step {
+      display: flex; flex-direction: column; gap: .25rem; align-items: flex-start;
+      padding: .7rem .9rem; border-radius: 12px;
+      border: 1px solid rgba(190,200,224,0.4);
+      background: rgba(230,236,249,0.06);
+    }
+    .loop-step .no { font-family: 'JetBrains Mono', monospace; font-size: .8rem; font-weight: 800; color: #B5A1FF !important; }
+    .loop-step .nm2 { font-size: 1.12rem; font-weight: 800; }
+    .loop-step.hot { border-color: rgba(43,234,208,.65); background: rgba(43,234,208,.08); }
+    .loop-step.hot .no { color: #5BFFE0 !important; }
+
+    /* ========= SVG 글자 가독성 ========= */
+    .reveal section svg text { paint-order: stroke fill; stroke: #06080F; stroke-width: 1.2px; stroke-linejoin: round; }
+
+    /* ========= 슬라이드 하단 레퍼런스 링크 ========= */
+    .slide-refs {
+      position: absolute; left: 56px; bottom: 12px; z-index: 3;
+      display: flex; gap: 1.1rem; align-items: center; flex-wrap: wrap;
+      max-width: 40%;
+      font-family: 'JetBrains Mono', monospace; font-size: .78rem;
+      opacity: .8;
+    }
+    .slide-refs .rl { color: #9BA6C0 !important; font-weight: 800; letter-spacing: .12em; }
+    .slide-refs a {
+      color: #8FF5E2 !important; text-decoration: none !important;
+      border-bottom: 1px dotted rgba(91,255,224,.45); white-space: nowrap;
+    }
+    .slide-refs a:hover { color: #5BFFE0 !important; border-bottom-color: #5BFFE0; }
+
+    /* ========= 참고자료 슬라이드 ========= */
+    .ref-col h3 { font-size: 1.3rem; }
+    .ref-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
+    .ref-col li { font-size: 1.02rem !important; line-height: 1.45; }
+    .ref-col li a { font-weight: 700; }
+    .ref-col li .rd { display: block; font-size: .88rem; color: #B8BFD0 !important; }
+
+    /* ========= 실습 박스 — 배우는 것 · 완료 기준 · 막히면 ========= */
+    .lab-learn { font-size: 1.12rem !important; color: #E2E6F0 !important; margin: 0 0 .7rem; }
+    .lab-learn b { color: #C5FFF5 !important; }
+    .done-box, .stuck-box {
+      border-radius: 12px; padding: .7rem 1rem .8rem;
+      display: flex; flex-direction: column; gap: .3rem;
+    }
+    .done-box  { border: 1.5px solid rgba(43,234,208,.75); background: rgba(13,61,56,.45); }
+    .stuck-box { border: 1px dashed rgba(255,212,107,.6); background: rgba(70,56,23,.18); }
+    .done-box .bx-t, .stuck-box .bx-t {
+      font-family: 'JetBrains Mono', monospace; font-size: .85rem; font-weight: 800; letter-spacing: .05em; margin: 0;
+    }
+    .done-box .bx-t  { color: #8FF5E2 !important; }
+    .stuck-box .bx-t { color: #FFE08A !important; }
+    .done-box p, .stuck-box p, .done-box li, .stuck-box li { font-size: 1rem !important; line-height: 1.45; margin: 0; color: #E8ECF5 !important; }
+    .done-box ul, .stuck-box ul { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: .2rem; }
+
+    /* ========= 보안 약속 (시리즈 공통) ========= */
+    .promise-list { display: flex; flex-direction: column; gap: .6rem; }
+    .promise {
+      display: grid; grid-template-columns: 2.4rem 1fr; gap: .2rem 1rem; align-items: baseline;
+      padding: .75rem 1.2rem; border-radius: 14px;
+      border: 1px solid rgba(255,122,149,.55); background: rgba(80,25,45,.32);
+    }
+    .promise .pn { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 900; color: #FF94AC !important; grid-row: span 2; }
+    .promise b { font-size: 1.28rem; line-height: 1.4; }
+    .promise span.why { font-size: 1rem; color: #D6DCEA !important; line-height: 1.45; }
+    .plus-one {
+      margin-top: .7rem; padding: .6rem 1.1rem; border-radius: 12px;
+      border: 1px dashed rgba(155,130,255,.6); background: rgba(40,30,80,.3);
+      font-size: 1.05rem;
+    }
+    .plus-one .po-t { font-family: 'JetBrains Mono', monospace; font-size: .82rem; font-weight: 800; color: #CBBDFF !important; margin-right: .6rem; }
+
+    /* ========= security 전용 시그니처 컴포넌트 ========= */
+    /* ① 데이터 흐름 지도 — 내 상자에서 외부 모델로 나가는 경로 */
+    .flowmap { display:flex; align-items:stretch; gap:0; justify-content:center; margin:.6rem 0; flex-wrap:nowrap; }
+    .flow-node {
+      flex:1 1 0; min-width:0; padding:1rem .9rem; border-radius:14px;
+      border:1px solid rgba(155,130,255,.4); background:rgba(230,236,249,.05);
+      display:flex; flex-direction:column; gap:.3rem; text-align:center;
+    }
+    .flow-node h4 { font-size:1.15rem; font-weight:800; margin:0; }
+    .flow-node p { font-size:.98rem; color:#D6DCEA !important; margin:0; }
+    .flow-node.mine { border-color:rgba(43,234,208,.7); background:rgba(43,234,208,.08); }
+    .flow-node.out  { border-color:rgba(255,122,149,.7); background:rgba(255,122,149,.08); }
+    .flow-arrow { flex:0 0 auto; align-self:center; padding:0 .5rem; font-size:1.7rem; color:#FFD46B; }
+    .flow-arrow small { display:block; font-size:.72rem; color:#9BA6C0; letter-spacing:.03em; }
+
+    /* ② 신뢰 경계선 — 내가 쓴 것 vs 외부에서 온 것 */
+    .trustzone { display:grid; grid-template-columns:1fr auto 1fr; align-items:stretch; gap:0; margin:.5rem 0; }
+    .tz-side { padding:1rem 1.1rem; border-radius:14px; display:flex; flex-direction:column; gap:.5rem; }
+    .tz-side.trusted { border:1px solid rgba(43,234,208,.55); background:rgba(43,234,208,.06); }
+    .tz-side.untrusted { border:1px solid rgba(255,122,149,.55); background:rgba(255,122,149,.06); }
+    .tz-side h4 { margin:0; font-size:1.18rem; font-weight:800; }
+    .tz-side .tz-item { font-size:1rem; color:#E2E6F0 !important; }
+    .tz-fence {
+      width:0; border-left:3px dashed rgba(255,212,107,.8); margin:0 1.2rem;
+      position:relative;
+    }
+    .tz-fence::after {
+      content:"🚧 신뢰 경계"; position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%) rotate(90deg); white-space:nowrap;
+      font-family:'JetBrains Mono',monospace; font-size:.78rem; font-weight:800;
+      color:#FFD46B !important; background:var(--bg-0); padding:.2rem .5rem;
+    }
+
+    /* ③ 프롬프트 인젝션 무대 — 숨은 지시가 도구를 움직인다 */
+    .inj-stage { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:center; gap:0; margin:.5rem 0; }
+    .inj-card {
+      padding:.9rem 1rem; border-radius:14px; border:1px solid rgba(155,130,255,.4);
+      background:rgba(230,236,249,.05); text-align:center; display:flex; flex-direction:column; gap:.35rem;
+    }
+    .inj-card .inj-ico { font-size:2rem; line-height:1; }
+    .inj-card h4 { margin:0; font-size:1.08rem; font-weight:800; }
+    .inj-card p { margin:0; font-size:.92rem; color:#D6DCEA !important; }
+    .inj-card.hidden-cmd { border-color:rgba(255,122,149,.75); background:rgba(255,122,149,.1); }
+    .inj-card.boom { border-color:var(--danger); background:rgba(255,77,94,.12); }
+    .inj-flow { flex:0 0 auto; text-align:center; padding:0 .4rem; }
+    .inj-flow .a { font-size:1.6rem; color:#FF7A95; }
+    .inj-flow small { display:block; font-size:.72rem; color:#9BA6C0; }
+
+    /* 삼각 위험(치명적 3요소) 배지 */
+    .triad { display:flex; gap:.8rem; justify-content:center; flex-wrap:wrap; margin-top:.5rem; }
+    .triad .tbadge {
+      padding:.55rem 1rem; border-radius:999px; font-weight:800; font-size:1.02rem;
+      border:1px solid rgba(255,122,149,.6); background:rgba(255,122,149,.09);
+    }
+
+    /* ④ 권한 다이얼 — plan · manual · auto(기본) · bypass */
+    .permrow { display:flex; align-items:stretch; gap:.7rem; justify-content:center; flex-wrap:nowrap; margin:.5rem 0; }
+    .perm-step {
+      flex:1 1 0; min-width:0; padding:.85rem .8rem; border-radius:14px; text-align:center;
+      border:1px solid rgba(190,200,224,.35); background:rgba(230,236,249,.05);
+      display:flex; flex-direction:column; gap:.3rem;
+    }
+    .perm-step h4 { margin:0; font-size:1.06rem; font-weight:800; }
+    .perm-step p { margin:0; font-size:.9rem; color:#D6DCEA !important; }
+    .perm-step.p1 { border-color:rgba(43,234,208,.6); }
+    .perm-step.p2 { border-color:rgba(155,130,255,.6); }
+    .perm-step.p3 { border-color:rgba(255,212,107,.6); }
+    .perm-step.p4 { border-color:rgba(255,122,149,.65); background:rgba(255,122,149,.08); }
+    .perm-step.is-default { box-shadow:0 0 0 2px rgba(255,212,107,.85); }
+    .perm-default { align-self:center; font-size:.7rem; font-weight:800; padding:.1rem .5rem; border-radius:999px; background:rgba(255,212,107,.18); color:#FFE08A !important; }
+    .perm-gauge { font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.05em; color:#9BA6C0 !important; }
+
+    /* 데이터 등급 매트릭스 */
+    .gov-table { width:100%; border-collapse:collapse; font-size:1rem; }
+    .gov-table th, .gov-table td { border:1px solid rgba(155,130,255,.25); padding:.55rem .7rem; text-align:center; }
+    .gov-table th { font-family:'JetBrains Mono',monospace; font-size:.86rem; color:#B5A1FF !important; letter-spacing:.04em; }
+    .gov-table td.yes { color:#8FF0E2 !important; font-weight:800; }
+    .gov-table td.no  { color:#FF9FB0 !important; font-weight:800; }
+    .gov-table td.ask { color:#FFE29A !important; font-weight:800; }
+
+    @media (max-width: 1100px) {
+      .flowmap, .permrow { flex-wrap:wrap; }
+      .inj-stage, .trustzone { grid-template-columns:1fr; }
+      .tz-fence { display:none; }
+    }
+
+    /* 실습 배지 · 프롬프트 카드 (github 덱과 같은 모양) */
+    .chip.live { background: #0D3D38; border-color: rgba(43,234,208,0.85); color: #C5FFF5 !important; }
+    .chip.warn { background: #4A1A26; border-color: rgba(255,122,149,0.85); color: #FFD0DA !important; }
+    .prompt-card {
+      background: linear-gradient(160deg, rgba(38,30,82,0.72), rgba(16,22,44,0.72));
+      border: 1.5px solid rgba(155,130,255,0.65); border-radius: 16px;
+      padding: .9rem 1.15rem 1rem; margin: 0;
+    }
+    .prompt-card .pc-label {
+      font-family: 'JetBrains Mono', monospace; font-size: .88rem; font-weight: 800; letter-spacing: .06em;
+      color: #CBBDFF !important; margin-bottom: .45rem;
+    }
+    .prompt-card pre.code {
+      margin: 0; border: 0; background: rgba(6,8,15,0.55);
+      font-family: 'Pretendard', system-ui, sans-serif; font-size: 1.12rem; font-weight: 600; line-height: 1.55;
+      white-space: pre-wrap; word-break: keep-all;
+    }
+
+    /* ========= fallbacks: overview / print / reduced-motion ========= */
+    .reveal.overview .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+    .reveal.overview .slides section {
+      display: block !important;
+      cursor: pointer;
+      outline: 1px solid rgba(181, 161, 255, 0.28);
+      outline-offset: -1px;
+      border-radius: 6px;
+    }
+    .reveal.overview .slides section:hover { outline: 2px solid #B5A1FF; }
+    .reveal.overview .slides section.present { outline: 3px solid #5BFFE0; }
+    @media print {
+      .reveal .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .dl-toolbar { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .reveal .fragment { transition: none !important; }
+      .card, .dl-btn, .transition-select, .copy-btn { transition: none !important; }
+    }
+  </style>
+  <style>
+    /* ===== 추가 덱 공통 (harness · k8s) ===== */
+    .credit { font-size: .82rem !important; color: #8E96AB !important; margin-top: 1.4rem; }
+    .credit a { color: #B8A6FF !important; }
+
+    /* 표 */
+    .xt { width: 100%; border-collapse: collapse; font-size: 1.02rem; margin-top: .4rem; }
+    .xt th { text-align: left; padding: .5rem .75rem; font: 800 .82rem/1.2 'JetBrains Mono', monospace; letter-spacing: .06em;
+      color: #2BEAD0 !important; border-bottom: 1.5px solid rgba(43,234,208,.45); }
+    .xt td { padding: .55rem .75rem; border-bottom: 1px solid rgba(155,130,255,.22); vertical-align: top; color: #E2E6F0 !important; line-height: 1.45; }
+    .xt td:first-child { font-weight: 700; color: #fff !important; }
+    .xt td .mono, .xt td.mono { font-size: .92em; }
+    .xt tr.hl td { background: rgba(255,212,107,.07); }
+
+    /* 하네스 지도: 모델 + 6칸 */
+    .hmap { display: grid; grid-template-columns: 260px 1fr; gap: 1.4rem; align-items: stretch; margin-top: .5rem; }
+    .hmodel { border: 2px solid #9B82FF; border-radius: 18px; background: rgba(155,130,255,.13);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 1rem; }
+    .hmodel .ico { font-size: 3.4rem; line-height: 1; }
+    .hmodel b { font-size: 1.7rem; margin-top: .4rem; }
+    .hmodel span { font-size: .98rem; color: #B8BFD0 !important; margin-top: .3rem; }
+    .hcells { border: 2px dashed rgba(43,234,208,.75); border-radius: 18px; padding: .9rem; background: rgba(43,234,208,.05);
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; position: relative; }
+    .hcells::before { content: "HARNESS · 내가 고칠 수 있는 부분"; position: absolute; top: -.75rem; left: 1rem; padding: 0 .5rem;
+      background: #0B0F1C; font: 800 .78rem/1.5 'JetBrains Mono', monospace; letter-spacing: .08em; color: #2BEAD0; }
+    .hcell { border: 1px solid rgba(155,130,255,.4); border-radius: 12px; padding: .65rem .8rem; background: rgba(6,8,15,.6); }
+    .hcell b { display: block; font-size: 1.15rem; }
+    .hcell span { display: block; font-size: .9rem; color: #B8BFD0 !important; margin-top: .2rem; line-height: 1.4; }
+    .hcell.on { border-color: #FFD46B; background: rgba(255,212,107,.10); }
+    .hcell.on b { color: #FFD46B !important; }
+
+    /* 한 칸 상세 장 공통 머리 */
+    .slot-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; align-items: start; margin-top: .4rem; }
+    .mini6 { display: inline-grid; grid-template-columns: repeat(6, auto); gap: .25rem; margin-left: .6rem; vertical-align: middle; }
+    .mini6 i { width: .7rem; height: .7rem; border-radius: 3px; background: rgba(155,130,255,.35); display: inline-block; }
+    .mini6 i.on { background: #FFD46B; box-shadow: 0 0 8px #FFD46B; }
+
+    /* 층 (프롬프트 → 컨텍스트 → 하네스) */
+    .layers { display: flex; flex-direction: column; gap: .55rem; margin-top: .5rem; }
+    .layer { display: grid; grid-template-columns: 220px 1fr 1fr; gap: 1rem; align-items: center; padding: .7rem 1rem;
+      border-radius: 14px; border: 1px solid rgba(155,130,255,.35); background: rgba(6,8,15,.5); }
+    .layer b { font-size: 1.2rem; }
+    .layer span { font-size: .98rem; color: #B8BFD0 !important; }
+    .layer.l3 { border-color: rgba(43,234,208,.7); background: rgba(43,234,208,.07); }
+    .layer.l3 b { color: #2BEAD0 !important; }
+
+    /* 래칫 흐름 */
+    .ratchet { display: flex; align-items: stretch; gap: .6rem; margin-top: .6rem; }
+    .ratchet .st { flex: 1; border: 1px solid rgba(155,130,255,.4); border-radius: 14px; padding: .8rem .9rem; background: rgba(6,8,15,.55); }
+    .ratchet .st b { display: block; font-size: 1.12rem; }
+    .ratchet .st span { display: block; font-size: .92rem; color: #B8BFD0 !important; margin-top: .25rem; line-height: 1.45; }
+    .ratchet .ar { align-self: center; color: #2BEAD0; font-size: 1.6rem; }
+    .ratchet .st.end { border-color: #2BEAD0; background: rgba(43,234,208,.08); }
+
+    /* 요청 경로 (k8s) */
+    .reqflow { display: flex; align-items: stretch; gap: .5rem; margin-top: .6rem; }
+    .rq { flex: 1; text-align: center; border-radius: 14px; border: 1px solid rgba(155,130,255,.45); padding: .8rem .5rem; background: rgba(6,8,15,.6); }
+    .rq .ico { font-size: 1.9rem; line-height: 1.2; }
+    .rq b { display: block; font-size: 1.2rem; }
+    .rq span { display: block; font-size: .9rem; color: #B8BFD0 !important; line-height: 1.4; margin-top: .2rem; }
+    .rq.k { border-color: rgba(43,234,208,.7); }
+    .rqa { align-self: center; color: #2BEAD0; font-size: 1.5rem; }
+    .pods { display: flex; justify-content: center; gap: .3rem; margin-top: .45rem; }
+    .pods i { font-style: normal; font: 700 .72rem/1 'JetBrains Mono', monospace; padding: .3rem .4rem; border-radius: 6px;
+      border: 1px solid #2BEAD0; background: rgba(43,234,208,.2); color: #C5FFF5 !important; }
+    .pods i.dead { border-color: #FF7A95; background: rgba(255,122,149,.18); color: #FFD0DA !important; text-decoration: line-through; }
+    .nodebox { margin-top: .9rem; border: 1.5px dashed rgba(155,130,255,.6); border-radius: 14px; padding: .6rem 1rem;
+      font-size: 1rem; color: #B8BFD0 !important; }
+
+    /* 계단 (k8s) */
+    .stairs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; align-items: end; margin-top: .6rem; }
+    .stair { border-radius: 14px; border: 1px solid rgba(155,130,255,.45); background: rgba(6,8,15,.6); padding: .8rem .9rem; }
+    .stair .lv { font: 800 .8rem/1 'JetBrains Mono', monospace; color: #2BEAD0 !important; letter-spacing: .06em; }
+    .stair b { display: block; font-size: 1.15rem; margin: .35rem 0 .3rem; }
+    .stair p { font-size: .9rem !important; color: #B8BFD0 !important; line-height: 1.45; margin: 0; }
+    .stair .when { display: block; margin-top: .5rem; font-size: .85rem; color: #FFD46B !important; }
+    .stair.s1 { min-height: 200px; } .stair.s2 { min-height: 240px; } .stair.s3 { min-height: 280px; } .stair.s4 { min-height: 320px; border-color: #2BEAD0; }
+
+    /* 조정 루프 (k8s) */
+    .loop3 { display: flex; align-items: center; gap: .7rem; margin-top: .6rem; }
+    .loop3 .st { flex: 1; text-align: center; border: 1px solid rgba(155,130,255,.45); border-radius: 14px; padding: .9rem .6rem; background: rgba(6,8,15,.6); }
+    .loop3 .st b { display: block; font-size: 1.25rem; }
+    .loop3 .st span { display: block; font-size: .92rem; color: #B8BFD0 !important; margin-top: .2rem; }
+    .loop3 .ar { color: #2BEAD0; font-size: 1.5rem; }
+
+    pre.code.sm { font-size: .84rem; line-height: 1.5; }
+    .reveal p.codecap, .codecap { font: 800 .78rem/1 'JetBrains Mono', monospace; letter-spacing: .06em; color: #CBBDFF !important; margin: 0 0 .35rem; font-size: .78rem !important; }
+    .note-line { font-size: 1rem !important; color: #B8BFD0 !important; margin-top: .7rem; }
+
+    /* ===== 시각화 · 예시 보강 (v2) ===== */
+    /* 원본 context 덱의 sim-line 패턴 */
+    .sim-list { list-style: none; display: flex; flex-direction: column; gap: .5rem; margin: 0; padding: 0; }
+    .sim-list > li { margin: 0; }
+    .sim-line { display: flex; align-items: center; gap: .8rem; padding: .5rem 1rem; border-radius: 12px;
+      border: 1px solid rgba(190,200,224,0.3); background: rgba(230,236,249,0.05); font-size: 1.02rem !important; line-height: 1.45; }
+    .sim-line .tok { margin-left: auto; font: 800 .82rem/1 'JetBrains Mono', monospace; white-space: nowrap; padding: .3rem .55rem; border-radius: 999px; }
+    .tok.ok   { background: rgba(43,234,208,.16); color: #8FF0E2 !important; border: 1px solid rgba(43,234,208,.5); }
+    .tok.ask  { background: rgba(255,212,107,.14); color: #FFE29A !important; border: 1px solid rgba(255,212,107,.5); }
+    .tok.no   { background: rgba(255,122,149,.14); color: #FF9FB0 !important; border: 1px solid rgba(255,122,149,.5); }
+    .tok.info { background: rgba(155,130,255,.16); color: #CBBDFF !important; border: 1px solid rgba(155,130,255,.5); }
+    .sim-line.fail { border-color: rgba(255,122,149,.55); background: rgba(255,122,149,.07); }
+    .sim-line.pass { border-color: rgba(43,234,208,.55); background: rgba(43,234,208,.07); }
+
+    /* 대화·터미널 재현 */
+    .tx { border-radius: 14px; border: 1px solid rgba(155,130,255,.4); background: #05070E; padding: .7rem .9rem; display: flex; flex-direction: column; gap: .4rem; }
+    .tx-h { font: 800 .76rem/1 'JetBrains Mono', monospace; letter-spacing: .06em; color: #8E96AB !important; padding-bottom: .35rem;
+      border-bottom: 1px solid rgba(155,130,255,.2); display: flex; gap: .5rem; align-items: center; }
+    .tx-h i { width: .55rem; height: .55rem; border-radius: 50%; display: inline-block; background: #FF7A95; }
+    .tx-h i + i { background: #FFD46B; } .tx-h i + i + i { background: #2BEAD0; }
+    .tx-l { font-size: .95rem !important; line-height: 1.45; margin: 0; padding: .3rem .55rem; border-radius: 8px; }
+    .tx-l.me  { background: rgba(155,130,255,.14); color: #E8E2FF !important; }
+    .tx-l.ai  { background: rgba(230,236,249,.05); color: #E2E6F0 !important; }
+    .tx-l.sys { font-family: 'JetBrains Mono', monospace; font-size: .84rem !important; color: #B8BFD0 !important; background: rgba(230,236,249,.03); }
+    .tx-l.bad { background: rgba(255,122,149,.12); color: #FFD0DA !important; }
+    .tx-l.good{ background: rgba(43,234,208,.12); color: #C5FFF5 !important; }
+    .tx-l b.who { font: 800 .74rem/1 'JetBrains Mono', monospace; margin-right: .45rem; letter-spacing: .04em; opacity: .85; }
+    pre.term-out { margin: 0; padding: .7rem .9rem; border-radius: 12px; background: #04060C; border: 1px solid rgba(43,234,208,.4);
+      font: 500 .8rem/1.55 'JetBrains Mono', monospace; color: #D7DCE8 !important; white-space: pre; overflow: hidden; }
+    pre.term-out .hl-r { color: #FF9FB0 !important; font-weight: 800; }
+    pre.term-out .hl-y { color: #FFE29A !important; font-weight: 800; }
+    pre.term-out .hl-g { color: #8FF0E2 !important; font-weight: 800; }
+    pre.term-out .dim  { color: #6E768A !important; }
+
+    /* 에이전트 루프 (SVG + 움직이는 점) */
+    .loopfig { width: 100%; height: auto; display: block; }
+    .loopfig .lbox { fill: rgba(6,8,15,.85); stroke: rgba(155,130,255,.55); stroke-width: 1.5; }
+    .loopfig .lbox.gate { stroke: #FFD46B; stroke-width: 2; }
+    .loopfig .lbox.core { fill: rgba(155,130,255,.18); stroke: #9B82FF; stroke-width: 2.5; }
+    .loopfig text { font-family: 'Pretendard', sans-serif; fill: #E2E6F0; font-size: 15px; font-weight: 700; }
+    .loopfig text.s { font-size: 12px; font-weight: 600; fill: #B8BFD0; }
+    .loopfig text.g { fill: #FFD46B; font-size: 12px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+    .loopfig .track { fill: none; stroke: rgba(43,234,208,.45); stroke-width: 2; stroke-dasharray: 6 6; }
+    .loopfig .runner { fill: none; stroke: #2BEAD0; stroke-width: 16; stroke-linecap: round; stroke-dasharray: 0.5 999.5;
+      stroke-dashoffset: 1000; filter: drop-shadow(0 0 6px #2BEAD0); }
+    section.present .loopfig .runner { animation: runLoop 7s linear infinite; }
+    @keyframes runLoop { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+
+    /* 래칫 톱니 (한 방향으로만, 한 칸씩) */
+    .gear-wrap { display: flex; align-items: center; justify-content: center; }
+    .gear { width: 120px; height: 120px; }
+    .gear .teeth { fill: rgba(43,234,208,.2); stroke: #2BEAD0; stroke-width: 2; transform-origin: 75px 75px; }
+    section.present .gear .teeth { animation: gearStep 4.8s steps(1, end) infinite; }
+    @keyframes gearStep {
+      0% { transform: rotate(0deg); } 16.6% { transform: rotate(30deg); } 33.3% { transform: rotate(60deg); }
+      50% { transform: rotate(90deg); } 66.6% { transform: rotate(120deg); } 83.3% { transform: rotate(150deg); } 100% { transform: rotate(180deg); }
+    }
+    .gear .pawl { fill: #FFD46B; }
+
+    /* 겹친 상자: 프롬프트 ⊂ 컨텍스트 ⊂ 하네스 */
+    .nest { position: relative; height: 330px; }
+    .nest .ring { position: absolute; border-radius: 22px; display: flex; align-items: flex-start; padding: .6rem .9rem; }
+    .nest .ring b { font-size: 1.08rem; }
+    .nest .ring span { display: block; font-size: .84rem; color: #B8BFD0 !important; margin-top: .1rem; }
+    .nest .r3 { inset: 0; border: 2px dashed rgba(43,234,208,.8); background: rgba(43,234,208,.05); }
+    .nest .r3 b { color: #2BEAD0 !important; }
+    .nest .r2 { inset: 92px 26px 26px 26px; border: 1.5px solid rgba(155,130,255,.7); background: rgba(155,130,255,.07); }
+    .nest .r1 { inset: 186px 52px 52px 52px; border: 1.5px solid #FFD46B; background: rgba(255,212,107,.08); }
+    .nest .r1 b { color: #FFD46B !important; }
+    .nest .side { position: absolute; right: 1rem; top: .65rem; display: flex; gap: .3rem; flex-wrap: wrap; max-width: 62%; justify-content: flex-end; }
+    .nest .side i { font-style: normal; font: 700 .72rem/1 'JetBrains Mono', monospace; padding: .28rem .45rem; border-radius: 6px;
+      border: 1px solid rgba(43,234,208,.5); color: #A9FFF0 !important; background: rgba(43,234,208,.08); }
+    section.present .nest .ring { animation: asZoomIn2 .45s cubic-bezier(.2,.7,.3,1) both; }
+    section.present .nest .r2 { animation-delay: .18s; } section.present .nest .r1 { animation-delay: .36s; }
+    @keyframes asZoomIn2 { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+
+    /* K8S — 자가 회복 */
+    .heal { display: flex; justify-content: center; gap: 1rem; margin: .4rem 0 .2rem; }
+    .hpod { width: 118px; height: 78px; border-radius: 14px; border: 2px solid #2BEAD0; background: rgba(43,234,208,.14);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; font: 800 .9rem/1.2 'JetBrains Mono', monospace; color: #C5FFF5 !important; }
+    .hpod small { font-size: .7rem; font-weight: 600; color: #8FF0E2 !important; }
+    section.present .hpod.victim { animation: podDie 6s ease-in-out infinite; }
+    @keyframes podDie {
+      0%, 25%  { border-color: #2BEAD0; background: rgba(43,234,208,.14); opacity: 1; transform: none; }
+      32%, 45% { border-color: #FF7A95; background: rgba(255,122,149,.22); opacity: 1; transform: none; }
+      55%      { opacity: 0; transform: scale(.85); }
+      70%      { opacity: 0; transform: scale(.85); border-color: #2BEAD0; background: rgba(43,234,208,.14); }
+      82%,100% { opacity: 1; transform: none; border-color: #2BEAD0; background: rgba(43,234,208,.14); }
+    }
+    .heal-cap { display: flex; justify-content: center; gap: 1.6rem; font: 700 .86rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; }
+    section.present .heal-cap span:nth-child(1) { animation: capOn 6s infinite; animation-delay: 0s; }
+    section.present .heal-cap span:nth-child(2) { animation: capOn2 6s infinite; }
+    section.present .heal-cap span:nth-child(3) { animation: capOn3 6s infinite; }
+    @keyframes capOn  { 0%,28% { color: #8FF0E2; } 30%,100% { color: #6E768A; } }
+    @keyframes capOn2 { 0%,29% { color: #6E768A; } 31%,66% { color: #FF9FB0; } 68%,100% { color: #6E768A; } }
+    @keyframes capOn3 { 0%,67% { color: #6E768A; } 69%,100% { color: #8FF0E2; } }
+
+    /* K8S — 요청 패킷이 흘러가는 길 */
+    .rq-track { position: relative; height: 14px; margin: .5rem 4% 0; border-top: 2px dashed rgba(43,234,208,.35); }
+    .rq-track .pk { position: absolute; top: -8px; width: 14px; height: 14px; border-radius: 50%; background: #FFD46B; box-shadow: 0 0 10px #FFD46B; opacity: 0; }
+    section.present .rq-track .pk { animation: pkMove 3.2s linear infinite; }
+    section.present .rq-track .pk:nth-child(2) { animation-delay: 1.07s; }
+    section.present .rq-track .pk:nth-child(3) { animation-delay: 2.13s; }
+    @keyframes pkMove { 0% { left: 0; opacity: 0; } 8% { opacity: 1; } 90% { opacity: 1; } 100% { left: 98%; opacity: 0; } }
+    section.present .pods i:not(.dead) { animation: podHit 3.2s infinite; }
+    section.present .pods i:nth-child(2) { animation-delay: 1.07s; }
+    section.present .pods i:nth-child(4) { animation-delay: 2.13s; }
+    @keyframes podHit { 0%, 88% { box-shadow: none; } 94% { box-shadow: 0 0 12px #FFD46B; } 100% { box-shadow: none; } }
+
+    /* K8S — 이미지 층 쌓기 */
+    .layers-stack { display: flex; flex-direction: column-reverse; gap: .35rem; width: 100%; }
+    .lyr { border-radius: 10px; padding: .55rem .9rem; display: flex; justify-content: space-between; align-items: center;
+      font-size: 1rem; border: 1px solid rgba(155,130,255,.45); background: rgba(6,8,15,.7); }
+    .lyr .mono { font-size: .8rem; color: #B8BFD0 !important; }
+    .lyr.l1 { border-color: rgba(155,130,255,.8); background: rgba(155,130,255,.16); }
+    .lyr.l2 { border-color: rgba(155,130,255,.6); background: rgba(155,130,255,.10); }
+    .lyr.l3 { border-color: rgba(43,234,208,.6); background: rgba(43,234,208,.10); }
+    .lyr.l4 { border-color: #FFD46B; background: rgba(255,212,107,.12); }
+    section.present .lyr { animation: lyrDrop .4s cubic-bezier(.2,.7,.3,1) both; }
+    section.present .lyr.l2 { animation-delay: .25s; } section.present .lyr.l3 { animation-delay: .5s; } section.present .lyr.l4 { animation-delay: .75s; }
+    @keyframes lyrDrop { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: none; } }
+
+    /* K8S — 롤링 업데이트 */
+    .roll { display: flex; flex-direction: column; gap: .55rem; margin-top: .4rem; }
+    .roll-row { display: grid; grid-template-columns: 120px repeat(4, 1fr); gap: .5rem; align-items: center; }
+    .roll-row .lbl { font: 800 .8rem/1.2 'JetBrains Mono', monospace; color: #8E96AB !important; }
+    .rp { height: 46px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font: 800 .82rem/1 'JetBrains Mono', monospace; }
+    .rp.v1 { border: 2px solid #9B82FF; background: rgba(155,130,255,.18); color: #E2DAFF !important; }
+    .rp.v2 { border: 2px solid #2BEAD0; background: rgba(43,234,208,.18); color: #C5FFF5 !important; }
+    .rp.wait { border: 2px dashed #FFD46B; background: rgba(255,212,107,.08); color: #FFE29A !important; }
+    .rp.gone { border: 2px dashed rgba(110,118,138,.6); background: transparent; color: #6E768A !important; }
+
+    /* K8S — 이름표 맞추기 */
+    .match { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-top: .4rem; }
+    .mpanel { border-radius: 14px; padding: .8rem 1rem; border: 1px solid rgba(155,130,255,.4); background: rgba(6,8,15,.55); }
+    .mpanel.ok { border-color: rgba(43,234,208,.6); } .mpanel.ng { border-color: rgba(255,122,149,.6); }
+    .mpanel h3 { margin: 0 0 .5rem; font-size: 1.15rem; }
+    .mrow { display: grid; grid-template-columns: 1fr 70px 1fr; align-items: center; gap: .3rem; }
+    .mtag { border-radius: 10px; padding: .5rem .6rem; text-align: center; font: 700 .8rem/1.35 'JetBrains Mono', monospace; border: 1px solid rgba(155,130,255,.5); background: rgba(155,130,255,.08); }
+    .mtag small { display: block; font-family: 'Pretendard', sans-serif; font-size: .72rem; color: #8E96AB !important; font-weight: 700; }
+    .mwire { height: 3px; border-radius: 2px; position: relative; }
+    .mpanel.ok .mwire { background: #2BEAD0; box-shadow: 0 0 8px #2BEAD0; transform-origin: left; }
+    section.present .mpanel.ok .mwire { animation: wireOn .6s .4s cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes wireOn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    .mpanel.ng .mwire { background: repeating-linear-gradient(90deg, #FF7A95 0 8px, transparent 8px 14px); }
+    .mpanel.ng .mwire::after { content: "✕"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -55%); color: #FF7A95; font-weight: 900; font-size: 1.1rem; }
+    .mres { margin-top: .6rem; font: 700 .82rem/1.5 'JetBrains Mono', monospace; padding: .45rem .6rem; border-radius: 8px; background: #04060C; }
+    .mpanel.ok .mres { color: #8FF0E2 !important; } .mpanel.ng .mres { color: #FF9FB0 !important; }
+    .diff { background: rgba(255,122,149,.25); border-radius: 3px; padding: 0 .1rem; }
+
+    /* 정적 보기(개요·인쇄·모션 줄이기)에서는 최종 상태로 */
+    .reveal.overview .nest .ring, .reveal.overview .lyr, .reveal.overview .hpod, .reveal.overview .gear .teeth,
+    .reveal.overview .mwire, .reveal.overview .rq-track .pk, .reveal.overview .loopfig .runner, .reveal.overview .pods i, .reveal.overview .heal-cap span { animation: none !important; opacity: 1; }
+    .reveal.overview .rq-track .pk { opacity: 0; }
+    @media print {
+      .reveal .nest .ring, .reveal .lyr, .reveal .hpod, .reveal .gear .teeth, .reveal .mwire, .reveal .pods i, .reveal .heal-cap span { animation: none !important; opacity: 1 !important; transform: none !important; }
+      .reveal .rq-track .pk, .reveal .loopfig .runner { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal .nest .ring, .reveal .lyr, .reveal .hpod, .reveal .gear .teeth, .reveal .mwire, .reveal .pods i, .reveal .heal-cap span { animation: none !important; opacity: 1 !important; transform: none !important; }
+      .reveal .rq-track .pk, .reveal .loopfig .runner { display: none; }
+    }
+
+    /* ===== 다음 지도 덱 공통 (v3) ===== */
+    /* diff 보기 */
+    .dv { border-radius: 12px; border: 1px solid rgba(155,130,255,.4); background: #04060C; overflow: hidden; }
+    .dv-h { font: 700 .74rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; padding: .5rem .8rem; border-bottom: 1px solid rgba(155,130,255,.2); }
+    .dv pre { margin: 0; padding: .45rem 0; font: 500 .78rem/1.6 'JetBrains Mono', monospace; color: #D7DCE8 !important; white-space: pre; background: transparent; border: 0; box-shadow: none; }
+    .dv .ln { display: block; padding: 0 .8rem; }
+    .dv .add { background: rgba(43,234,208,.12); color: #C5FFF5 !important; }
+    .dv .del { background: rgba(255,122,149,.13); color: #FFD0DA !important; }
+    .dv .hunk { color: #9B82FF !important; }
+    .dv .flag { outline: 2px solid #FFD46B; outline-offset: -2px; }
+
+    /* 데이터 표 (엑셀 느낌) */
+    .dbt { border-collapse: collapse; font: 500 .92rem/1.4 'JetBrains Mono', monospace; }
+    .dbt th { background: rgba(155,130,255,.2); color: #E2DAFF !important; padding: .32rem .6rem; border: 1px solid rgba(155,130,255,.35); text-align: left; }
+    .dbt td { padding: .3rem .6rem; border: 1px solid rgba(155,130,255,.22); color: #D7DCE8 !important; }
+    .dbt tr.pick td { background: rgba(43,234,208,.13); color: #C5FFF5 !important; }
+    .dbt tr.dim td { opacity: .35; }
+    .dbt td.null { color: #FF9FB0 !important; font-style: italic; }
+    .dbt caption { caption-side: top; text-align: left; font: 800 .72rem/1.6 'JetBrains Mono', monospace; color: #8E96AB; letter-spacing: .05em; }
+
+    /* SVG 차트 공통 */
+    .chart { width: 100%; height: auto; display: block; }
+    .chart text { font-family: 'Pretendard', sans-serif; fill: #B8BFD0; font-size: 12px; }
+    .chart text.t { fill: #E2E6F0; font-size: 14px; font-weight: 700; }
+    .chart .ax { stroke: rgba(190,200,224,.4); stroke-width: 1; }
+    .chart .grid { stroke: rgba(190,200,224,.1); stroke-width: 1; }
+    .chart .b1 { fill: rgba(155,130,255,.65); } .chart .b2 { fill: rgba(43,234,208,.65); } .chart .b3 { fill: rgba(255,212,107,.7); }
+    .chart .lim { stroke: #FF7A95; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .chart .ctr { stroke: rgba(43,234,208,.7); stroke-width: 1.5; }
+    .chart .ln2 { fill: none; stroke: #9B82FF; stroke-width: 2; }
+    .chart .pt { fill: #2BEAD0; } .chart .pt.out { fill: #FF7A95; }
+    section.present .chart .grow { animation: growY .7s cubic-bezier(.2,.7,.3,1) both; transform-box: fill-box; transform-origin: bottom; }
+    section.present .chart .grow:nth-of-type(2n) { animation-delay: .06s; }
+    section.present .chart .grow:nth-of-type(3n) { animation-delay: .12s; }
+    @keyframes growY { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    section.present .chart .draw { stroke-dasharray: 1200; animation: drawLn 1.6s ease-out both; }
+    @keyframes drawLn { from { stroke-dashoffset: 1200; } to { stroke-dashoffset: 0; } }
+    section.present .chart .pop { animation: asZoomIn2 .4s both; animation-delay: 1.3s; transform-box: fill-box; transform-origin: center; }
+
+    /* 콜아웃 번호 */
+    .cn { display: inline-flex; align-items: center; justify-content: center; width: 1.35rem; height: 1.35rem; border-radius: 50%;
+      background: #FFD46B; color: #06080F !important; font: 900 .78rem/1 'JetBrains Mono', monospace; margin-right: .35rem; vertical-align: middle; }
+    pre.term-out .mark { background: rgba(255,212,107,.18); outline: 1.5px solid rgba(255,212,107,.7); border-radius: 3px; }
+
+    /* 파일 크기 막대 (리팩터링) */
+    .fbar { display: grid; grid-template-columns: 150px 1fr 70px; gap: .6rem; align-items: center; font: 600 .82rem/1 'JetBrains Mono', monospace; margin: .25rem 0; }
+    .fbar .track2 { height: 16px; border-radius: 8px; background: rgba(190,200,224,.08); overflow: hidden; }
+    .fbar .fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #9B82FF, #FF7A95); transform-origin: left; }
+    section.present .fbar .fill { animation: wireOn 1.1s cubic-bezier(.2,.7,.3,1) both; }
+    .fbar .fill.ok { background: linear-gradient(90deg, #2BEAD0, #9B82FF); }
+
+    .reveal.overview .chart .grow, .reveal.overview .chart .draw, .reveal.overview .chart .pop, .reveal.overview .fbar .fill { animation: none !important; }
+    @media print { .reveal .chart .grow, .reveal .chart .draw, .reveal .chart .pop, .reveal .fbar .fill { animation: none !important; transform: none !important; stroke-dasharray: none !important; } }
+    @media (prefers-reduced-motion: reduce) { .reveal .chart .grow, .reveal .chart .draw, .reveal .chart .pop, .reveal .fbar .fill { animation: none !important; transform: none !important; stroke-dasharray: none !important; } }
+
+    /* ===== MCP · Skill · .MD 덱 ===== */
+    .trio-c { display: flex; flex-direction: column; gap: .35rem; text-align: center; }
+    .trio-ico { font-size: 2.8rem; line-height: 1.1; }
+    .trio-c h3 { margin: 0; }
+    .trio-real { font-size: .9rem !important; color: #B8BFD0 !important; margin: 0; min-height: 2.6em; }
+    .trio-eq { font-size: 1.25rem; margin-top: .2rem; }
+    .trio-c.md .trio-eq b { color: #2BEAD0 !important; } .trio-c.sk .trio-eq b { color: #CBBDFF !important; } .trio-c.mc .trio-eq b { color: #FFD46B !important; }
+    .trio-when { font-size: .88rem; color: #D7DCE8 !important; display: flex; gap: .45rem; justify-content: center; align-items: center; margin-top: .2rem; }
+    .trio-when .tok { font: 800 .76rem/1 'JetBrains Mono', monospace; padding: .28rem .55rem; border-radius: 999px; }
+    .trio-c.md { border-color: rgba(43,234,208,.55) !important; } .trio-c.sk { border-color: rgba(155,130,255,.6) !important; } .trio-c.mc { border-color: rgba(255,212,107,.55) !important; }
+
+    /* 컨텍스트 막대 */
+    .cbx { margin-top: .3rem; }
+    .cbx-s { display: none; }
+    .cbx-bar { display: flex; height: 54px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(155,130,255,.45); background: rgba(6,8,15,.6); }
+    .cbx-bar .seg { display: grid; place-items: center; font: 800 .78rem/1.1 'JetBrains Mono', monospace; font-style: normal; color: #06080F !important; white-space: nowrap; overflow: hidden;
+      transition: flex-basis .7s cubic-bezier(.2,.7,.2,1), opacity .4s; }
+    .seg.sys { flex: 0 0 9%; background: #5A6072; color: #E8ECF6 !important; }
+    .seg.md { flex: 0 0 9%; background: #2BEAD0; }
+    .seg.skl { flex: 0 0 6%; background: #9B82FF; }
+    .seg.mcp { flex: 0 0 8%; background: #FFD46B; }
+    .seg.chat { flex: 0 0 6%; background: #3A4258; color: #E8ECF6 !important; }
+    .seg.skb { flex: 0 0 0%; background: repeating-linear-gradient(45deg, #9B82FF 0 8px, #B7A4FF 8px 16px); opacity: 0; }
+    .seg.res { flex: 0 0 0%; background: repeating-linear-gradient(45deg, #FFD46B 0 8px, #FFE29A 8px 16px); opacity: 0; }
+    .cbx:has(.cbx-s.s1.visible) .seg.skb { flex-basis: 17%; opacity: 1; }
+    .cbx:has(.cbx-s.s2.visible) .seg.res { flex-basis: 20%; opacity: 1; }
+    .cbx-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-top: .55rem; }
+    .cbx-st { border: 1px solid rgba(155,130,255,.3); border-radius: 12px; padding: .5rem .7rem; opacity: .35; transition: opacity .4s, border-color .4s; }
+    .cbx-st b { display: block; font-size: 1rem; } .cbx-st span { font-size: .86rem; color: #B8BFD0 !important; }
+    .cbx-st.on { opacity: 1; }
+    .cbx:has(.cbx-s.s1.visible) .cbx-st.t1, .cbx:has(.cbx-s.s2.visible) .cbx-st.t2 { opacity: 1; border-color: rgba(43,234,208,.6); }
+    .reveal.overview .seg.skb { flex-basis: 17%; opacity: 1; } .reveal.overview .seg.res { flex-basis: 20%; opacity: 1; } .reveal.overview .cbx-st { opacity: 1; }
+
+    /* 폴더 트리 */
+    pre.ftree { margin: 0; padding: .8rem 1rem; border-radius: 12px; background: #04060C; border: 1px solid rgba(155,130,255,.4);
+      font: 500 .82rem/1.7 'JetBrains Mono', monospace; color: #D7DCE8 !important; white-space: pre; overflow: hidden; }
+    pre.ftree.sm { font-size: .8rem; }
+    pre.ftree b { color: #FFFFFF !important; }
+    pre.ftree .dim { color: #8E96AB !important; }
+    pre.ftree em.t { font-style: normal; font-size: .72rem; padding: .08rem .4rem; border-radius: 999px; font-weight: 700; }
+    pre.ftree em.t.me { background: rgba(155,130,255,.18); color: #CBBDFF !important; }
+    pre.ftree em.t.team { background: rgba(43,234,208,.16); color: #8FF0E2 !important; }
+    pre.ftree em.t.sk { background: rgba(155,130,255,.3); color: #E8E2FF !important; }
+    pre.ftree em.t.mc { background: rgba(255,212,107,.18); color: #FFE29A !important; }
+    pre.ftree .fr.fragment { display: inline; }
+    pre.skmd .hlk { background: rgba(255,212,107,.16); border-radius: 3px; }
+
+    /* MCP 허브 */
+    .hub { display: grid; grid-template-columns: 1fr .9fr 1.3fr; align-items: center; gap: 0; margin-top: .3rem; }
+    .hub-host { text-align: center; border: 1px solid rgba(43,234,208,.7); border-radius: 16px; background: rgba(6,8,15,.7); padding: 1rem .6rem; }
+    .hub-host .ico { font-size: 2.4rem; } .hub-host b { display: block; font-size: 1.3rem; }
+    .hub-host span { display: block; font-size: .88rem; color: #B8BFD0 !important; }
+    .hub-host em { display: inline-block; margin-top: .4rem; font: 700 .74rem/1 'JetBrains Mono', monospace; font-style: normal; color: #8FF0E2 !important;
+      border: 1px solid rgba(43,234,208,.5); border-radius: 999px; padding: .25rem .5rem; }
+    .hub-wires { display: flex; flex-direction: column; justify-content: space-around; height: 100%; padding: .9rem 0; }
+    .hw { position: relative; height: 2px; border-top: 2px dashed rgba(43,234,208,.4); margin: 1.05rem 0; }
+    .hw i { position: absolute; top: -7px; width: 12px; height: 12px; border-radius: 50%; background: #FFD46B; box-shadow: 0 0 10px #FFD46B; opacity: 0; }
+    section.present .hw i { animation: hwPing 3.6s ease-in-out infinite; }
+    section.present .hw:nth-child(2) i { animation-delay: .9s; } section.present .hw:nth-child(3) i { animation-delay: 1.8s; } section.present .hw:nth-child(4) i { animation-delay: 2.7s; }
+    @keyframes hwPing { 0% { left: 0; opacity: 0; } 5% { opacity: 1; } 45% { left: calc(100% - 12px); opacity: 1; background: #FFD46B; } 55% { left: calc(100% - 12px); background: #2BEAD0; box-shadow: 0 0 10px #2BEAD0; } 95% { left: 0; opacity: 1; background: #2BEAD0; } 100% { left: 0; opacity: 0; } }
+    .hub-srv { display: flex; flex-direction: column; gap: .5rem; }
+    .hs { display: grid; grid-template-columns: 2rem 1fr; column-gap: .5rem; align-items: center; border: 1px solid rgba(155,130,255,.45); border-radius: 12px; background: rgba(6,8,15,.6); padding: .45rem .7rem; }
+    .hs .ico { grid-row: span 2; font-size: 1.5rem; } .hs b { font-size: 1rem; }
+    .hs em { font: 600 .74rem/1.2 'JetBrains Mono', monospace; font-style: normal; color: #FFE29A !important; }
+    .reveal.overview .hw i { animation: none; opacity: 0; }
+
+    /* 판단표 알약 */
+    .pill { display: inline-block; white-space: nowrap; font-weight: 800; font-size: .9rem; padding: .22rem .6rem; border-radius: 999px; border: 1px solid; }
+    .pill.md { color: #8FF0E2 !important; border-color: rgba(43,234,208,.6); background: rgba(43,234,208,.12); }
+    .pill.sk { color: #E0D6FF !important; border-color: rgba(155,130,255,.7); background: rgba(155,130,255,.15); }
+    .pill.mc { color: #FFE29A !important; border-color: rgba(255,212,107,.6); background: rgba(255,212,107,.12); }
+    .pill.hk { color: #FFB8C7 !important; border-color: rgba(255,122,149,.6); background: rgba(255,122,149,.12); }
+    .pill.ch { color: #D7DCE8 !important; border-color: rgba(230,236,249,.3); background: rgba(230,236,249,.05); }
+
+    /* 세 상자 레인 */
+    .lanes { display: flex; flex-direction: column; gap: .45rem; margin-top: .4rem; }
+    .ln-h, .ln-row { display: grid; grid-template-columns: 7.5rem repeat(4, 1fr); gap: .45rem; align-items: stretch; }
+    .ln-h span { font: 800 .8rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; text-align: center; padding-bottom: .1rem; }
+    .ln-row > b { display: flex; align-items: center; font-size: 1.05rem; }
+    .lc { display: flex; align-items: center; justify-content: center; text-align: center; min-height: 3.6rem; border-radius: 10px; padding: .4rem .5rem; font-size: .86rem;
+      border: 1px solid rgba(230,236,249,.12); background: rgba(230,236,249,.03); color: #B8BFD0 !important; }
+    .lc.dim { color: #6E7790 !important; border-style: dashed; }
+    .ln-row.md .lc.on { background: rgba(43,234,208,.16); border-color: rgba(43,234,208,.7); color: #DFFFF9 !important; font-weight: 700; }
+    .ln-row.sk .lc.on { background: rgba(155,130,255,.2); border-color: rgba(155,130,255,.8); color: #EEE9FF !important; font-weight: 700; }
+    .ln-row.mc .lc.on { background: rgba(255,212,107,.16); border-color: rgba(255,212,107,.7); color: #FFF1C9 !important; font-weight: 700; }
+
+    /* ===== 입문 · Docker 덱 공용 ===== */
+    .xt tr.bad td { background: rgba(255,122,149,.08); }
+    .tcur { display: inline-block; width: .55em; height: 1em; background: #2BEAD0; vertical-align: -.12em; margin-left: .2em; animation: tmBlink 1s steps(1) infinite; }
+    @keyframes tmBlink { 50% { opacity: 0; } }
+    .tag-in { display: inline-block; font: 800 .72rem/1 'JetBrains Mono', monospace; padding: .2rem .45rem; border-radius: 999px; background: rgba(255,212,107,.2); color: #FFE29A !important; border: 1px solid rgba(255,212,107,.6); }
+
+    /* 프롬프트 해부 */
+    .pa { margin-top: .4rem; }
+    .pa-line { font: 700 1.3rem/1.6 'JetBrains Mono', monospace; background: #04060C; border: 1px solid rgba(155,130,255,.45); border-radius: 14px; padding: .8rem 1rem; white-space: nowrap; overflow: hidden; }
+    .pa-s { border-bottom: 3px solid transparent; padding-bottom: .1rem; }
+    .pa-s.sh { color: #8FB6FF !important; border-color: #5B8CFF; } .pa-s.loc { color: #8FF0E2 !important; border-color: #2BEAD0; }
+    .pa-s.gt { color: #8E96AB !important; } .pa-s.cmd { color: #FFE29A !important; border-color: #FFD46B; } .pa-s.arg { color: #E0D6FF !important; border-color: #9B82FF; }
+    .pa-labels { display: grid; grid-template-columns: .6fr 1.6fr .9fr 1.4fr; gap: .5rem; margin-top: .55rem; }
+    .pa-l { border-radius: 10px; padding: .45rem .6rem; border-top: 3px solid; background: rgba(6,8,15,.55); }
+    .pa-l b { display: block; font-size: .95rem; } .pa-l span { font-size: .82rem; color: #B8BFD0 !important; }
+    .pa-l.sh { border-color: #5B8CFF; } .pa-l.loc { border-color: #2BEAD0; } .pa-l.cmd { border-color: #FFD46B; } .pa-l.arg { border-color: #9B82FF; }
+    .pa-mini { color: #8FB6FF !important; } .pa-mini.loc { color: #8FF0E2 !important; }
+
+    /* cd 지도 */
+    .ptree { position: relative; font: 600 1rem/2.1 'JetBrains Mono', monospace; background: #04060C; border: 1px solid rgba(155,130,255,.45); border-radius: 14px; padding: .7rem 1rem .7rem 2.6rem; }
+    .pt-s { display: none; }
+    .pt-n { white-space: pre; color: #D7DCE8 !important; transition: color .3s; } .pt-n em { font-style: normal; color: #8E96AB !important; margin-left: .4rem; }
+    .pt-pin { position: absolute; left: .7rem; top: .7rem; font-size: 1.2rem; transition: top .5s cubic-bezier(.2,.7,.2,1); line-height: 2.1rem; }
+    .ptree:has(.pt-s.s1.visible) .pt-pin { top: calc(.7rem + 2.1rem); }
+    .ptree:has(.pt-s.s2.visible) .pt-pin { top: calc(.7rem + 4.2rem); }
+    .ptree:has(.pt-s.s3.visible) .pt-pin { top: calc(.7rem + 6.3rem); }
+    .ptree:has(.pt-s.s4.visible) .pt-pin { top: .7rem; }
+    .ptree:not(:has(.pt-s.s1.visible)) .n0, .ptree:has(.pt-s.s1.visible):not(:has(.pt-s.s2.visible)) .n1,
+    .ptree:has(.pt-s.s2.visible):not(:has(.pt-s.s3.visible)) .n2, .ptree:has(.pt-s.s3.visible):not(:has(.pt-s.s4.visible)) .n2b,
+    .ptree:has(.pt-s.s4.visible) .n0 { color: #8FF0E2 !important; font-weight: 800; }
+
+    /* 환경변수 쪽지 */
+    .envb { border: 1px dashed rgba(255,212,107,.55); border-radius: 14px; padding: .6rem .7rem; display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; }
+    .eb-h { grid-column: 1 / -1; font: 700 .78rem/1 'JetBrains Mono', monospace; color: #FFE29A !important; }
+    .eb-n { background: #FFF6CF; border-radius: 4px 4px 10px 4px; padding: .45rem .55rem; transform: rotate(-1deg); box-shadow: 0 6px 14px -8px rgba(0,0,0,.6); }
+    .eb-n:nth-child(odd) { transform: rotate(1.2deg); }
+    .eb-n, .eb-n * { color: #3A2F00 !important; }
+    .eb-n b { display: block; font: 800 .9rem/1.2 'JetBrains Mono', monospace; } .eb-n span { font-size: .8rem; }
+    .eb-n.sec { background: #FFD9E1; } .eb-n.sec, .eb-n.sec * { color: #5A0F22 !important; }
+
+    /* PATH 검색 */
+    .psr { border: 1px solid rgba(155,130,255,.45); border-radius: 14px; background: #04060C; padding: .6rem; display: flex; flex-direction: column; gap: .35rem; }
+    .psr-h { font: 700 .78rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; padding: .2rem .3rem .3rem; }
+    .psr-r { display: flex; justify-content: space-between; align-items: center; gap: .6rem; padding: .5rem .7rem; border-radius: 8px; background: rgba(230,236,249,.04); border: 1px solid transparent; }
+    .psr-r .mono { font-size: .84rem; } .psr-r em { font-style: normal; font: 700 .76rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; opacity: 0; }
+    section.present .psr-r.r1 { animation: psScan 6s infinite; } section.present .psr-r.r2 { animation: psScan 6s infinite .9s; }
+    section.present .psr-r.r3 { animation: psHit 6s infinite 1.8s; }
+    section.present .psr-r em { animation: psEm 6s infinite; } section.present .r2 em { animation-delay: .9s; } section.present .r3 em { animation-delay: 1.8s; }
+    section.present .psr-r.skip em { animation-delay: 2.6s; }
+    @keyframes psScan { 0% { border-color: #FFD46B; background: rgba(255,212,107,.12); } 14%, 100% { border-color: transparent; background: rgba(230,236,249,.04); } }
+    @keyframes psHit { 0% { border-color: #FFD46B; } 8%, 70% { border-color: #2BEAD0; background: rgba(43,234,208,.14); } 80%, 100% { border-color: transparent; background: rgba(230,236,249,.04); } }
+    @keyframes psEm { 0%, 2% { opacity: 0; } 6%, 70% { opacity: 1; } 80%, 100% { opacity: 0; } }
+    .psr-r.hit em { color: #8FF0E2 !important; }
+    .psr-r.skip { opacity: .5; }
+    .reveal.overview .psr-r em, .reveal .psr-r em.static { opacity: 1; }
+    @media print { .psr-r em { opacity: 1 !important; animation: none !important; } }
+
+    /* 공용 공구함 vs venv */
+    .vbox { border: 1px solid rgba(255,122,149,.45); border-radius: 16px; padding: .8rem; background: rgba(255,122,149,.04); }
+    .vbox.good { border-color: rgba(43,234,208,.5); background: rgba(43,234,208,.04); }
+    .vb-h { font-weight: 800; font-size: 1.05rem; margin-bottom: .6rem; }
+    .vb-glob { text-align: center; border: 2px solid rgba(255,212,107,.6); border-radius: 12px; padding: .7rem; margin-bottom: .6rem; background: rgba(255,212,107,.06); }
+    .vb-ver { font: 800 1.3rem/1 'JetBrains Mono', monospace; } .vb-ver b { display: inline-block; margin-left: .3rem; }
+    .vb-ver .v22 { display: none; color: #FF9FB0 !important; }
+    section.present .vb-ver .v15 { animation: vb15 5s infinite; } section.present .vb-ver .v22 { display: inline-block; animation: vb22 5s infinite; }
+    @keyframes vb15 { 0%, 45% { opacity: 1; width: auto; } 50%, 100% { opacity: 0; width: 0; } }
+    @keyframes vb22 { 0%, 45% { opacity: 0; width: 0; } 50%, 100% { opacity: 1; } }
+    .vb-projs { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+    .vb-p { border: 1px solid rgba(230,236,249,.2); border-radius: 10px; padding: .55rem .6rem; text-align: center; background: rgba(6,8,15,.5); }
+    .vb-p b { display: block; font-size: .98rem; } .vb-p span { font-size: .82rem; color: #B8BFD0 !important; }
+    section.present .vb-p.pa { animation: vbBreak 5s infinite; }
+    @keyframes vbBreak { 0%, 50% { border-color: rgba(43,234,208,.6); } 56%, 100% { border-color: #FF4D7A; background: rgba(255,77,122,.15); box-shadow: 0 0 16px rgba(255,77,122,.35); } }
+    .vb-p.ok { border-color: rgba(43,234,208,.6); }
+    .vb-p.ok .mono { color: #8FF0E2 !important; }
+    .reveal.overview .vb-ver .v22 { display: none; }
+
+    /* 버전 해부 */
+    .semver { display: grid; grid-template-columns: repeat(5, auto); justify-content: start; align-items: end; column-gap: .1rem; row-gap: .45rem; }
+    .semver .sv { font: 800 2.6rem/1 'JetBrains Mono', monospace; padding: 0 .3rem; border-bottom: 4px solid; }
+    .semver .dot { font: 800 2.6rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; }
+    .sv.ma { color: #FF9FB0 !important; border-color: #FF7A95; } .sv.mi { color: #FFE29A !important; border-color: #FFD46B; } .sv.pa { color: #8FF0E2 !important; border-color: #2BEAD0; }
+    .sv-l { grid-column: 1 / -1; font-size: .9rem; border-left: 4px solid; padding: .3rem .6rem; border-radius: 4px; background: rgba(6,8,15,.5); }
+    .sv-l b { margin-right: .4rem; } .sv-l.ma { border-color: #FF7A95; } .sv-l.mi { border-color: #FFD46B; } .sv-l.pa { border-color: #2BEAD0; }
+
+    /* VS Code 인터프리터 목업 */
+    .vsc { border-radius: 12px; overflow: hidden; border: 1px solid #3C3C3C; background: #1E1E1E; font-family: 'Pretendard', sans-serif; }
+    .vsc-top { background: #252526; padding: .55rem .7rem; } .vsc-top span { display: block; background: #3C3C3C; border: 1px solid #007ACC; border-radius: 4px; padding: .35rem .5rem; font-size: .85rem; color: #CCCCCC !important; }
+    .vsc-list { padding: .3rem 0; }
+    .vsc-i { padding: .45rem .8rem; } .vsc-i b { display: block; font-size: .92rem; color: #E0E0E0 !important; } .vsc-i span { font-size: .76rem; color: #9D9D9D !important; }
+    .vsc-i em { font-style: normal; color: #4FC1FF !important; }
+    .vsc-i.pick { background: #04395E; outline: 1px solid #007ACC; }
+    .vsc-bar { display: flex; justify-content: space-between; background: #007ACC; padding: .3rem .7rem; font-size: .78rem; } .vsc-bar span { color: #fff !important; }
+    .vsc-py { font-weight: 700; }
+
+    /* 파일 형식 */
+    .mojiflip { position: relative; font: 800 3rem/1.2 'Pretendard', sans-serif; height: 1.3em; min-width: 6em; text-align: center; }
+    .mojiflip span { position: absolute; inset: 0; }
+    .mojiflip .mf-a { color: #FF9FB0 !important; } .mojiflip .mf-b { color: #8FF0E2 !important; opacity: 0; }
+    section.present .mojiflip .mf-a { animation: mfA 5s infinite; } section.present .mojiflip .mf-b { animation: mfB 5s infinite; }
+    @keyframes mfA { 0%, 40% { opacity: 1; filter: none; } 50%, 90% { opacity: 0; filter: blur(6px); } 100% { opacity: 1; } }
+    @keyframes mfB { 0%, 40% { opacity: 0; filter: blur(6px); } 50%, 90% { opacity: 1; filter: none; } 100% { opacity: 0; } }
+    .fmt3 { margin-top: .3rem; }
+    .fm { border: 1px solid rgba(155,130,255,.4); border-radius: 12px; background: rgba(6,8,15,.6); overflow: hidden; display: flex; flex-direction: column; }
+    .fm pre { margin: 0; padding: .55rem .7rem; font: 500 .8rem/1.5 'JetBrains Mono', monospace; color: #D7DCE8 !important; background: #04060C; flex: 1; white-space: pre; overflow: hidden; }
+    .fm p { margin: 0; padding: .45rem .7rem; font-size: .84rem !important; color: #B8BFD0 !important; }
+    .fm-h { font: 800 .82rem/1 'JetBrains Mono', monospace; padding: .45rem .7rem; display: flex; justify-content: space-between; }
+    .fm-h em { font-style: normal; font-weight: 700; opacity: .8; }
+    .fm-h.csv { background: rgba(43,234,208,.18); color: #8FF0E2 !important; } .fm-h.json { background: rgba(155,130,255,.22); color: #E0D6FF !important; } .fm-h.yaml { background: rgba(255,212,107,.18); color: #FFE29A !important; }
+    .fm-h * { color: inherit !important; }
+    .csvsplit { display: flex; flex-direction: column; gap: .35rem; }
+    .cs-raw { font-size: .9rem; background: #04060C; border-radius: 8px; padding: .45rem .6rem; border: 1px solid rgba(43,234,208,.4); }
+    .cs-raw.bad { border-color: rgba(255,122,149,.5); }
+    .cm-hit { background: rgba(43,234,208,.2); border-radius: 3px; } .cm-bad { background: rgba(255,122,149,.22); border-radius: 3px; }
+    .cs-cells { display: flex; gap: 3px; margin-bottom: .35rem; }
+    .cs-cells span { flex: 1; text-align: center; font-size: .84rem; padding: .35rem .2rem; background: rgba(43,234,208,.12); border: 1px solid rgba(43,234,208,.45); border-radius: 4px; }
+    .cs-cells span.w { flex: 2; }
+    .cs-cells.bad span { background: rgba(255,122,149,.1); border-color: rgba(255,122,149,.5); }
+    .enc { display: flex; flex-direction: column; gap: .6rem; margin-top: .4rem; }
+    .enc-row { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
+    .enc-k { width: 5.5rem; font: 800 1rem/1 'JetBrains Mono', monospace; }
+    .enc-k.u8 { color: #8FF0E2 !important; } .enc-k.cp { color: #FFE29A !important; }
+    .by { font: 700 1.05rem/1 'JetBrains Mono', monospace; padding: .55rem .5rem; border-radius: 6px; border: 1px solid; }
+    .by.g1 { background: rgba(43,234,208,.15); border-color: rgba(43,234,208,.55); } .by.g2 { background: rgba(155,130,255,.18); border-color: rgba(155,130,255,.6); } .by.g3 { background: rgba(255,212,107,.15); border-color: rgba(255,212,107,.55); }
+    .by.g1 + .by.g2, .by.g2 + .by.g3 { margin-left: .5rem; }
+    .enc-row em { font-style: normal; font-size: .86rem; color: #B8BFD0 !important; margin-left: .8rem; }
+    section.present .enc-row .by { animation: byIn .5s both; }
+    section.present .enc-row .by:nth-of-type(2) { animation-delay: .08s; } section.present .enc-row .by:nth-of-type(3) { animation-delay: .16s; }
+    section.present .enc-row .by:nth-of-type(4) { animation-delay: .32s; } section.present .enc-row .by:nth-of-type(5) { animation-delay: .4s; }
+    section.present .enc-row .by:nth-of-type(6) { animation-delay: .48s; } section.present .enc-row .by:nth-of-type(7) { animation-delay: .64s; }
+    section.present .enc-row .by:nth-of-type(8) { animation-delay: .72s; } section.present .enc-row .by:nth-of-type(9) { animation-delay: .8s; }
+    @keyframes byIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .eol { display: flex; align-items: center; gap: .3rem; background: #04060C; border-radius: 10px; padding: .55rem .7rem; border: 1px solid rgba(155,130,255,.35); font: 600 .95rem/1 'JetBrains Mono', monospace; }
+    .eol b { padding: .25rem .35rem; border-radius: 4px; font-size: .85rem; } .eol b.cr { background: rgba(255,122,149,.25); color: #FFB8C7 !important; } .eol b.lf { background: rgba(43,234,208,.22); color: #8FF0E2 !important; }
+    .eol em { margin-left: auto; font-style: normal; font-size: .78rem; color: #8E96AB !important; }
+    .esc { background: #04060C; border-radius: 12px; padding: .7rem .8rem; border: 1px solid rgba(255,122,149,.45); }
+    .esc .ec { font: 800 1.5rem/1.2 'JetBrains Mono', monospace; } .esc .ec.bad { color: #FF9FB0 !important; background: rgba(255,122,149,.18); border-radius: 4px; padding: 0 .1rem; }
+    .esc-l { display: flex; gap: 1rem; margin-top: .35rem; font-size: .82rem; } .esc-l .bad { color: #FFB8C7 !important; }
+
+    /* ===== Docker ===== */
+    .envstack { display: flex; flex-direction: column; gap: .35rem; }
+    .es-l { border-radius: 10px; padding: .6rem .9rem; font-weight: 700; border: 1px solid; }
+    .es-l.code { background: rgba(255,212,107,.14); border-color: rgba(255,212,107,.6); }
+    .es-l.pkg { background: rgba(155,130,255,.16); border-color: rgba(155,130,255,.6); }
+    .es-l.py { background: rgba(91,140,255,.16); border-color: rgba(91,140,255,.6); }
+    .es-l.os { background: rgba(43,234,208,.14); border-color: rgba(43,234,208,.6); }
+    .es-cap { text-align: center; font-size: .92rem; color: #D7DCE8 !important; border: 2px dashed rgba(43,234,208,.6); border-radius: 12px; padding: .45rem; margin-top: .2rem; }
+    .foup { display: flex; flex-direction: column; align-items: center; gap: .9rem; }
+    .fo-box { position: relative; width: 260px; border: 3px solid rgba(155,130,255,.8); border-radius: 18px 18px 10px 10px; background: rgba(155,130,255,.08); padding: 2.2rem 1rem 1rem; text-align: center; }
+    .fo-lid { position: absolute; top: .5rem; left: 50%; transform: translateX(-50%); font: 800 .85rem/1 'JetBrains Mono', monospace; color: #E0D6FF !important; letter-spacing: .2em; }
+    .fo-wf { display: flex; flex-direction: column; gap: 6px; }
+    .fo-wf i { display: block; height: 7px; border-radius: 4px; background: linear-gradient(90deg, #5B8CFF, #2BEAD0, #9B82FF); opacity: .85; }
+    .fo-cap { display: block; margin-top: .6rem; font-size: .82rem; color: #B8BFD0 !important; }
+    section.present .fo-box { animation: foMove 4.5s ease-in-out infinite; }
+    @keyframes foMove { 0%, 100% { transform: translateX(-90px); } 30%, 38% { transform: translateX(0); } 66%, 74% { transform: translateX(90px); } }
+    .fo-ports { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; width: 100%; }
+    .fo-p { text-align: center; font-size: .82rem; font-weight: 700; padding: .45rem; border-radius: 8px; border-top: 4px solid #2BEAD0; background: rgba(6,8,15,.6); }
+    .dkflow { display: grid; grid-template-columns: 1fr auto 1fr auto 1.2fr; align-items: center; gap: .6rem; margin-top: .3rem; }
+    .dk-n { text-align: center; border: 1px solid rgba(155,130,255,.5); border-radius: 14px; background: rgba(6,8,15,.6); padding: .7rem .5rem; }
+    .dk-n .ico { font-size: 2rem; } .dk-n b { display: block; font-size: 1.1rem; } .dk-n span { font-size: .82rem; color: #B8BFD0 !important; }
+    .dk-n em { font-style: normal; font-family: 'JetBrains Mono', monospace; color: #8FF0E2 !important; }
+    .dk-n.im { border-color: rgba(91,140,255,.7); } .dk-n.ct { border-color: rgba(255,212,107,.6); padding: .35rem .5rem; display: grid; grid-template-columns: auto 1fr; column-gap: .5rem; text-align: left; align-items: center; }
+    .dk-n.ct .ico { font-size: 1.4rem; grid-row: span 2; }
+    .dk-a { font: 800 .85rem/1 'JetBrains Mono', monospace; color: #8FF0E2 !important; }
+    .dk-ctr { display: flex; flex-direction: column; gap: .4rem; }
+    section.present .dk-n.ct { animation: ctPop .5s both; } section.present .dk-n.c2 { animation-delay: .5s; } section.present .dk-n.c3 { animation-delay: 1s; }
+    @keyframes ctPop { from { opacity: 0; transform: translateX(-20px) scale(.9); } to { opacity: 1; transform: none; } }
+    .vmst { border: 1px solid rgba(255,122,149,.4); border-radius: 14px; padding: .6rem; background: rgba(6,8,15,.5); }
+    .vmst.ctr { border-color: rgba(43,234,208,.5); }
+    .vm-t { font-weight: 800; font-size: 1.05rem; margin-bottom: .4rem; }
+    .vm-row { display: flex; gap: .35rem; } .vm-col { flex: 1; display: flex; flex-direction: column; gap: .3rem; }
+    .ly { border-radius: 6px; padding: .38rem .4rem; text-align: center; font-size: .82rem; font-weight: 700; margin-bottom: .3rem; }
+    .vm-col .ly { margin-bottom: 0; }
+    .ly.app { background: rgba(255,212,107,.2); } .ly.lib { background: rgba(155,130,255,.2); }
+    .ly.gos { background: rgba(255,122,149,.25); padding: 1.3rem .4rem; }
+    .ly.hyp { background: rgba(91,140,255,.2); margin-top: .35rem; } .ly.hyp.dk { background: rgba(43,234,208,.2); }
+    .ly.hos { background: rgba(230,236,249,.08); }
+    .vm-n { margin: .2rem 0 0; font-size: .84rem !important; color: #B8BFD0 !important; text-align: center; }
+    .iso4 { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; }
+    .iso { border: 1px solid rgba(43,234,208,.45); border-radius: 12px; padding: .65rem .75rem; background: rgba(43,234,208,.05); }
+    .iso b { display: block; font-size: 1.05rem; margin-bottom: .2rem; } .iso span { font-size: .86rem; color: #C8CEDC !important; }
+    .pmap { display: grid; grid-template-columns: 1fr 1.1fr 1fr; align-items: center; }
+    .pm-host, .pm-ctr { border-radius: 12px; padding: .6rem; text-align: center; border: 1px solid rgba(91,140,255,.6); background: rgba(6,8,15,.6); }
+    .pm-ctr { border-color: rgba(255,212,107,.6); }
+    .pm-host b, .pm-ctr b { display: block; } .pm-port { display: inline-block; font: 800 .95rem/1 'JetBrains Mono', monospace; color: #8FF0E2 !important; margin: .25rem 0; }
+    .pm-host em, .pm-ctr em { display: block; font-style: normal; font-size: .74rem; color: #8E96AB !important; }
+    .pm-wire { position: relative; height: 2px; border-top: 2px dashed rgba(43,234,208,.5); margin: 0 .3rem; }
+    .pm-wire i { position: absolute; top: -7px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: #FFD46B; box-shadow: 0 0 10px #FFD46B; }
+    section.present .pm-wire i { animation: pmGo 2.2s linear infinite; }
+    @keyframes pmGo { from { left: 0; } to { left: calc(100% - 12px); } }
+    .volv { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+    .vv-ctr, .vv-vol { position: relative; width: 100%; border-radius: 14px; padding: .8rem; text-align: center; }
+    .vv-ctr { border: 2px solid rgba(255,212,107,.7); background: rgba(255,212,107,.07); }
+    .vv-vol { border: 2px solid rgba(43,234,208,.7); background: rgba(43,234,208,.07); }
+    .vv-ctr b, .vv-vol b { display: block; font-size: 1.05rem; margin-bottom: .35rem; }
+    .vv-f { display: inline-block; font: 700 .85rem/1 'JetBrains Mono', monospace; padding: .35rem .55rem; border-radius: 6px; background: rgba(230,236,249,.1); }
+    .vv-vol em { display: block; font-style: normal; font-size: .8rem; color: #8FF0E2 !important; margin-top: .35rem; }
+    .vv-x { position: absolute; right: .6rem; top: .6rem; font: 800 .72rem/1 'JetBrains Mono', monospace; color: #FF9FB0 !important; opacity: 0; }
+    .vv-link span { font: 800 .9rem/1 'JetBrains Mono', monospace; color: #8FF0E2 !important; border: 1px dashed rgba(43,234,208,.6); border-radius: 999px; padding: .2rem .6rem; }
+    section.present .vv-ctr { animation: vvDie 5s infinite; } section.present .vv-x { animation: vvX 5s infinite; }
+    @keyframes vvDie { 0%, 45% { opacity: 1; filter: none; } 55%, 85% { opacity: .2; filter: grayscale(1); } 100% { opacity: 1; } }
+    @keyframes vvX { 0%, 40% { opacity: 0; } 46%, 85% { opacity: 1; } 100% { opacity: 0; } }
+    .rings { position: relative; }
+    .rg { position: relative; border-radius: 22px; padding: 1.9rem 1rem 1rem; }
+    .rg.out { border: 2px solid rgba(91,140,255,.5); background: rgba(91,140,255,.05); }
+    .rg.in { border: 3px solid rgba(43,234,208,.8); background: rgba(43,234,208,.07); padding: 1.9rem 1rem .9rem; box-shadow: inset 0 0 30px rgba(43,234,208,.12); }
+    .rg-l { position: absolute; top: .55rem; left: .9rem; font-weight: 800; font-size: .9rem; }
+    .rg.core { text-align: center; font-size: 2rem; line-height: 1.1; padding: .4rem; } .rg.core b { font-size: 1rem; }
+    .rg-ok { display: block; text-align: center; font-size: .82rem; color: #8FF0E2 !important; }
+    .rg-try { position: absolute; right: -0.4rem; display: flex; flex-direction: column; align-items: flex-end; opacity: 0; }
+    .rg-try span { font: 700 .76rem/1.2 'JetBrains Mono', monospace; background: rgba(255,122,149,.2); border: 1px solid rgba(255,122,149,.6); border-radius: 6px; padding: .2rem .4rem; }
+    .rg-try em { font-style: normal; font-size: .72rem; color: #FFB8C7 !important; margin-top: .1rem; }
+    .rg-try.t1 { top: 3.4rem; } .rg-try.t2 { top: 6.6rem; } .rg-try.t3 { top: 9.8rem; }
+    section.present .rg-try { animation: rgTry 6s infinite; } section.present .rg-try.t2 { animation-delay: 1.2s; } section.present .rg-try.t3 { animation-delay: 2.4s; }
+    @keyframes rgTry { 0% { opacity: 0; transform: translateX(-60px); } 12% { opacity: 1; transform: translateX(-10px); } 16% { transform: translateX(-18px); } 20%, 55% { opacity: 1; transform: translateX(-14px); } 65%, 100% { opacity: 0; } }
+    .reveal.overview .rg-try { opacity: 1; }
+    @media print { .rg-try { opacity: 1 !important; animation: none !important; } }
+    .sbx { border-width: 2px !important; } .sbx.a { border-color: rgba(91,140,255,.6) !important; } .sbx.b { border-color: rgba(43,234,208,.6) !important; }
+    .sbx-l { margin: .3rem 0 0; padding-left: 1.1rem; } .sbx-l li { font-size: .9rem; margin: .25rem 0; }
+    .tries { display: flex; flex-direction: column; gap: .35rem; margin-top: .6rem; }
+    .try { display: grid; grid-template-columns: 11rem 1.6rem 1fr; align-items: center; gap: .4rem; padding: .4rem .6rem; border-radius: 10px; border: 1px solid rgba(255,122,149,.35); background: rgba(255,122,149,.05); }
+    .try .mono { font-size: .82rem; color: #FFB8C7 !important; } .try em { font-style: normal; font-size: .84rem; color: #D7DCE8 !important; }
+    section.present .try { animation: tryHit 6s infinite; } section.present .try.t2 { animation-delay: 2s; } section.present .try.t3 { animation-delay: 4s; }
+    @keyframes tryHit { 0% { border-color: rgba(255,122,149,.35); } 4%, 28% { border-color: #FF4D7A; background: rgba(255,77,122,.16); box-shadow: 0 0 14px rgba(255,77,122,.3); } 34%, 100% { border-color: rgba(255,122,149,.35); background: rgba(255,122,149,.05); box-shadow: none; } }
+  </style>
+  <link rel="stylesheet" href="../assets/core.css">
+</head>
+<body>
+
+<div class="dl-toolbar">
+  <select id="tocSelect" class="transition-select" aria-label="목차 — 슬라이드로 바로 이동" title="목차 — 슬라이드로 바로 이동"></select>
+  <a class="dl-btn" href="../#board" title="시리즈 홈: 막혔을 때 펼쳐 보는 처방전">
+    <span aria-hidden="true">↖</span><span>시리즈 홈</span>
+  </a>
+  <button id="fullscreenBtn" class="dl-btn" title="전체화면 전환 (F)">
+    <span aria-hidden="true">⛶</span><span>FULL</span>
+  </button>
+</div>
+
+<div class="reveal">
+  <div class="slides">
+    <!-- ============= 타이틀 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="grid-2" style="align-items:center;">
+          <div>
+            <div class="chip">SEMINAR · 다음 지도 01 입문 · FILE FORMATS</div>
+            <h1 style="font-size:3.9rem;">한글이 깨지고<br/><span class="grad">경로가 안 맞는다</span></h1>
+            <p style="font-size:1.4rem; margin-top:1.1rem; max-width:620px;">
+              파일 형식 기초 —<br/><strong class="accent2">무엇에 담고</strong>, <strong class="accent2">어떤 글자표로</strong> 읽나.
+            </p>
+            <p class="credit">덱 형식: <a href="https://github.com/geniuskey/vibe-coding" target="_blank" rel="noopener">geniuskey/vibe-coding</a> (CC BY-NC 4.0) · 이 덱은 추가 작성분입니다.</p>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:.7rem;">
+            <div class="mojiflip"><span class="mf-a">痢≪젙媛�</span><span class="mf-b">측정값</span></div>
+            <div class="chip" style="border-color:rgba(43,234,208,.55);">CSV · JSON · YAML · UTF-8 · pathlib</div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        오른쪽 깨진 글자는 진짜로 "측정값"이라는 UTF-8 글자를 CP949로 잘못 읽었을 때 나오는 모양입니다. 오늘 끝날 때쯤엔 이게 왜 생기는지 설명할 수 있게 됩니다.
+      </aside>
+    </section>
+
+    <!-- ============= 3분 요약 ============= -->
+    <section class="tldr" data-depth="summary">
+      <div class="chip">3분 요약 · TL;DR</div>
+      <h2>결론부터 — 이 세 줄이면 됩니다</h2>
+      <p class="tldr-lede">파일은 결국 글자입니다. 무엇을 담느냐로 형식을 고르고, 어떤 글자표로 썼느냐를 맞춰 읽으면 됩니다.</p>
+      <ol class="tldr-points">
+        <li><span class="n">1</span><div><strong>표는 CSV, 구조는 JSON, 사람이 고치는 설정은 YAML</strong><span class="sub">각자 함정이 있습니다 — 쉼표 · 따옴표 · 들여쓰기.</span></div></li>
+        <li><span class="n">2</span><div><strong>깨진 한글 = 쓴 글자표와 읽은 글자표가 다르다</strong><span class="sub">새 파일은 UTF-8, 엑셀로 열 CSV는 utf-8-sig, 옛 사내 파일은 cp949.</span></div></li>
+        <li><span class="n">3</span><div><strong>경로는 pathlib로</strong><span class="sub">\ 와 / 를 신경 쓰지 않고, 실행 위치와도 상관없게.</span></div></li>
+      </ol>
+      <div class="tldr-bottom">
+        <div class="tldr-prompt">
+          <div class="tldr-label">지금 바로 써 보는 프롬프트</div>
+          <pre>이 CSV를 읽는 코드를 써줘. 먼저 파일의 인코딩을 추정해서 알려주고(utf-8 / cp949),
+처음 3행을 그대로 보여줘. 결과는 엑셀에서 한글이 안 깨지게 utf-8-sig로 저장해.
+경로는 pathlib로, 스크립트 파일 위치 기준으로 잡아줘.</pre>
+        </div>
+        <div class="tldr-when">
+          <div class="tldr-label">이럴 때 이 덱을 다시 펼치세요</div>
+          <ul>
+            <li>엑셀에서 열었더니 한글이 외계어일 때</li>
+            <li>UnicodeDecodeError · JSONDecodeError</li>
+            <li>설정 파일 한 칸 들여쓰기에 다 멈출 때</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============= PROBLEM ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">PROBLEM · 파일 하나에 세 번 막힘</div>
+        <h2>코드는 맞는데 <span class="accent3">파일에서</span> 터집니다</h2>
+        <div class="grid-3" style="margin-top:.4rem;">
+          <div class="tx">
+            <div class="tx-h"><i></i><i></i><i></i>😩 엑셀로 열었더니</div>
+            <p class="tx-l me"><b class="who">나</b>AI가 만든 result.csv 더블클릭</p>
+            <p class="tx-l bad fragment" data-fragment-index="1">ì¸¡ì •ê°’,ì„¤ë¹„ …</p>
+            <p class="tx-l good fragment" data-fragment-index="4"><b class="who">원인</b>글자표(인코딩) 불일치</p>
+          </div>
+          <div class="tx">
+            <div class="tx-h"><i></i><i></i><i></i>😩 설정 파일 고쳤더니</div>
+            <p class="tx-l me"><b class="who">나</b>config.json에 줄 하나 추가</p>
+            <p class="tx-l bad fragment" data-fragment-index="2">JSONDecodeError: Illegal trailing comma before end of object</p>
+            <p class="tx-l good fragment" data-fragment-index="4"><b class="who">원인</b>형식 문법 (마지막 쉼표)</p>
+          </div>
+          <div class="tx">
+            <div class="tx-h"><i></i><i></i><i></i>😩 경로 붙여 넣었더니</div>
+            <p class="tx-l me"><b class="who">나</b>open("C:\new\test.csv")</p>
+            <p class="tx-l bad fragment" data-fragment-index="3">OSError: [Errno 22] Invalid argument: 'C:\new\test.csv' — 경로는 맞아 보이는데?</p>
+            <p class="tx-l good fragment" data-fragment-index="4"><b class="who">원인</b>\n 이 "줄바꿈"으로 읽힘</p>
+          </div>
+        </div>
+        <p class="center fragment" data-fragment-index="5" style="font-size:1.2rem; margin-top:.9rem;">오늘의 세 칸: <strong class="accent2">형식</strong> · <strong class="accent2">인코딩</strong> · <strong class="accent2">경로</strong></p>
+      </div>
+      <aside class="notes">
+        첫 칸의 외계어는 UTF-8 한글을 서유럽 글자표로 읽은 모양입니다(엑셀이 BOM 없는 UTF-8 CSV를 열 때 흔함).
+        세 번째 칸: 파이썬 문자열에서 \n은 줄바꿈, \t는 탭입니다. 그래서 "C:\new\test.csv"는 C: + 줄바꿈 + ew + 탭 + est.csv가 됩니다. 에러 메시지에는 경로가 멀쩡해 보이게 찍혀서 더 헷갈립니다.
+      </aside>
+    </section>
+
+    <!-- ============= 같은 데이터 세 형식 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">FORMATS · 같은 데이터, 세 가지 그릇</div>
+        <h2>세 파일 모두 <span class="accent2">그냥 글자</span>입니다 — 메모장으로 열립니다</h2>
+        <div class="grid-3 fmt3">
+          <div class="fm autoshow"><div class="fm-h csv">thk.csv <em>표</em></div>
+<pre>eq,day,avg_thk
+EQ-02,11-23,4010.0
+EQ-03,11-23,4005.5
+EQ-03,11-24,3998.2</pre>
+            <p>한 줄 = 한 행, 쉼표 = 칸. <strong>엑셀과 주고받기</strong> 좋음.</p></div>
+          <div class="fm autoshow"><div class="fm-h json">thk.json <em>구조</em></div>
+<pre>[
+  {"eq": "EQ-02", "day": "11-23",
+   "avg_thk": 4010.0},
+  {"eq": "EQ-03", "day": "11-23",
+   "avg_thk": 4005.5}
+]</pre>
+            <p>중괄호 · 대괄호로 <strong>겹겹이</strong>. 프로그램끼리 · API의 표준 말.</p></div>
+          <div class="fm autoshow"><div class="fm-h yaml">config.yaml <em>설정</em></div>
+<pre>report:
+  week: "W47"
+  exclude:
+    - EQ-01
+  unit: "Å"
+  spec: {min: 3950, max: 4050}</pre>
+            <p>들여쓰기로 구조. <strong>사람이 읽고 고치기</strong> 편함.</p></div>
+        </div>
+        <table class="xt" style="margin-top:.7rem;">
+          <tr><th>이럴 땐</th><th>고르기</th></tr>
+          <tr><td>엑셀 · 사람과 주고받는 표 · 큰 측정 로그</td><td><span class="pill md">CSV</span> (서식이 필요하면 xlsx)</td></tr>
+          <tr><td>API 응답 · 프로그램 사이 · 겹친 구조</td><td><span class="pill sk">JSON</span></td></tr>
+          <tr><td>사람이 손으로 고치는 설정</td><td><span class="pill mc">YAML</span> (또는 TOML)</td></tr>
+        </table>
+      </div>
+      <aside class="notes">
+        핵심은 "셋 다 글자"라는 것. 그래서 셋 다 인코딩 문제를 똑같이 겪습니다.
+        xlsx는 글자가 아니라 압축 파일이라 메모장으로 열면 깨져 보입니다 — 다른 종류입니다.
+      </aside>
+    </section>
+
+    <!-- ============= CSV 함정 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip warn">⚠️ CSV · 쉼표 하나가 칸을 쪼갭니다</div>
+        <h2>단순해 보여서 <span class="accent3">가장 많이 사고</span> 나는 형식</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.5rem;">
+            <div class="csvsplit">
+              <div class="cs-raw mono">EQ-03,<span class="cm-hit">"PM 완료, 점검 필요"</span>,4005.5</div>
+              <div class="cs-cells"><span>EQ-03</span><span class="w">PM 완료, 점검 필요</span><span>4005.5</span></div>
+              <div class="cs-raw mono bad">EQ-03,<span class="cm-bad">PM 완료</span>,<span class="cm-bad"> 점검 필요</span>,4005.5</div>
+              <div class="cs-cells bad"><span>EQ-03</span><span>PM 완료</span><span> 점검 필요</span><span>4005.5 ?</span></div>
+            </div>
+            <p class="note-line">값 안에 쉼표가 있으면 <strong>큰따옴표로 감싸야</strong> 합니다. pandas의 to_csv는 알아서 합니다 — 손으로 이어 붙이지 마세요.</p>
+          </div>
+          <ul class="sim-list" style="margin:0;">
+            <li class="sim-line fragment"><span><span class="cn">1</span><b>앞자리 0</b> — 엑셀이 <span class="mono">007</span>을 <span class="mono">7</span>로</span><span class="tok no">ID는 글자로</span></li>
+            <li class="sim-line fragment"><span><span class="cn">2</span><b>날짜 자동 변환</b> — <span class="mono">11-23</span>이 <span class="mono">23-Nov</span>으로</span><span class="tok no">엑셀 저장 금지</span></li>
+            <li class="sim-line fragment"><span><span class="cn">3</span><b>구분자</b> — 쉼표 대신 <span class="mono">;</span> · 탭(TSV)</span><span class="tok info">sep=</span></li>
+            <li class="sim-line fragment"><span><span class="cn">4</span><b>머리말 줄</b> — 장비 로그의 헤더 3줄</span><span class="tok info">skiprows=3</span></li>
+            <li class="sim-line fragment"><span><span class="cn">5</span><b>소수점</b> — 큰 수의 <span class="mono">4,005.5</span></span><span class="tok info">thousands=","</span></li>
+          </ul>
+        </div>
+      </div>
+      <aside class="notes">
+        1 · 2번은 "엑셀로 열었다가 저장"할 때 생깁니다. 원본 CSV는 엑셀로 저장하지 않는 게 규칙입니다. 읽을 때는 dtype={"eq": str}처럼 글자로 읽으라고 지정합니다.
+        4번은 SQL 덱에서 본 장비 CSV의 헤더 3줄과 같은 이야기입니다.
+      </aside>
+    </section>
+
+    <!-- ============= JSON ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">JSON · 규칙이 엄격한 대신 확실하다</div>
+        <h2>JSON이 깨지는 이유는 거의 <span class="accent3">세 가지</span></h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="dv">
+            <div class="dv-h">config.json — 깨진 것 → 맞는 것</div>
+<pre><span class="ln del">{</span><span class="ln del">  'eq': 'EQ-03',          // 작은따옴표</span><span class="ln del">  "spec": [3950, 4050],   // 주석</span><span class="ln del">  "unit": "Å",            // 마지막 쉼표 ↓</span><span class="ln del">}</span><span class="ln hunk">@@ 고친 뒤 @@</span><span class="ln add">{</span><span class="ln add">  "eq": "EQ-03",</span><span class="ln add">  "spec": [3950, 4050],</span><span class="ln add">  "unit": "Å"</span><span class="ln add">}</span></pre>
+          </div>
+          <div class="stack" style="gap:.55rem;">
+            <pre class="term-out" style="font-size:.78rem;"><span class="hl-r">JSONDecodeError: Expecting property name enclosed
+in double quotes: line 1 column 2 (char 1)</span>
+<span class="dim"># → 2행? 아니, "1행 2번째 글자" — 작은따옴표</span>
+<span class="hl-r">JSONDecodeError: Illegal trailing comma before end
+of object: line 1 column 15 (char 14)</span></pre>
+            <table class="xt">
+              <tr><th>JSON 값</th><th>파이썬에선</th></tr>
+              <tr><td><span class="mono">"글자"</span> (큰따옴표만)</td><td>str</td></tr>
+              <tr><td><span class="mono">4005.5</span></td><td>float</td></tr>
+              <tr><td><span class="mono">true</span> · <span class="mono">false</span> (소문자)</td><td>True · False</td></tr>
+              <tr><td><span class="mono">null</span></td><td>None</td></tr>
+            </table>
+            <p class="note-line">에러의 <strong>line · column</strong>이 위치입니다. 그 글자 바로 앞을 보세요.</p>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        세 가지: 작은따옴표, 주석, 마지막 쉼표. 파이썬 딕셔너리처럼 생겼지만 규칙이 더 엄격합니다.
+        에러 문장은 파이썬 3.13에서 실제로 나온 문장입니다. 버전에 따라 조금 다를 수 있습니다.
+        한글을 JSON으로 저장할 땐 json.dump(..., ensure_ascii=False)를 써야 \uc778 같은 글자가 아니라 한글로 보입니다.
+      </aside>
+    </section>
+
+    <!-- ============= YAML ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip warn">⚠️ YAML · 읽기 쉬운 대신 눈치를 봅니다</div>
+        <h2>YAML은 값을 <span class="accent3">알아서 추측</span>합니다 — 가끔 틀리게</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.5rem;">
+            <pre class="code sm">country: NO
+version: 1.10
+lot: 007
+on: yes</pre>
+            <pre class="term-out fragment" style="font-size:.84rem;"><span class="dim">&gt;&gt;&gt; yaml.safe_load(...)</span>
+{'country': <span class="hl-r">False</span>, 'version': <span class="hl-r">1.1</span>, 'lot': <span class="hl-r">7</span>, <span class="hl-r">True</span>: <span class="hl-r">True</span>}</pre>
+            <p class="note-line fragment">노르웨이(NO)는 거짓이 되고, 버전 1.10은 1.1이 됩니다. <strong>글자는 따옴표로</strong> 감싸면 끝.</p>
+          </div>
+          <div class="stack" style="gap:.55rem;">
+            <div class="card bad autoshow"><h3>들여쓰기 = 문법</h3><p>스페이스 두 칸 차이로 다른 뜻이 됩니다. <strong>탭 문자는 금지</strong> — 에디터가 탭을 스페이스로 바꾸게.</p></div>
+            <div class="card autoshow"><h3>목록은 - 로</h3><p><span class="mono">exclude:</span> 아래 <span class="mono">- EQ-01</span>. 대시 뒤 한 칸 띄우기.</p></div>
+            <div class="card good autoshow"><h3>읽을 땐 safe_load</h3><p>파이썬에선 <span class="mono">yaml.safe_load</span>. 남이 준 YAML을 그냥 <span class="mono">load</span>하면 위험할 수 있습니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        출력은 PyYAML(safe_load)로 실제로 돌려 본 결과입니다. YAML 1.1 규칙 때문에 yes · no · on · off가 참 · 거짓으로 읽힙니다.
+        K8S 설정, Docker compose, GitHub Actions가 모두 YAML입니다. 다음 덱들에서 계속 만납니다.
+      </aside>
+    </section>
+
+    <!-- ============= 인코딩 원리 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">ENCODING · 글자는 숫자로 저장된다</div>
+        <h2>"측정값"은 파일 속에서 <span class="accent2">숫자 몇 개</span>입니다 — 글자표마다 다른</h2>
+        <div class="enc">
+          <div class="enc-row"><b class="enc-k u8">UTF-8</b>
+            <span class="by g1">ec</span><span class="by g1">b8</span><span class="by g1">a1</span>
+            <span class="by g2">ec</span><span class="by g2">a0</span><span class="by g2">95</span>
+            <span class="by g3">ea</span><span class="by g3">b0</span><span class="by g3">92</span>
+            <em>한 글자 = 3바이트 · 전 세계 표준</em></div>
+          <div class="enc-row"><b class="enc-k cp">CP949</b>
+            <span class="by g1">c3</span><span class="by g1">f8</span>
+            <span class="by g2">c1</span><span class="by g2">a4</span>
+            <span class="by g3">b0</span><span class="by g3">aa</span>
+            <em>한 글자 = 2바이트 · 옛 Windows 한국어 (EUC-KR 확장)</em></div>
+        </div>
+        <div class="grid-2" style="gap:1rem; margin-top:.9rem;">
+          <div class="card bad autoshow"><h3>UTF-8로 쓰고 → CP949로 읽으면</h3><p class="mono" style="font-size:1.15rem;">측정값 → 痢≪젙媛�</p><p>숫자를 엉뚱한 표에서 찾으니 한자 · 이상한 한글이 나옵니다.</p></div>
+          <div class="card bad autoshow"><h3>CP949로 쓰고 → UTF-8로 읽으면</h3><p class="mono" style="font-size:.86rem;">UnicodeDecodeError: 'utf-8' codec can't decode byte 0xc3 in position 0: invalid continuation byte</p><p>UTF-8 규칙에 안 맞는 숫자라 아예 멈춥니다.</p></div>
+        </div>
+      </div>
+      <aside class="notes">
+        같은 색 묶음이 한 글자입니다. 바이트 값과 깨진 결과는 파이썬으로 실제 변환해 본 값입니다.
+        "인코딩"은 글자 ↔ 숫자 변환표의 이름일 뿐입니다. 파일 안에는 숫자만 있고, 어떤 표로 썼는지는 적혀 있지 않은 경우가 많습니다. 그래서 읽는 쪽이 맞혀야 합니다.
+      </aside>
+    </section>
+
+    <!-- ============= 증상별 처방 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">FIX · 증상으로 처방 고르기</div>
+        <h2>깨진 모양을 보면 <span class="accent2">어느 표</span>인지 압니다</h2>
+        <table class="xt">
+          <tr><th>증상</th><th>원인</th><th>처방 (pandas)</th></tr>
+          <tr class="fragment"><td>파이썬에서 <span class="mono">UnicodeDecodeError: 'utf-8'…</span></td><td>파일이 CP949</td><td><span class="mono">read_csv(p, encoding="cp949")</span></td></tr>
+          <tr class="fragment"><td>엑셀에서 <span class="mono">ì¸¡ì •</span>처럼 깨짐</td><td>UTF-8인데 엑셀이 못 알아봄</td><td><span class="mono">to_csv(p, encoding="utf-8-sig")</span></td></tr>
+          <tr class="fragment"><td>읽히긴 하는데 <span class="mono">痢≪젙</span> 같은 한자</td><td>UTF-8을 CP949로 읽음</td><td><span class="mono">encoding="utf-8"</span>로 다시</td></tr>
+          <tr class="fragment"><td>첫 칸 이름 앞에 <span class="mono">\ufeff</span> · <span class="mono">ï»¿</span></td><td>BOM을 글자로 읽음</td><td><span class="mono">encoding="utf-8-sig"</span>로 읽기</td></tr>
+        </table>
+        <div class="grid-2" style="gap:1rem; margin-top:.8rem;">
+          <div class="card autoshow"><h3>utf-8-sig = UTF-8 + 앞머리 표시(BOM)</h3><p>파일 맨 앞 3바이트 <span class="mono">ef bb bf</span>가 "나 UTF-8이야"라고 알려 줍니다. 엑셀이 이걸 보고 한글을 제대로 엽니다.</p></div>
+          <div class="card good autoshow"><h3>팀 규칙 한 줄</h3><p>새 파일은 전부 UTF-8. 엑셀로 열 CSV만 utf-8-sig. 옛 장비 파일은 읽을 때 cp949 → 바로 UTF-8로 저장.</p></div>
+        </div>
+      </div>
+      <aside class="notes">
+        클릭할 때마다 한 줄씩. 사내 실무에서 거의 이 네 가지로 끝납니다.
+        모르겠으면 AI에게 "이 파일의 앞 200바이트를 16진수로 보여주고 인코딩을 추정해줘"라고 하면 됩니다.
+      </aside>
+    </section>
+
+    <!-- ============= 줄바꿈 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">LINE ENDINGS · 보이지 않는 글자</div>
+        <h2>줄바꿈도 글자입니다 — <span class="accent2">Windows는 두 개</span>, 나머지는 하나</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.55rem;">
+            <div class="eol"><span>EQ-03,4005.5</span><b class="cr">\r</b><b class="lf">\n</b><em>CRLF · Windows</em></div>
+            <div class="eol"><span>EQ-03,4005.5</span><b class="lf">\n</b><em>LF · macOS · Linux · 서버</em></div>
+            <pre class="term-out" style="font-size:.8rem;"><span class="dim">$</span> git add run.sh
+<span class="hl-r">warning: in the working copy of 'run.sh', LF will be
+replaced by CRLF the next time Git touches it</span></pre>
+          </div>
+          <div class="stack" style="gap:.55rem;">
+            <div class="card autoshow"><h3>대부분은 몰라도 된다</h3><p>파이썬 · 엑셀 · VS Code는 둘 다 알아서 읽습니다. git 경고도 대개 무시해도 됩니다.</p></div>
+            <div class="card bad autoshow"><h3>문제가 되는 한 곳 — 서버 스크립트</h3><p>Windows에서 쓴 <span class="mono">.sh</span>를 리눅스 서버 · 컨테이너에서 돌리면 <span class="mono">/bin/bash^M: bad interpreter</span>. <strong>\r</strong> 때문입니다.</p></div>
+            <div class="card good autoshow"><h3>VS Code 오른쪽 아래</h3><p>"CRLF"를 눌러 "LF"로 바꾸면 끝. Docker 덱에서 다시 만납니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        ^M은 \r을 화면에 표시한 모양입니다. Dockerfile이나 리눅스용 스크립트는 LF로 저장하는 습관을 들이면 됩니다.
+      </aside>
+    </section>
+
+    <!-- ============= 경로 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">③ PATHS · 역슬래시의 함정</div>
+        <h2>파이썬 글자 속 <span class="accent3">\</span>는 "다음 글자가 특별하다"는 뜻</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.5rem;">
+            <div class="esc">
+              <span class="ec">C:</span><span class="ec bad">\n</span><span class="ec">ew</span><span class="ec bad">\t</span><span class="ec">est.csv</span>
+              <div class="esc-l"><span class="bad">\n = 줄바꿈</span><span class="bad">\t = 탭</span></div>
+            </div>
+            <pre class="code bad sm">open(<span class="st">"C:\new\test.csv"</span>)     <span class="cm"># ❌ 줄바꿈 · 탭이 섞임</span></pre>
+            <pre class="code good sm">open(<span class="st">r"C:\new\test.csv"</span>)    <span class="cm"># ✅ r = 있는 그대로</span>
+open(<span class="st">"C:/new/test.csv"</span>)     <span class="cm"># ✅ Windows도 / 를 알아들음</span></pre>
+          </div>
+          <div class="stack" style="gap:.5rem;">
+            <pre class="code good sm"><span class="cm"># ✅✅ 가장 좋은 방법 — pathlib</span>
+<span class="kw">from</span> pathlib <span class="kw">import</span> Path
+
+HERE = Path(__file__).resolve().parent   <span class="cm"># 이 .py 파일의 폴더</span>
+raw  = HERE / <span class="st">"data"</span> / <span class="st">"raw.csv"</span>         <span class="cm"># / 로 이어 붙임</span>
+
+raw.exists()                 <span class="cm"># 있나?</span>
+<span class="kw">for</span> f <span class="kw">in</span> (HERE / <span class="st">"data"</span>).glob(<span class="st">"*.csv"</span>):  <span class="cm"># CSV 전부</span>
+    print(f.name)
+out = raw.with_suffix(<span class="st">".parquet"</span>)        <span class="cm"># 확장자만 바꾸기</span></pre>
+            <p class="note-line">OS마다 구분 기호를 알아서 맞추고, <strong>실행 위치와 상관없이</strong> 같은 파일을 찾습니다.</p>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        탐색기에서 복사한 경로를 그대로 붙이면 이 함정에 빠집니다. 문자열 앞에 r을 붙이거나, / 로 바꾸거나, pathlib을 씁니다.
+        Path(__file__) 부분은 터미널 덱의 "상대 경로는 서 있는 곳 기준" 문제를 함께 해결합니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../terminal/">터미널 — 절대 · 상대 경로</a>
+      </div>
+    </section>
+
+    <!-- ============= 처음 3행 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">HABIT · 읽자마자 확인</div>
+        <h2>파일을 읽으면 <span class="accent2">처음 3행과 개수</span>부터 봅니다</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <pre class="code sm"><span class="kw">import</span> pandas <span class="kw">as</span> pd
+df = pd.read_csv(raw, encoding=<span class="st">"cp949"</span>, skiprows=<span class="nm">3</span>,
+                 dtype={<span class="st">"eq"</span>: str})
+print(df.head(<span class="nm">3</span>))     <span class="cm"># 글자가 제대로인가</span>
+print(df.shape)       <span class="cm"># 행 · 열 개수가 예상대로인가</span>
+print(df.dtypes)      <span class="cm"># 숫자가 숫자로 읽혔나</span></pre>
+          <pre class="term-out" style="font-size:.8rem;">      eq    day  avg_thk
+0  EQ-02  11-23   4010.0
+1  EQ-03  11-23   4005.5
+2  EQ-03  11-24   3998.2
+<span class="hl-g">(12431, 3)</span>
+eq          object
+day         object
+avg_thk    <span class="hl-g">float64</span>   <span class="dim">← object면 숫자에 글자가 섞임</span></pre>
+        </div>
+        <div class="grid-3" style="margin-top:.8rem;">
+          <div class="card autoshow"><h3>글자 깨짐</h3><p>head에서 바로 보입니다 → 인코딩.</p></div>
+          <div class="card autoshow"><h3>칸이 하나로 뭉침</h3><p>열이 1개면 구분자가 다른 것 → <span class="mono">sep=";"</span>.</p></div>
+          <div class="card autoshow"><h3>숫자가 object</h3><p>"N/A" · "4,005.5"가 섞임 → 결측 · 천 단위 처리.</p></div>
+        </div>
+      </div>
+      <aside class="notes">
+        데이터 분석 덱의 "첫 5분 들여다보기"를 파일 단계로 당겨 온 것입니다. 이 세 줄을 AI에게 항상 요구하면, 깨진 파일로 분석까지 가는 일이 없어집니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../data-viz/">데이터 분석 — 첫 5분</a>
+      </div>
+    </section>
+
+    <!-- ============= AI에게 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">AI · 파일 규칙 알려 주기</div>
+        <h2>AI는 인코딩을 <span class="accent3">기본값으로 가정</span>합니다 — 적어 주세요</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <pre class="code good sm"><span class="cm"># CLAUDE.md — 파일 규칙</span>
+- 경로는 pathlib, 스크립트 위치 기준
+- 장비 원본 CSV: cp949, 헤더 3줄, eq는 글자(str)
+- 새로 만드는 파일: UTF-8
+- 엑셀용 CSV 출력: utf-8-sig
+- JSON 저장: ensure_ascii=False, indent=2
+- 원본 파일은 덮어쓰지 말고 out/ 에 저장
+- 파일을 읽으면 head(3) · shape 를 먼저 보여줄 것</pre>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card autoshow"><h3>왜 적어야 하나</h3><p>AI는 보통 UTF-8을 가정합니다. 사내 옛 파일(cp949)에서 첫 실행이 항상 실패하는 이유.</p></div>
+            <div class="card autoshow"><h3>샘플을 같이 주기</h3><p>"이 파일의 첫 5줄" 원문을 붙여 주면 구분자 · 헤더 · 단위를 AI가 직접 봅니다. 민감한 값은 가리고.</p></div>
+            <div class="card good autoshow"><h3>원본은 읽기만</h3><p>SQL 덱의 "읽기 전용" 원칙과 같습니다. 결과는 늘 새 파일로.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">일곱 줄짜리 규칙이 이 덱 전체의 요약입니다. 그대로 복사해 프로젝트 CLAUDE.md에 붙이고 팀 사정에 맞게 고치세요.</aside>
+    </section>
+
+    <!-- ============= 실습 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip live">🖐 실습 · 깨진 파일 살리기 (20분)</div>
+        <h2>일부러 <span class="accent3">깨뜨리고</span>, 다시 <span class="accent2">살리기</span></h2>
+        <p class="lab-learn"><b>배우는 것</b> — 인코딩을 바꿔 저장하고, 깨진 모양을 보고 원인을 맞히고, 경로를 pathlib로 바꾸는 법.</p>
+        <div class="grid-2" style="align-items:start; gap:1.6rem;">
+          <div class="prompt-card">
+            <div class="pc-label">💬 에이전트에게 이렇게 말하세요</div>
+            <pre class="code">한글이 든 3행짜리 표를 만들어서 세 가지로 저장해줘:
+  a.csv (utf-8), b.csv (utf-8-sig), c.csv (cp949)
+각각을 엑셀에서 열었을 때와 pandas 기본값으로 읽었을 때
+어떻게 보일지 예상해 주고, 실제로 읽어서 결과를 보여줘.
+마지막으로 세 파일을 모두 제대로 읽는 함수를 pathlib으로 만들어줘.</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="done-box">
+              <p class="bx-t">✅ 완료 기준</p>
+              <ul>
+                <li>세 파일을 엑셀로 직접 열어 <strong>어느 것이 깨지는지</strong> 확인했다</li>
+                <li>깨진 모양만 보고 원인 인코딩을 맞혔다</li>
+                <li>함수가 <strong>다른 폴더에서 실행해도</strong> 같은 결과를 낸다</li>
+              </ul>
+            </div>
+            <div class="stuck-box">
+              <p class="bx-t">🧯 막히면</p>
+              <p>엑셀 버전에 따라 a.csv가 깨지지 않을 수도 있습니다. 그래도 b.csv가 가장 안전하다는 결론은 같습니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">20분. 직접 깨뜨려 본 사람은 다음부터 깨진 모양만 보고 원인을 압니다.</aside>
+    </section>
+
+    <!-- ============= 정리 ============= -->
+    <section>
+      <div class="vfill center">
+        <div class="chip">정리</div>
+        <h2>오늘 가져갈 습관 세 가지</h2>
+        <div style="display:flex; flex-direction:column; gap:1rem; max-width:1000px; margin:.6rem auto 0;">
+          <div class="card" style="text-align:left;"><h3>1. 담을 것으로 형식을 고른다</h3><p>표는 <strong class="accent2">CSV</strong>, 구조는 <strong class="accent2">JSON</strong>, 설정은 <strong class="accent2">YAML</strong>. YAML의 글자는 따옴표로.</p></div>
+          <div class="card" style="text-align:left;"><h3>2. 인코딩은 적어서 맞춘다</h3><p>새 파일은 <strong class="accent4">UTF-8</strong>, 엑셀용은 <strong class="accent4">utf-8-sig</strong>, 옛 파일은 <strong class="accent4">cp949</strong>로 읽기.</p></div>
+          <div class="card" style="text-align:left;"><h3>3. 경로는 pathlib, 확인은 head(3)</h3><p>스크립트 위치 기준으로 찾고, 읽자마자 처음 3행과 개수를 봅니다.</p></div>
+        </div>
+      </div>
+      <aside class="notes">세 습관으로 마무리. 입문 세 덱(터미널 · 파이썬 환경 · 파일 형식)이 끝났습니다. 다음은 중급의 SQL로.</aside>
+    </section>
+
+    <!-- ============= 참고 ============= -->
+    <section data-depth="extra">
+      <div class="vfill">
+        <div class="chip">REFERENCES</div>
+        <h2>더 깊이 보기</h2>
+        <div class="grid-2" style="align-items:stretch; margin-top:.4rem;">
+          <div class="card ref-col">
+            <h3>📘 문서</h3>
+            <ul>
+              <li><a href="https://docs.python.org/3/library/pathlib.html" target="_blank" rel="noopener">pathlib — 파이썬 공식</a><span class="rd">경로 다루기</span></li>
+              <li><a href="https://docs.python.org/3/howto/unicode.html" target="_blank" rel="noopener">Unicode HOWTO</a><span class="rd">인코딩의 원리</span></li>
+              <li><a href="https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html" target="_blank" rel="noopener">pandas.read_csv</a><span class="rd">encoding · sep · skiprows · dtype</span></li>
+              <li><a href="https://www.json.org/json-ko.html" target="_blank" rel="noopener">JSON 소개 (한국어)</a><span class="rd">문법 한 장</span></li>
+            </ul>
+          </div>
+          <div class="card ref-col">
+            <h3>🔗 시리즈 안에서</h3>
+            <ul>
+              <li><a href="../terminal/">터미널 생존 키트</a><span class="rd">상대 경로의 기준</span></li>
+              <li><a href="../python-env/">파이썬 환경 관리</a><span class="rd">이전 단계</span></li>
+              <li><a href="../sql/">SQL과 데이터베이스</a><span class="rd">CSV를 테이블로</span></li>
+              <li><a href="../data-viz/">데이터 분석과 시각화</a><span class="rd">첫 5분 들여다보기</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">엑셀 버전에 따라 UTF-8 CSV를 자동으로 알아보는 경우도 있습니다. 확실하게 하려면 utf-8-sig.</aside>
+    </section>
+  </div>
+</div>
+
+<!-- reveal.js 5.1.0 — inlined for offline/self-contained deck (MIT, Hakim El Hattab) -->
+<script src="../vendor/reveal/reveal.js"></script>
+<!-- 핵심만 보기: data-depth="extra" 장 접기 + 3분 요약 (Reveal.initialize 보다 먼저) -->
+<script src="../assets/core.js"></script>
+<script src="../vendor/reveal/notes.js"></script>
+<script>
+  Reveal.initialize({
+    plugins: typeof RevealNotes !== 'undefined' ? [RevealNotes] : [],
+    hash: true,
+    hashOneBasedIndex: true,
+    controls: true,
+    controlsLayout: 'edges',
+    progress: true,
+    slideNumber: 'c/t',
+    transition: 'fade',
+    backgroundTransition: 'fade',
+    width: 1280,
+    height: 800,
+    margin: 0.04,
+    minScale: 0.2,
+    maxScale: 2.0,
+    center: false,
+  });
+
+  // ===== 목차 드롭다운 =====
+  (function () {
+    const sel = document.getElementById('tocSelect');
+    if (!sel) return;
+    const slides = Array.from(document.querySelectorAll('.reveal .slides > section'));
+    const clean = (t) => (t || '').replace(/\s+/g, ' ').trim().slice(0, 34);
+    // <br/>는 textContent 에서 사라져 단어가 붙는다 — 공백으로 바꿔 읽는다
+    const brText = (el) => { const c = el.cloneNode(true); c.querySelectorAll('br').forEach((b) => b.replaceWith(' ')); return c.textContent; };
+    slides.forEach((s, i) => {
+      const h = s.querySelector('h1, h2');
+      const label = clean(h ? brText(h) : '') || ('페이지 ' + (i + 1));
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = (i + 1) + '. ' + label;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', () => {
+      const i = Number(sel.value);
+      if (!Number.isNaN(i)) Reveal.slide(i);
+      sel.blur(); // 방향키가 다시 슬라이드 내비게이션으로 가도록
+    });
+    Reveal.on('slidechanged', (e) => { sel.value = String(e.indexh); });
+    Reveal.on('ready', (e) => { sel.value = String(e.indexh); });
+  })();
+
+  // ===== 전체화면 =====
+  (function () {
+    const fsBtn = document.getElementById('fullscreenBtn');
+    if (!fsBtn) return;
+    if (!document.fullscreenEnabled) { document.documentElement.classList.add('no-fullscreen'); return; }
+    fsBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    });
+  })();
+</script>
+
+
+<!-- 통합 발표 플랫폼: 질문·이모지·슬라이드 동기화는 모든 덱이 공유하는 assets/qa.js 하나가 담당한다. -->
+<link rel="stylesheet" href="../assets/qa.css">
+<script src="../assets/qa.js" defer></script>
+
+</body>
+</html>

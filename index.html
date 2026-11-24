@@ -1087,30 +1087,30 @@
           </span>
           <p class="mdesc">Traceback 해부(결론 · 내 줄 · 지나온 길), 흔한 에러 10가지, KeyError · 한글 CSV 인코딩 · NoneType 사례, AI에게 넘기는 다섯 칸 템플릿.</p>
         </a>
-        <div class="card mini plan">
+        <a class="card mini" href="terminal/">
           <span class="emoji">⌨️</span>
           <span class="mini-main">
             <h3>터미널 생존 키트 — 경로 · 환경변수 · PATH</h3>
             <span class="sym">"명령을 찾을 수 없음"이 무슨 뜻인지 모르겠다</span>
           </span>
-          <p class="mdesc">준비 중 — 현재 폴더와 경로, cd · ls, 환경변수와 PATH, 명령을 못 찾는 이유.</p>
-        </div>
-        <div class="card mini plan">
+          <p class="mdesc">프롬프트 읽기, cd와 폴더 지도, 절대 · 상대 경로, 생존 명령 열 개, 환경변수 쪽지, PATH 검색 순서, 스토어 파이썬 함정, 에러 사전, AI 위험 명령.</p>
+        </a>
+        <a class="card mini" href="python-env/">
           <span class="emoji">🐍</span>
           <span class="mini-main">
             <h3>파이썬 환경 관리 — venv · pip · requirements.txt</h3>
             <span class="sym">어제는 됐는데 오늘은 안 된다</span>
           </span>
-          <p class="mdesc">준비 중 — 가상환경, 패키지 설치와 버전 고정, 사내 미러, "어제는 됐는데"의 원인.</p>
-        </div>
-        <div class="card mini plan">
+          <p class="mdesc">공용 공구함 vs 프로젝트별 상자, venv 켜기와 실행 정책, python -m pip, == 버전 고정, 범인 다섯, 진단 세 줄, VS Code 인터프리터, 사내 미러 · 오프라인 설치.</p>
+        </a>
+        <a class="card mini" href="file-formats/">
           <span class="emoji">📄</span>
           <span class="mini-main">
             <h3>파일 형식 기초 — CSV · JSON · YAML · 인코딩</h3>
             <span class="sym">한글이 깨지고 경로가 안 맞는다</span>
           </span>
-          <p class="mdesc">준비 중 — 표 · 설정 · 데이터 파일의 차이, 인코딩, 경로의 \와 /.</p>
-        </div>
+          <p class="mdesc">같은 데이터 세 그릇, CSV · JSON · YAML 함정, 글자가 바이트가 되는 원리, UTF-8 · CP949 · utf-8-sig 처방, 줄바꿈, 역슬래시와 pathlib.</p>
+        </a>
       </div>
       <div class="track">
         <div class="track-head th-deep"><span class="tno">02</span>중급<span class="tline"></span></div>
@@ -1173,14 +1173,14 @@
           </span>
           <p class="mdesc">기능과 정리를 섞지 않기, 위험 신호 여섯 가지, 골든 출력 안전망, 복붙 · 마법의 숫자 정리 예시, 폴더와 의존 방향, AI 리팩터링의 함정.</p>
         </a>
-        <div class="card mini plan">
+        <a class="card mini" href="docker/">
           <span class="emoji">🐳</span>
           <span class="mini-main">
-            <h3>Docker — K8S 앞 단계, 상자에 담기</h3>
+            <h3>Docker — 컨테이너와 샌드박스, 상자에 담기</h3>
             <span class="sym">다른 서버에서는 돌아가지 않는다</span>
           </span>
-          <p class="mdesc">준비 중 — 이미지와 컨테이너, Dockerfile, 사내 레지스트리 · 미러, docker compose.</p>
-        </div>
+          <p class="mdesc">FOUP 비유, 이미지와 컨테이너, VM과의 차이, 칸막이 네 개, Dockerfile 층, 포트 · 볼륨 · compose, 샌드박스 다섯 문, Claude Code의 /sandbox와 dev container.</p>
+        </a>
         <div class="card mini plan">
           <span class="emoji">📈</span>
           <span class="mini-main">
@@ -1251,10 +1251,10 @@
       </div>
     </div>
     <div class="path-note roadmap-order"><b>추천 순서</b>
-      <a class="step" href="architecture/">① 구조 한 장</a><a class="step" href="errors/">에러 읽기</a><span class="arr">→</span>
+      <a class="step" href="terminal/">① 터미널</a><a class="step" href="python-env/">파이썬 환경</a><a class="step" href="file-formats/">파일 형식</a><a class="step" href="architecture/">구조 한 장</a><a class="step" href="errors/">에러 읽기</a><span class="arr">→</span>
       <a class="step" href="sql/">② SQL</a><a class="step" href="data-viz/">데이터 분석</a><span class="arr">→</span>
       <a class="step" href="refactor/">③ 코드 관리</a><a class="step" href="e2e/">E2E</a><a class="step" href="review/">리뷰</a><a class="step" href="mcp-skill-md/">MCP · Skill · .MD</a><span class="arr">→</span>
-      <span class="step">④ Docker (준비 중)</span><span class="arr">→</span>
+      <a class="step" href="docker/">④ Docker</a><span class="arr">→</span>
       <a class="step" href="k8s/">☸️ K8S 첫걸음</a>
     </div>
   </section>
@@ -2366,6 +2366,10 @@
     { ico: "☸️", label: "K8S 첫걸음 — 내 도구를 팀이 쓰는 서버로", meta: "k8s/", run: function () { location.href = "k8s/"; } },
     { ico: "🧱", label: "프로그램의 구조 한 장 — 프론트 · 백엔드 · API · DB", meta: "architecture/", run: function () { location.href = "architecture/"; } },
     { ico: "🧾", label: "에러 메시지 읽는 법 — 아래에서부터, 줄 번호부터", meta: "errors/", run: function () { location.href = "errors/"; } },
+    { ico: "⌨️", label: "터미널 생존 키트 — 경로 · 환경변수 · PATH", meta: "terminal/", run: function () { location.href = "terminal/"; } },
+    { ico: "🐍", label: "파이썬 환경 관리 — venv · pip · requirements.txt", meta: "python-env/", run: function () { location.href = "python-env/"; } },
+    { ico: "📄", label: "파일 형식 기초 — CSV · JSON · YAML · 인코딩", meta: "file-formats/", run: function () { location.href = "file-formats/"; } },
+    { ico: "🐳", label: "Docker — 컨테이너와 샌드박스, 상자에 담기", meta: "docker/", run: function () { location.href = "docker/"; } },
     { ico: "🗄️", label: "SQL과 데이터베이스 입문 — 엑셀 표에서 테이블로", meta: "sql/", run: function () { location.href = "sql/"; } },
     { ico: "🧪", label: "E2E 테스트 — 사용자처럼, 처음부터 끝까지", meta: "e2e/", run: function () { location.href = "e2e/"; } },
     { ico: "🧩", label: "MCP · Skill · .MD — 규칙은 .MD, 절차는 Skill, 연결은 MCP", meta: "mcp-skill-md/", run: function () { location.href = "mcp-skill-md/"; } },

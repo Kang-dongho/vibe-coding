@@ -27,6 +27,9 @@ window.SEMINAR_DECKS = [
   { track: '03 직접 해보기', id: 'making-slides', emoji: '🎬', title: '바이브 코딩으로 슬라이드 자료 만들기', desc: '레퍼런스 앵커링 → 좌표+증상 피드백 → 스킬' },
   { track: '03 직접 해보기', id: 'automation', emoji: '🔌', title: '내 도구가 혼자 돌게 — 연결 · 예약 실행 · 팀 공유', desc: '커넥터(MCP) · 예약 실행 · 팀이 같이 쓰는 앱' },
   { track: '03 직접 해보기', id: 'k8s', emoji: '☸️', title: 'K8S 첫걸음 — 내 도구를 팀이 쓰는 서버로', desc: '컨테이너 · Pod·Deployment·Service·Ingress · 사내망 · get·describe·logs' },
+  { track: '04 다음 지도', id: 'terminal', emoji: '⌨️', title: '터미널 생존 키트 — 경로 · 환경변수 · PATH', desc: '프롬프트 · cd · 상대 경로 · 환경변수 · PATH · 에러 사전' },
+  { track: '04 다음 지도', id: 'python-env', emoji: '🐍', title: '파이썬 환경 관리 — venv · pip · requirements.txt', desc: 'venv · python -m pip · == 고정 · sys.executable · 사내 미러' },
+  { track: '04 다음 지도', id: 'file-formats', emoji: '📄', title: '파일 형식 기초 — CSV · JSON · YAML · 인코딩', desc: 'CSV · JSON · YAML 함정 · UTF-8 · CP949 · utf-8-sig · pathlib' },
   { track: '04 다음 지도', id: 'architecture', emoji: '🧱', title: '프로그램의 구조 한 장 — 프론트 · 백엔드 · API · DB', desc: '식당으로 보는 네 층 · 클릭 하나 따라가기 · Streamlit 비교 · F12 · 증상으로 층 찾기' },
   { track: '04 다음 지도', id: 'errors', emoji: '🧾', title: '에러 메시지 읽는 법 — 아래에서부터, 줄 번호부터', desc: 'Traceback 해부 · 흔한 에러 10 · 사례 3개 · AI에게 넘기는 법' },
   { track: '04 다음 지도', id: 'sql', emoji: '🗄️', title: 'SQL과 데이터베이스 입문 — 엑셀 표에서 테이블로', desc: 'WHERE · GROUP BY · JOIN · 실행 순서 · NULL · 검산 · 읽기 전용' },
@@ -34,6 +37,7 @@ window.SEMINAR_DECKS = [
   { track: '04 다음 지도', id: 'mcp-skill-md', emoji: '🧩', title: 'MCP · Skill · .MD — 규칙은 .MD, 절차는 Skill, 연결은 MCP', desc: 'CLAUDE.md · AGENTS.md · SKILL.md · MCP · .mcp.json · 판단표' },
   { track: '04 다음 지도', id: 'data-viz', emoji: '📊', title: '데이터 분석과 시각화 — pandas와 믿을 수 있는 차트', desc: '들여다보기 · 차트 고르기 · 분포 · 차트의 거짓말 · 관리도 · 검산' },
   { track: '04 다음 지도', id: 'refactor', emoji: '🧹', title: '커진 코드 관리하기 — 리팩터링 · 폴더 구조', desc: '위험 신호 · 골든 출력 · 전후 예시 · 의존 방향 · AI 리팩터링 함정' },
+  { track: '04 다음 지도', id: 'docker', emoji: '🐳', title: 'Docker — 컨테이너와 샌드박스, 상자에 담기', desc: '이미지 · 컨테이너 · VM 비교 · Dockerfile · 볼륨 · compose · 샌드박스 · dev container' },
   { track: '04 다음 지도', id: 'review', emoji: '👀', title: '사람이 리뷰하는 법 — 비개발자의 승인 체크리스트', desc: 'diff 읽기 · 다섯 질문 · 문제 diff 예시 · 빨간 깃발 · 독립 리뷰' },
 
   { track: '번외', id: 'forChildren', emoji: '🎮', title: '나만의 게임 만들기', desc: '어린이 × 부모 — AI와 함께 게임 만들기' },

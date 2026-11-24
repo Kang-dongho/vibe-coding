@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>파이썬 환경 관리 — venv · pip · requirements.txt | 바이브 코딩 세미나</title>
+  <meta name="description" content="어제는 됐는데 오늘은 안 된다면. 프로젝트마다 가상환경을 만들고, 패키지 버전을 고정하고, 지금 어느 파이썬이 도는지 확인하는 법. 사내 미러와 오프라인 설치, VS Code 인터프리터, AI에게 환경 규칙 알려 주기." />
+  <meta name="keywords" content="파이썬 가상환경, venv, pip, requirements.txt, pip freeze, ModuleNotFoundError, 사내 PyPI 미러, uv, 바이브 코딩, 입문" />
+  <meta name="author" content="Kang-dongho" />
+  <meta name="theme-color" content="#06080F" />
+  <!-- 형식: geniuskey/vibe-coding (CC BY-NC 4.0) 덱 구조 재사용 · 이 덱의 내용은 추가 작성분 -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOUI4MkZGIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMkJFQUQwIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgeD0iMS41IiB5PSIxLjUiIHdpZHRoPSIyOSIgaGVpZ2h0PSIyOSIgcng9IjgiIGZpbGw9IiMwRTEyMjAiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTkgMTFsNiA1LTYgNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjIuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTE3IDIxaDYiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSIyLjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPgo=" />
+  <link rel="stylesheet" href="../vendor/reveal/reveal.css">
+  <link rel="stylesheet" href="../vendor/fonts/pretendard.css">
+  <style>
+    :root {
+      --bg-0: #06080F;
+      --bg-1: #0E1220;
+      --bg-2: #161B30;
+      --fg: #FFFFFF;
+      --fg-dim: #E2E6F0;
+      --fg-soft: #B8BFD0;
+      --accent: #9B82FF;
+      --accent-2: #2BEAD0;
+      --accent-3: #FF7A95;
+      --accent-4: #FFD46B;
+      --danger: #FF4D5E;
+    }
+
+    html { color-scheme: dark; }
+    html, body { background: var(--bg-0) !important; }
+    /* gradient mesh background — 원본 데크와 동일한 분위기 */
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(124,92,255,0.13), transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(0,224,199,0.10), transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(255,94,126,0.04), transparent 60%);
+    }
+    body::after {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(124,92,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,92,255,0.05) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 75%);
+    }
+    .reveal { background: transparent; position: relative; z-index: 1; }
+
+    .reveal { font-family: 'Pretendard', system-ui, sans-serif; color: #FFFFFF; }
+    .reveal .slides { text-align: left; }
+    .reveal section { padding: 16px 52px; box-sizing: border-box; height: 100%; word-break: keep-all; }
+
+    /* HARD RULE: every text descendant defaults to pure white. */
+    .reveal section,
+    .reveal section p,
+    .reveal section li,
+    .reveal section span,
+    .reveal section em,
+    .reveal section strong,
+    .reveal section h1,
+    .reveal section h2,
+    .reveal section h3,
+    .reveal section h4 {
+      color: #FFFFFF;
+    }
+
+    .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+      font-family: 'Pretendard', system-ui, sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: none;
+      margin: 0 0 0.4em 0;
+      line-height: 1.15;
+      color: #FFFFFF !important;
+      text-shadow:
+        0 1px 0 rgba(0,0,0,0.85),
+        0 2px 4px rgba(0,0,0,0.55);
+    }
+    .reveal section p,
+    .reveal section li {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.75);
+    }
+    .reveal .quote, .reveal .quote * {
+      text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+    }
+    .reveal .grad {
+      text-shadow: none !important; /* background-clip:text 위 그림자는 그라데이션을 탁하게 만든다 */
+    }
+    .reveal h1 { font-size: 4.2rem; }
+    .reveal h2 { font-size: 2.9rem; }
+    .reveal h3 { font-size: 2.0rem; }
+    .reveal p, .reveal li { font-size: 1.45rem; line-height: 1.6; }
+
+    .reveal a { color: #5BFFE0 !important; }
+
+    /* Toolbar — fixed top-right */
+    .dl-toolbar {
+      position: fixed;
+      top: 16px; right: 16px;
+      z-index: 9999;
+      display: flex;
+      gap: 8px;
+    }
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      background: rgba(20, 22, 44, 0.85);
+      border: 1px solid rgba(155, 130, 255, 0.5);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #E6D9FF !important;
+      text-decoration: none !important;
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      white-space: nowrap;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .dl-btn:hover {
+      opacity: 1;
+      transform: translateY(-2px);
+      background: rgba(124, 92, 255, 0.4);
+      border-color: rgba(91, 255, 224, 0.7);
+    }
+    .dl-btn:focus-visible,
+    .transition-select:focus-visible {
+      opacity: 1;
+      outline: 2px solid #5BFFE0;
+      outline-offset: 2px;
+    }
+    .transition-select {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 14px;
+      background: rgba(20, 22, 44, 0.85);
+      border: 1px solid rgba(155, 130, 255, 0.5);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #E6D9FF !important;
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .transition-select:hover { opacity: 1; transform: translateY(-2px); }
+    .transition-select option { background: #14162C; color: #E1D9FF; }
+    #tocSelect { width: 340px; max-width: 340px; }
+    @media (max-width: 760px) {
+      .dl-toolbar { top: 8px; right: 8px; left: 8px; gap: 6px; justify-content: flex-end; }
+      #tocSelect { flex: 1 1 auto; width: auto; min-width: 0; max-width: 340px; text-overflow: ellipsis; }
+      .dl-toolbar .dl-btn { flex: none; padding: 7px 11px; }
+      .dl-toolbar .dl-btn > span:not([aria-hidden]) {
+        position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+      }
+      .dl-toolbar .dl-btn > span[aria-hidden] { font-size: 0.95rem; }
+    }
+    /* 전체화면을 못 쓰는 브라우저(iOS Safari 등)에서는 버튼을 숨긴다 */
+    .no-fullscreen #fullscreenBtn { display: none; }
+
+    .reveal .slide-number {
+      color: #E6D9FF;
+      right: auto;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      background: rgba(20, 22, 44, 0.6);
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .reveal .controls { color: #B5A1FF; }
+    .reveal .controls[data-controls-layout="edges"] .navigate-left,
+    .reveal .controls[data-controls-layout="edges"] .navigate-right {
+      top: auto;
+      bottom: 8px;
+      margin-top: 0;
+    }
+    .reveal .controls[data-controls-layout="edges"] .navigate-left { left: 20px; }
+    .reveal .controls[data-controls-layout="edges"] .navigate-right { right: 20px; }
+    .reveal .controls .controls-arrow { opacity: 0.55; transition: opacity 0.3s ease; }
+    .reveal .controls .controls-arrow:hover { opacity: 1; }
+    .reveal .progress { color: #B5A1FF; }
+
+    /* utility */
+    .reveal .accent  { color: #B5A1FF !important; }
+    .reveal .accent2 { color: #5BFFE0 !important; }
+    .reveal .accent3 { color: #FF94AC !important; }
+    .reveal .accent4 { color: #FFE08A !important; }
+    .reveal .muted   { color: #E6D9FF !important; }
+    .reveal .danger  { color: #FF8A96 !important; }
+    .reveal em       { color: #FFE08A !important; font-style: italic; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .center { text-align: center; }
+    .stack { display: flex; flex-direction: column; gap: 1.2rem; }
+    .row { display: flex; gap: 2rem; align-items: center; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .small { font-size: 1.18rem; }
+    .tiny  { font-size: 1.0rem; }
+    .reveal p.small, .reveal li.small, .reveal span.small { font-size: 1.18rem; }
+    .reveal p.tiny, .reveal span.tiny { font-size: 1.0rem; }
+    .vfill { height: 100%; display: flex; flex-direction: column; justify-content: center; }
+    /* flex 컨테이너에서 chip이 가로로 늘어나지 않도록 */
+    .vfill > .chip { align-self: flex-start; }
+    .vfill.center > .chip { align-self: center; }
+
+    /* gradient text (정적) */
+    .reveal .grad, .reveal section .grad {
+      background: linear-gradient(120deg, #B5A1FF 0%, #5BFFE0 50%, #FF94AC 100%) !important;
+      background-size: 100% 100% !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      color: transparent !important;
+      font-weight: 800;
+      filter: drop-shadow(0 0 22px rgba(155,130,255,0.28));
+    }
+
+    .chip {
+      display:inline-block; padding: .35em 1em;
+      border-radius: 6px; font-family: 'JetBrains Mono', monospace;
+      font-size: .95rem; color: #FFFFFF !important;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: #2A2150;
+      border: 1px solid rgba(155, 130, 255, 0.8);
+      margin-bottom: 1.5rem;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 0.35em 0.9em;
+      border-radius: 999px;
+      background: #2A2150;
+      border: 1px solid rgba(155,130,255,0.8);
+      color: #E1D9FF !important;
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .pill.green { background: #0D3D38; border-color: rgba(43,234,208,0.85); color: #C5FFF5 !important; }
+    .pill.pink  { background: #4A1A26; border-color: rgba(255,122,149,0.85); color: #FFD0DA !important; }
+    .pill.amber { background: #463817; border-color: rgba(255,212,107,0.85); color: #FFEFC2 !important; }
+
+    /* card — glassmorphism */
+    .card {
+      background: linear-gradient(160deg, rgba(40, 30, 80, 0.55), rgba(20, 50, 60, 0.45));
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(155,130,255,0.45);
+      border-radius: 18px;
+      padding: 1.6rem 1.8rem;
+      box-shadow:
+        0 30px 60px -20px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.10);
+      transition: border-color .25s ease-out;
+    }
+    .card:hover { border-color: rgba(155,130,255,0.9); }
+    .card h3 { font-size: 1.5rem; margin: 0 0 0.8rem 0; color: #FFFFFF !important; }
+    .card p { font-size: 1.15rem; line-height: 1.6; margin: 0; color: #E8ECF5 !important; }
+    .card p + p { margin-top: 0.5rem; }
+    .card.bad  { border-color: rgba(255,122,149,0.55); background: linear-gradient(160deg, rgba(80,25,45,0.5), rgba(45,18,35,0.45)); }
+    .card.good { border-color: rgba(43,234,208,0.6); background: linear-gradient(160deg, rgba(15,60,55,0.55), rgba(12,42,48,0.45)); }
+
+    .quote {
+      font-size: 1.7rem;
+      line-height: 1.5;
+      padding: 1.4rem 1.8rem;
+      border-left: 4px solid #2BEAD0;
+      background: #131829;
+      border-radius: 0 12px 12px 0;
+      color: #FFFFFF !important;
+      font-style: italic;
+    }
+    .quote * { color: #FFFFFF !important; }
+    .quote .grad { color: transparent !important; }
+
+    .big {
+      font-size: 7.5rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    /* code / chat block */
+    pre.code {
+      background: #131829;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 14px;
+      padding: 1.1rem 1.3rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.02rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #FFFFFF;
+      margin: 0;
+      white-space: pre-wrap;
+      font-variant-ligatures: none;
+    }
+    .code .kw { color: var(--accent); font-weight: 600; }
+    .code .st { color: var(--accent-2); }
+    .code .cm { color: #E6D9FF; font-style: italic; }
+    .code .nm { color: var(--accent-4); }
+    pre.code.bad  { border-color: rgba(255,122,149,0.55); }
+    pre.code.good { border-color: rgba(43,234,208,0.6); }
+
+    kbd.key {
+      display: inline-block;
+      padding: 0.2em 0.65em;
+      margin: 0 0.1em;
+      border-radius: 7px;
+      background: #201A3D;
+      border: 1px solid rgba(155,130,255,0.6);
+      border-bottom: 3px solid rgba(155,130,255,0.6);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.92em;
+      font-weight: 700;
+      color: #E1D9FF;
+    }
+
+    /* ========= 순서를 돕는 짧은 등장 — 300ms ease-out, 한 장 안에서 최대 0.3s 지연 ========= */
+    .autoshow { opacity: 0; }
+    section.present .autoshow { animation: asFadeUp .32s cubic-bezier(.2,.7,.3,1) forwards; }
+    section.present .autoshow.fade-in { animation-name: asFadeIn; }
+    @keyframes asFadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+    @keyframes asFadeIn { from { opacity:0; } to { opacity:1; } }
+    .autoshow:nth-child(2) { animation-delay: .06s; }
+    .autoshow:nth-child(3) { animation-delay: .12s; }
+    .autoshow:nth-child(4) { animation-delay: .18s; }
+    .autoshow:nth-child(5) { animation-delay: .24s; }
+    .autoshow:nth-child(n+6) { animation-delay: .3s; }
+
+    /* ========= 리스트 유틸 ========= */
+    .list-clean { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .55rem; }
+    .list-clean li { font-size: 1.22rem !important; line-height: 1.5; }
+
+    /* ========= 사다리(단계 목록) ========= */
+    .ladder { display: flex; flex-direction: column; gap: .45rem; }
+    .ladder .rung {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .55rem 1.2rem; border-radius: 10px;
+      border: 1px solid rgba(155,130,255,0.35);
+      background: rgba(40,30,80,0.28);
+      font-size: 1.18rem; font-weight: 700;
+    }
+    .ladder .rung .no {
+      font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1rem;
+      color: #B5A1FF !important; width: 1.6em; flex: 0 0 auto;
+    }
+    .ladder .rung .w {
+      margin-left: auto; font-family: 'JetBrains Mono', monospace;
+      font-size: .9rem; color: #C9D2E4 !important; white-space: nowrap; padding-left: 1rem;
+    }
+
+    /* ========= 4단계 루프 ========= */
+    .loop-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; }
+    .loop-step {
+      display: flex; flex-direction: column; gap: .25rem; align-items: flex-start;
+      padding: .7rem .9rem; border-radius: 12px;
+      border: 1px solid rgba(190,200,224,0.4);
+      background: rgba(230,236,249,0.06);
+    }
+    .loop-step .no { font-family: 'JetBrains Mono', monospace; font-size: .8rem; font-weight: 800; color: #B5A1FF !important; }
+    .loop-step .nm2 { font-size: 1.12rem; font-weight: 800; }
+    .loop-step.hot { border-color: rgba(43,234,208,.65); background: rgba(43,234,208,.08); }
+    .loop-step.hot .no { color: #5BFFE0 !important; }
+
+    /* ========= SVG 글자 가독성 ========= */
+    .reveal section svg text { paint-order: stroke fill; stroke: #06080F; stroke-width: 1.2px; stroke-linejoin: round; }
+
+    /* ========= 슬라이드 하단 레퍼런스 링크 ========= */
+    .slide-refs {
+      position: absolute; left: 56px; bottom: 12px; z-index: 3;
+      display: flex; gap: 1.1rem; align-items: center; flex-wrap: wrap;
+      max-width: 40%;
+      font-family: 'JetBrains Mono', monospace; font-size: .78rem;
+      opacity: .8;
+    }
+    .slide-refs .rl { color: #9BA6C0 !important; font-weight: 800; letter-spacing: .12em; }
+    .slide-refs a {
+      color: #8FF5E2 !important; text-decoration: none !important;
+      border-bottom: 1px dotted rgba(91,255,224,.45); white-space: nowrap;
+    }
+    .slide-refs a:hover { color: #5BFFE0 !important; border-bottom-color: #5BFFE0; }
+
+    /* ========= 참고자료 슬라이드 ========= */
+    .ref-col h3 { font-size: 1.3rem; }
+    .ref-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
+    .ref-col li { font-size: 1.02rem !important; line-height: 1.45; }
+    .ref-col li a { font-weight: 700; }
+    .ref-col li .rd { display: block; font-size: .88rem; color: #B8BFD0 !important; }
+
+    /* ========= 실습 박스 — 배우는 것 · 완료 기준 · 막히면 ========= */
+    .lab-learn { font-size: 1.12rem !important; color: #E2E6F0 !important; margin: 0 0 .7rem; }
+    .lab-learn b { color: #C5FFF5 !important; }
+    .done-box, .stuck-box {
+      border-radius: 12px; padding: .7rem 1rem .8rem;
+      display: flex; flex-direction: column; gap: .3rem;
+    }
+    .done-box  { border: 1.5px solid rgba(43,234,208,.75); background: rgba(13,61,56,.45); }
+    .stuck-box { border: 1px dashed rgba(255,212,107,.6); background: rgba(70,56,23,.18); }
+    .done-box .bx-t, .stuck-box .bx-t {
+      font-family: 'JetBrains Mono', monospace; font-size: .85rem; font-weight: 800; letter-spacing: .05em; margin: 0;
+    }
+    .done-box .bx-t  { color: #8FF5E2 !important; }
+    .stuck-box .bx-t { color: #FFE08A !important; }
+    .done-box p, .stuck-box p, .done-box li, .stuck-box li { font-size: 1rem !important; line-height: 1.45; margin: 0; color: #E8ECF5 !important; }
+    .done-box ul, .stuck-box ul { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: .2rem; }
+
+    /* ========= 보안 약속 (시리즈 공통) ========= */
+    .promise-list { display: flex; flex-direction: column; gap: .6rem; }
+    .promise {
+      display: grid; grid-template-columns: 2.4rem 1fr; gap: .2rem 1rem; align-items: baseline;
+      padding: .75rem 1.2rem; border-radius: 14px;
+      border: 1px solid rgba(255,122,149,.55); background: rgba(80,25,45,.32);
+    }
+    .promise .pn { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 900; color: #FF94AC !important; grid-row: span 2; }
+    .promise b { font-size: 1.28rem; line-height: 1.4; }
+    .promise span.why { font-size: 1rem; color: #D6DCEA !important; line-height: 1.45; }
+    .plus-one {
+      margin-top: .7rem; padding: .6rem 1.1rem; border-radius: 12px;
+      border: 1px dashed rgba(155,130,255,.6); background: rgba(40,30,80,.3);
+      font-size: 1.05rem;
+    }
+    .plus-one .po-t { font-family: 'JetBrains Mono', monospace; font-size: .82rem; font-weight: 800; color: #CBBDFF !important; margin-right: .6rem; }
+
+    /* ========= security 전용 시그니처 컴포넌트 ========= */
+    /* ① 데이터 흐름 지도 — 내 상자에서 외부 모델로 나가는 경로 */
+    .flowmap { display:flex; align-items:stretch; gap:0; justify-content:center; margin:.6rem 0; flex-wrap:nowrap; }
+    .flow-node {
+      flex:1 1 0; min-width:0; padding:1rem .9rem; border-radius:14px;
+      border:1px solid rgba(155,130,255,.4); background:rgba(230,236,249,.05);
+      display:flex; flex-direction:column; gap:.3rem; text-align:center;
+    }
+    .flow-node h4 { font-size:1.15rem; font-weight:800; margin:0; }
+    .flow-node p { font-size:.98rem; color:#D6DCEA !important; margin:0; }
+    .flow-node.mine { border-color:rgba(43,234,208,.7); background:rgba(43,234,208,.08); }
+    .flow-node.out  { border-color:rgba(255,122,149,.7); background:rgba(255,122,149,.08); }
+    .flow-arrow { flex:0 0 auto; align-self:center; padding:0 .5rem; font-size:1.7rem; color:#FFD46B; }
+    .flow-arrow small { display:block; font-size:.72rem; color:#9BA6C0; letter-spacing:.03em; }
+
+    /* ② 신뢰 경계선 — 내가 쓴 것 vs 외부에서 온 것 */
+    .trustzone { display:grid; grid-template-columns:1fr auto 1fr; align-items:stretch; gap:0; margin:.5rem 0; }
+    .tz-side { padding:1rem 1.1rem; border-radius:14px; display:flex; flex-direction:column; gap:.5rem; }
+    .tz-side.trusted { border:1px solid rgba(43,234,208,.55); background:rgba(43,234,208,.06); }
+    .tz-side.untrusted { border:1px solid rgba(255,122,149,.55); background:rgba(255,122,149,.06); }
+    .tz-side h4 { margin:0; font-size:1.18rem; font-weight:800; }
+    .tz-side .tz-item { font-size:1rem; color:#E2E6F0 !important; }
+    .tz-fence {
+      width:0; border-left:3px dashed rgba(255,212,107,.8); margin:0 1.2rem;
+      position:relative;
+    }
+    .tz-fence::after {
+      content:"🚧 신뢰 경계"; position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%) rotate(90deg); white-space:nowrap;
+      font-family:'JetBrains Mono',monospace; font-size:.78rem; font-weight:800;
+      color:#FFD46B !important; background:var(--bg-0); padding:.2rem .5rem;
+    }
+
+    /* ③ 프롬프트 인젝션 무대 — 숨은 지시가 도구를 움직인다 */
+    .inj-stage { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:center; gap:0; margin:.5rem 0; }
+    .inj-card {
+      padding:.9rem 1rem; border-radius:14px; border:1px solid rgba(155,130,255,.4);
+      background:rgba(230,236,249,.05); text-align:center; display:flex; flex-direction:column; gap:.35rem;
+    }
+    .inj-card .inj-ico { font-size:2rem; line-height:1; }
+    .inj-card h4 { margin:0; font-size:1.08rem; font-weight:800; }
+    .inj-card p { margin:0; font-size:.92rem; color:#D6DCEA !important; }
+    .inj-card.hidden-cmd { border-color:rgba(255,122,149,.75); background:rgba(255,122,149,.1); }
+    .inj-card.boom { border-color:var(--danger); background:rgba(255,77,94,.12); }
+    .inj-flow { flex:0 0 auto; text-align:center; padding:0 .4rem; }
+    .inj-flow .a { font-size:1.6rem; color:#FF7A95; }
+    .inj-flow small { display:block; font-size:.72rem; color:#9BA6C0; }
+
+    /* 삼각 위험(치명적 3요소) 배지 */
+    .triad { display:flex; gap:.8rem; justify-content:center; flex-wrap:wrap; margin-top:.5rem; }
+    .triad .tbadge {
+      padding:.55rem 1rem; border-radius:999px; font-weight:800; font-size:1.02rem;
+      border:1px solid rgba(255,122,149,.6); background:rgba(255,122,149,.09);
+    }
+
+    /* ④ 권한 다이얼 — plan · manual · auto(기본) · bypass */
+    .permrow { display:flex; align-items:stretch; gap:.7rem; justify-content:center; flex-wrap:nowrap; margin:.5rem 0; }
+    .perm-step {
+      flex:1 1 0; min-width:0; padding:.85rem .8rem; border-radius:14px; text-align:center;
+      border:1px solid rgba(190,200,224,.35); background:rgba(230,236,249,.05);
+      display:flex; flex-direction:column; gap:.3rem;
+    }
+    .perm-step h4 { margin:0; font-size:1.06rem; font-weight:800; }
+    .perm-step p { margin:0; font-size:.9rem; color:#D6DCEA !important; }
+    .perm-step.p1 { border-color:rgba(43,234,208,.6); }
+    .perm-step.p2 { border-color:rgba(155,130,255,.6); }
+    .perm-step.p3 { border-color:rgba(255,212,107,.6); }
+    .perm-step.p4 { border-color:rgba(255,122,149,.65); background:rgba(255,122,149,.08); }
+    .perm-step.is-default { box-shadow:0 0 0 2px rgba(255,212,107,.85); }
+    .perm-default { align-self:center; font-size:.7rem; font-weight:800; padding:.1rem .5rem; border-radius:999px; background:rgba(255,212,107,.18); color:#FFE08A !important; }
+    .perm-gauge { font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.05em; color:#9BA6C0 !important; }
+
+    /* 데이터 등급 매트릭스 */
+    .gov-table { width:100%; border-collapse:collapse; font-size:1rem; }
+    .gov-table th, .gov-table td { border:1px solid rgba(155,130,255,.25); padding:.55rem .7rem; text-align:center; }
+    .gov-table th { font-family:'JetBrains Mono',monospace; font-size:.86rem; color:#B5A1FF !important; letter-spacing:.04em; }
+    .gov-table td.yes { color:#8FF0E2 !important; font-weight:800; }
+    .gov-table td.no  { color:#FF9FB0 !important; font-weight:800; }
+    .gov-table td.ask { color:#FFE29A !important; font-weight:800; }
+
+    @media (max-width: 1100px) {
+      .flowmap, .permrow { flex-wrap:wrap; }
+      .inj-stage, .trustzone { grid-template-columns:1fr; }
+      .tz-fence { display:none; }
+    }
+
+    /* 실습 배지 · 프롬프트 카드 (github 덱과 같은 모양) */
+    .chip.live { background: #0D3D38; border-color: rgba(43,234,208,0.85); color: #C5FFF5 !important; }
+    .chip.warn { background: #4A1A26; border-color: rgba(255,122,149,0.85); color: #FFD0DA !important; }
+    .prompt-card {
+      background: linear-gradient(160deg, rgba(38,30,82,0.72), rgba(16,22,44,0.72));
+      border: 1.5px solid rgba(155,130,255,0.65); border-radius: 16px;
+      padding: .9rem 1.15rem 1rem; margin: 0;
+    }
+    .prompt-card .pc-label {
+      font-family: 'JetBrains Mono', monospace; font-size: .88rem; font-weight: 800; letter-spacing: .06em;
+      color: #CBBDFF !important; margin-bottom: .45rem;
+    }
+    .prompt-card pre.code {
+      margin: 0; border: 0; background: rgba(6,8,15,0.55);
+      font-family: 'Pretendard', system-ui, sans-serif; font-size: 1.12rem; font-weight: 600; line-height: 1.55;
+      white-space: pre-wrap; word-break: keep-all;
+    }
+
+    /* ========= fallbacks: overview / print / reduced-motion ========= */
+    .reveal.overview .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+    .reveal.overview .slides section {
+      display: block !important;
+      cursor: pointer;
+      outline: 1px solid rgba(181, 161, 255, 0.28);
+      outline-offset: -1px;
+      border-radius: 6px;
+    }
+    .reveal.overview .slides section:hover { outline: 2px solid #B5A1FF; }
+    .reveal.overview .slides section.present { outline: 3px solid #5BFFE0; }
+    @media print {
+      .reveal .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .dl-toolbar { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal .autoshow { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .reveal .fragment { transition: none !important; }
+      .card, .dl-btn, .transition-select, .copy-btn { transition: none !important; }
+    }
+  </style>
+  <style>
+    /* ===== 추가 덱 공통 (harness · k8s) ===== */
+    .credit { font-size: .82rem !important; color: #8E96AB !important; margin-top: 1.4rem; }
+    .credit a { color: #B8A6FF !important; }
+
+    /* 표 */
+    .xt { width: 100%; border-collapse: collapse; font-size: 1.02rem; margin-top: .4rem; }
+    .xt th { text-align: left; padding: .5rem .75rem; font: 800 .82rem/1.2 'JetBrains Mono', monospace; letter-spacing: .06em;
+      color: #2BEAD0 !important; border-bottom: 1.5px solid rgba(43,234,208,.45); }
+    .xt td { padding: .55rem .75rem; border-bottom: 1px solid rgba(155,130,255,.22); vertical-align: top; color: #E2E6F0 !important; line-height: 1.45; }
+    .xt td:first-child { font-weight: 700; color: #fff !important; }
+    .xt td .mono, .xt td.mono { font-size: .92em; }
+    .xt tr.hl td { background: rgba(255,212,107,.07); }
+
+    /* 하네스 지도: 모델 + 6칸 */
+    .hmap { display: grid; grid-template-columns: 260px 1fr; gap: 1.4rem; align-items: stretch; margin-top: .5rem; }
+    .hmodel { border: 2px solid #9B82FF; border-radius: 18px; background: rgba(155,130,255,.13);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 1rem; }
+    .hmodel .ico { font-size: 3.4rem; line-height: 1; }
+    .hmodel b { font-size: 1.7rem; margin-top: .4rem; }
+    .hmodel span { font-size: .98rem; color: #B8BFD0 !important; margin-top: .3rem; }
+    .hcells { border: 2px dashed rgba(43,234,208,.75); border-radius: 18px; padding: .9rem; background: rgba(43,234,208,.05);
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; position: relative; }
+    .hcells::before { content: "HARNESS · 내가 고칠 수 있는 부분"; position: absolute; top: -.75rem; left: 1rem; padding: 0 .5rem;
+      background: #0B0F1C; font: 800 .78rem/1.5 'JetBrains Mono', monospace; letter-spacing: .08em; color: #2BEAD0; }
+    .hcell { border: 1px solid rgba(155,130,255,.4); border-radius: 12px; padding: .65rem .8rem; background: rgba(6,8,15,.6); }
+    .hcell b { display: block; font-size: 1.15rem; }
+    .hcell span { display: block; font-size: .9rem; color: #B8BFD0 !important; margin-top: .2rem; line-height: 1.4; }
+    .hcell.on { border-color: #FFD46B; background: rgba(255,212,107,.10); }
+    .hcell.on b { color: #FFD46B !important; }
+
+    /* 한 칸 상세 장 공통 머리 */
+    .slot-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; align-items: start; margin-top: .4rem; }
+    .mini6 { display: inline-grid; grid-template-columns: repeat(6, auto); gap: .25rem; margin-left: .6rem; vertical-align: middle; }
+    .mini6 i { width: .7rem; height: .7rem; border-radius: 3px; background: rgba(155,130,255,.35); display: inline-block; }
+    .mini6 i.on { background: #FFD46B; box-shadow: 0 0 8px #FFD46B; }
+
+    /* 층 (프롬프트 → 컨텍스트 → 하네스) */
+    .layers { display: flex; flex-direction: column; gap: .55rem; margin-top: .5rem; }
+    .layer { display: grid; grid-template-columns: 220px 1fr 1fr; gap: 1rem; align-items: center; padding: .7rem 1rem;
+      border-radius: 14px; border: 1px solid rgba(155,130,255,.35); background: rgba(6,8,15,.5); }
+    .layer b { font-size: 1.2rem; }
+    .layer span { font-size: .98rem; color: #B8BFD0 !important; }
+    .layer.l3 { border-color: rgba(43,234,208,.7); background: rgba(43,234,208,.07); }
+    .layer.l3 b { color: #2BEAD0 !important; }
+
+    /* 래칫 흐름 */
+    .ratchet { display: flex; align-items: stretch; gap: .6rem; margin-top: .6rem; }
+    .ratchet .st { flex: 1; border: 1px solid rgba(155,130,255,.4); border-radius: 14px; padding: .8rem .9rem; background: rgba(6,8,15,.55); }
+    .ratchet .st b { display: block; font-size: 1.12rem; }
+    .ratchet .st span { display: block; font-size: .92rem; color: #B8BFD0 !important; margin-top: .25rem; line-height: 1.45; }
+    .ratchet .ar { align-self: center; color: #2BEAD0; font-size: 1.6rem; }
+    .ratchet .st.end { border-color: #2BEAD0; background: rgba(43,234,208,.08); }
+
+    /* 요청 경로 (k8s) */
+    .reqflow { display: flex; align-items: stretch; gap: .5rem; margin-top: .6rem; }
+    .rq { flex: 1; text-align: center; border-radius: 14px; border: 1px solid rgba(155,130,255,.45); padding: .8rem .5rem; background: rgba(6,8,15,.6); }
+    .rq .ico { font-size: 1.9rem; line-height: 1.2; }
+    .rq b { display: block; font-size: 1.2rem; }
+    .rq span { display: block; font-size: .9rem; color: #B8BFD0 !important; line-height: 1.4; margin-top: .2rem; }
+    .rq.k { border-color: rgba(43,234,208,.7); }
+    .rqa { align-self: center; color: #2BEAD0; font-size: 1.5rem; }
+    .pods { display: flex; justify-content: center; gap: .3rem; margin-top: .45rem; }
+    .pods i { font-style: normal; font: 700 .72rem/1 'JetBrains Mono', monospace; padding: .3rem .4rem; border-radius: 6px;
+      border: 1px solid #2BEAD0; background: rgba(43,234,208,.2); color: #C5FFF5 !important; }
+    .pods i.dead { border-color: #FF7A95; background: rgba(255,122,149,.18); color: #FFD0DA !important; text-decoration: line-through; }
+    .nodebox { margin-top: .9rem; border: 1.5px dashed rgba(155,130,255,.6); border-radius: 14px; padding: .6rem 1rem;
+      font-size: 1rem; color: #B8BFD0 !important; }
+
+    /* 계단 (k8s) */
+    .stairs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; align-items: end; margin-top: .6rem; }
+    .stair { border-radius: 14px; border: 1px solid rgba(155,130,255,.45); background: rgba(6,8,15,.6); padding: .8rem .9rem; }
+    .stair .lv { font: 800 .8rem/1 'JetBrains Mono', monospace; color: #2BEAD0 !important; letter-spacing: .06em; }
+    .stair b { display: block; font-size: 1.15rem; margin: .35rem 0 .3rem; }
+    .stair p { font-size: .9rem !important; color: #B8BFD0 !important; line-height: 1.45; margin: 0; }
+    .stair .when { display: block; margin-top: .5rem; font-size: .85rem; color: #FFD46B !important; }
+    .stair.s1 { min-height: 200px; } .stair.s2 { min-height: 240px; } .stair.s3 { min-height: 280px; } .stair.s4 { min-height: 320px; border-color: #2BEAD0; }
+
+    /* 조정 루프 (k8s) */
+    .loop3 { display: flex; align-items: center; gap: .7rem; margin-top: .6rem; }
+    .loop3 .st { flex: 1; text-align: center; border: 1px solid rgba(155,130,255,.45); border-radius: 14px; padding: .9rem .6rem; background: rgba(6,8,15,.6); }
+    .loop3 .st b { display: block; font-size: 1.25rem; }
+    .loop3 .st span { display: block; font-size: .92rem; color: #B8BFD0 !important; margin-top: .2rem; }
+    .loop3 .ar { color: #2BEAD0; font-size: 1.5rem; }
+
+    pre.code.sm { font-size: .84rem; line-height: 1.5; }
+    .reveal p.codecap, .codecap { font: 800 .78rem/1 'JetBrains Mono', monospace; letter-spacing: .06em; color: #CBBDFF !important; margin: 0 0 .35rem; font-size: .78rem !important; }
+    .note-line { font-size: 1rem !important; color: #B8BFD0 !important; margin-top: .7rem; }
+
+    /* ===== 시각화 · 예시 보강 (v2) ===== */
+    /* 원본 context 덱의 sim-line 패턴 */
+    .sim-list { list-style: none; display: flex; flex-direction: column; gap: .5rem; margin: 0; padding: 0; }
+    .sim-list > li { margin: 0; }
+    .sim-line { display: flex; align-items: center; gap: .8rem; padding: .5rem 1rem; border-radius: 12px;
+      border: 1px solid rgba(190,200,224,0.3); background: rgba(230,236,249,0.05); font-size: 1.02rem !important; line-height: 1.45; }
+    .sim-line .tok { margin-left: auto; font: 800 .82rem/1 'JetBrains Mono', monospace; white-space: nowrap; padding: .3rem .55rem; border-radius: 999px; }
+    .tok.ok   { background: rgba(43,234,208,.16); color: #8FF0E2 !important; border: 1px solid rgba(43,234,208,.5); }
+    .tok.ask  { background: rgba(255,212,107,.14); color: #FFE29A !important; border: 1px solid rgba(255,212,107,.5); }
+    .tok.no   { background: rgba(255,122,149,.14); color: #FF9FB0 !important; border: 1px solid rgba(255,122,149,.5); }
+    .tok.info { background: rgba(155,130,255,.16); color: #CBBDFF !important; border: 1px solid rgba(155,130,255,.5); }
+    .sim-line.fail { border-color: rgba(255,122,149,.55); background: rgba(255,122,149,.07); }
+    .sim-line.pass { border-color: rgba(43,234,208,.55); background: rgba(43,234,208,.07); }
+
+    /* 대화·터미널 재현 */
+    .tx { border-radius: 14px; border: 1px solid rgba(155,130,255,.4); background: #05070E; padding: .7rem .9rem; display: flex; flex-direction: column; gap: .4rem; }
+    .tx-h { font: 800 .76rem/1 'JetBrains Mono', monospace; letter-spacing: .06em; color: #8E96AB !important; padding-bottom: .35rem;
+      border-bottom: 1px solid rgba(155,130,255,.2); display: flex; gap: .5rem; align-items: center; }
+    .tx-h i { width: .55rem; height: .55rem; border-radius: 50%; display: inline-block; background: #FF7A95; }
+    .tx-h i + i { background: #FFD46B; } .tx-h i + i + i { background: #2BEAD0; }
+    .tx-l { font-size: .95rem !important; line-height: 1.45; margin: 0; padding: .3rem .55rem; border-radius: 8px; }
+    .tx-l.me  { background: rgba(155,130,255,.14); color: #E8E2FF !important; }
+    .tx-l.ai  { background: rgba(230,236,249,.05); color: #E2E6F0 !important; }
+    .tx-l.sys { font-family: 'JetBrains Mono', monospace; font-size: .84rem !important; color: #B8BFD0 !important; background: rgba(230,236,249,.03); }
+    .tx-l.bad { background: rgba(255,122,149,.12); color: #FFD0DA !important; }
+    .tx-l.good{ background: rgba(43,234,208,.12); color: #C5FFF5 !important; }
+    .tx-l b.who { font: 800 .74rem/1 'JetBrains Mono', monospace; margin-right: .45rem; letter-spacing: .04em; opacity: .85; }
+    pre.term-out { margin: 0; padding: .7rem .9rem; border-radius: 12px; background: #04060C; border: 1px solid rgba(43,234,208,.4);
+      font: 500 .8rem/1.55 'JetBrains Mono', monospace; color: #D7DCE8 !important; white-space: pre; overflow: hidden; }
+    pre.term-out .hl-r { color: #FF9FB0 !important; font-weight: 800; }
+    pre.term-out .hl-y { color: #FFE29A !important; font-weight: 800; }
+    pre.term-out .hl-g { color: #8FF0E2 !important; font-weight: 800; }
+    pre.term-out .dim  { color: #6E768A !important; }
+
+    /* 에이전트 루프 (SVG + 움직이는 점) */
+    .loopfig { width: 100%; height: auto; display: block; }
+    .loopfig .lbox { fill: rgba(6,8,15,.85); stroke: rgba(155,130,255,.55); stroke-width: 1.5; }
+    .loopfig .lbox.gate { stroke: #FFD46B; stroke-width: 2; }
+    .loopfig .lbox.core { fill: rgba(155,130,255,.18); stroke: #9B82FF; stroke-width: 2.5; }
+    .loopfig text { font-family: 'Pretendard', sans-serif; fill: #E2E6F0; font-size: 15px; font-weight: 700; }
+    .loopfig text.s { font-size: 12px; font-weight: 600; fill: #B8BFD0; }
+    .loopfig text.g { fill: #FFD46B; font-size: 12px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+    .loopfig .track { fill: none; stroke: rgba(43,234,208,.45); stroke-width: 2; stroke-dasharray: 6 6; }
+    .loopfig .runner { fill: none; stroke: #2BEAD0; stroke-width: 16; stroke-linecap: round; stroke-dasharray: 0.5 999.5;
+      stroke-dashoffset: 1000; filter: drop-shadow(0 0 6px #2BEAD0); }
+    section.present .loopfig .runner { animation: runLoop 7s linear infinite; }
+    @keyframes runLoop { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+
+    /* 래칫 톱니 (한 방향으로만, 한 칸씩) */
+    .gear-wrap { display: flex; align-items: center; justify-content: center; }
+    .gear { width: 120px; height: 120px; }
+    .gear .teeth { fill: rgba(43,234,208,.2); stroke: #2BEAD0; stroke-width: 2; transform-origin: 75px 75px; }
+    section.present .gear .teeth { animation: gearStep 4.8s steps(1, end) infinite; }
+    @keyframes gearStep {
+      0% { transform: rotate(0deg); } 16.6% { transform: rotate(30deg); } 33.3% { transform: rotate(60deg); }
+      50% { transform: rotate(90deg); } 66.6% { transform: rotate(120deg); } 83.3% { transform: rotate(150deg); } 100% { transform: rotate(180deg); }
+    }
+    .gear .pawl { fill: #FFD46B; }
+
+    /* 겹친 상자: 프롬프트 ⊂ 컨텍스트 ⊂ 하네스 */
+    .nest { position: relative; height: 330px; }
+    .nest .ring { position: absolute; border-radius: 22px; display: flex; align-items: flex-start; padding: .6rem .9rem; }
+    .nest .ring b { font-size: 1.08rem; }
+    .nest .ring span { display: block; font-size: .84rem; color: #B8BFD0 !important; margin-top: .1rem; }
+    .nest .r3 { inset: 0; border: 2px dashed rgba(43,234,208,.8); background: rgba(43,234,208,.05); }
+    .nest .r3 b { color: #2BEAD0 !important; }
+    .nest .r2 { inset: 92px 26px 26px 26px; border: 1.5px solid rgba(155,130,255,.7); background: rgba(155,130,255,.07); }
+    .nest .r1 { inset: 186px 52px 52px 52px; border: 1.5px solid #FFD46B; background: rgba(255,212,107,.08); }
+    .nest .r1 b { color: #FFD46B !important; }
+    .nest .side { position: absolute; right: 1rem; top: .65rem; display: flex; gap: .3rem; flex-wrap: wrap; max-width: 62%; justify-content: flex-end; }
+    .nest .side i { font-style: normal; font: 700 .72rem/1 'JetBrains Mono', monospace; padding: .28rem .45rem; border-radius: 6px;
+      border: 1px solid rgba(43,234,208,.5); color: #A9FFF0 !important; background: rgba(43,234,208,.08); }
+    section.present .nest .ring { animation: asZoomIn2 .45s cubic-bezier(.2,.7,.3,1) both; }
+    section.present .nest .r2 { animation-delay: .18s; } section.present .nest .r1 { animation-delay: .36s; }
+    @keyframes asZoomIn2 { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+
+    /* K8S — 자가 회복 */
+    .heal { display: flex; justify-content: center; gap: 1rem; margin: .4rem 0 .2rem; }
+    .hpod { width: 118px; height: 78px; border-radius: 14px; border: 2px solid #2BEAD0; background: rgba(43,234,208,.14);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; font: 800 .9rem/1.2 'JetBrains Mono', monospace; color: #C5FFF5 !important; }
+    .hpod small { font-size: .7rem; font-weight: 600; color: #8FF0E2 !important; }
+    section.present .hpod.victim { animation: podDie 6s ease-in-out infinite; }
+    @keyframes podDie {
+      0%, 25%  { border-color: #2BEAD0; background: rgba(43,234,208,.14); opacity: 1; transform: none; }
+      32%, 45% { border-color: #FF7A95; background: rgba(255,122,149,.22); opacity: 1; transform: none; }
+      55%      { opacity: 0; transform: scale(.85); }
+      70%      { opacity: 0; transform: scale(.85); border-color: #2BEAD0; background: rgba(43,234,208,.14); }
+      82%,100% { opacity: 1; transform: none; border-color: #2BEAD0; background: rgba(43,234,208,.14); }
+    }
+    .heal-cap { display: flex; justify-content: center; gap: 1.6rem; font: 700 .86rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; }
+    section.present .heal-cap span:nth-child(1) { animation: capOn 6s infinite; animation-delay: 0s; }
+    section.present .heal-cap span:nth-child(2) { animation: capOn2 6s infinite; }
+    section.present .heal-cap span:nth-child(3) { animation: capOn3 6s infinite; }
+    @keyframes capOn  { 0%,28% { color: #8FF0E2; } 30%,100% { color: #6E768A; } }
+    @keyframes capOn2 { 0%,29% { color: #6E768A; } 31%,66% { color: #FF9FB0; } 68%,100% { color: #6E768A; } }
+    @keyframes capOn3 { 0%,67% { color: #6E768A; } 69%,100% { color: #8FF0E2; } }
+
+    /* K8S — 요청 패킷이 흘러가는 길 */
+    .rq-track { position: relative; height: 14px; margin: .5rem 4% 0; border-top: 2px dashed rgba(43,234,208,.35); }
+    .rq-track .pk { position: absolute; top: -8px; width: 14px; height: 14px; border-radius: 50%; background: #FFD46B; box-shadow: 0 0 10px #FFD46B; opacity: 0; }
+    section.present .rq-track .pk { animation: pkMove 3.2s linear infinite; }
+    section.present .rq-track .pk:nth-child(2) { animation-delay: 1.07s; }
+    section.present .rq-track .pk:nth-child(3) { animation-delay: 2.13s; }
+    @keyframes pkMove { 0% { left: 0; opacity: 0; } 8% { opacity: 1; } 90% { opacity: 1; } 100% { left: 98%; opacity: 0; } }
+    section.present .pods i:not(.dead) { animation: podHit 3.2s infinite; }
+    section.present .pods i:nth-child(2) { animation-delay: 1.07s; }
+    section.present .pods i:nth-child(4) { animation-delay: 2.13s; }
+    @keyframes podHit { 0%, 88% { box-shadow: none; } 94% { box-shadow: 0 0 12px #FFD46B; } 100% { box-shadow: none; } }
+
+    /* K8S — 이미지 층 쌓기 */
+    .layers-stack { display: flex; flex-direction: column-reverse; gap: .35rem; width: 100%; }
+    .lyr { border-radius: 10px; padding: .55rem .9rem; display: flex; justify-content: space-between; align-items: center;
+      font-size: 1rem; border: 1px solid rgba(155,130,255,.45); background: rgba(6,8,15,.7); }
+    .lyr .mono { font-size: .8rem; color: #B8BFD0 !important; }
+    .lyr.l1 { border-color: rgba(155,130,255,.8); background: rgba(155,130,255,.16); }
+    .lyr.l2 { border-color: rgba(155,130,255,.6); background: rgba(155,130,255,.10); }
+    .lyr.l3 { border-color: rgba(43,234,208,.6); background: rgba(43,234,208,.10); }
+    .lyr.l4 { border-color: #FFD46B; background: rgba(255,212,107,.12); }
+    section.present .lyr { animation: lyrDrop .4s cubic-bezier(.2,.7,.3,1) both; }
+    section.present .lyr.l2 { animation-delay: .25s; } section.present .lyr.l3 { animation-delay: .5s; } section.present .lyr.l4 { animation-delay: .75s; }
+    @keyframes lyrDrop { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: none; } }
+
+    /* K8S — 롤링 업데이트 */
+    .roll { display: flex; flex-direction: column; gap: .55rem; margin-top: .4rem; }
+    .roll-row { display: grid; grid-template-columns: 120px repeat(4, 1fr); gap: .5rem; align-items: center; }
+    .roll-row .lbl { font: 800 .8rem/1.2 'JetBrains Mono', monospace; color: #8E96AB !important; }
+    .rp { height: 46px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font: 800 .82rem/1 'JetBrains Mono', monospace; }
+    .rp.v1 { border: 2px solid #9B82FF; background: rgba(155,130,255,.18); color: #E2DAFF !important; }
+    .rp.v2 { border: 2px solid #2BEAD0; background: rgba(43,234,208,.18); color: #C5FFF5 !important; }
+    .rp.wait { border: 2px dashed #FFD46B; background: rgba(255,212,107,.08); color: #FFE29A !important; }
+    .rp.gone { border: 2px dashed rgba(110,118,138,.6); background: transparent; color: #6E768A !important; }
+
+    /* K8S — 이름표 맞추기 */
+    .match { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-top: .4rem; }
+    .mpanel { border-radius: 14px; padding: .8rem 1rem; border: 1px solid rgba(155,130,255,.4); background: rgba(6,8,15,.55); }
+    .mpanel.ok { border-color: rgba(43,234,208,.6); } .mpanel.ng { border-color: rgba(255,122,149,.6); }
+    .mpanel h3 { margin: 0 0 .5rem; font-size: 1.15rem; }
+    .mrow { display: grid; grid-template-columns: 1fr 70px 1fr; align-items: center; gap: .3rem; }
+    .mtag { border-radius: 10px; padding: .5rem .6rem; text-align: center; font: 700 .8rem/1.35 'JetBrains Mono', monospace; border: 1px solid rgba(155,130,255,.5); background: rgba(155,130,255,.08); }
+    .mtag small { display: block; font-family: 'Pretendard', sans-serif; font-size: .72rem; color: #8E96AB !important; font-weight: 700; }
+    .mwire { height: 3px; border-radius: 2px; position: relative; }
+    .mpanel.ok .mwire { background: #2BEAD0; box-shadow: 0 0 8px #2BEAD0; transform-origin: left; }
+    section.present .mpanel.ok .mwire { animation: wireOn .6s .4s cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes wireOn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    .mpanel.ng .mwire { background: repeating-linear-gradient(90deg, #FF7A95 0 8px, transparent 8px 14px); }
+    .mpanel.ng .mwire::after { content: "✕"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -55%); color: #FF7A95; font-weight: 900; font-size: 1.1rem; }
+    .mres { margin-top: .6rem; font: 700 .82rem/1.5 'JetBrains Mono', monospace; padding: .45rem .6rem; border-radius: 8px; background: #04060C; }
+    .mpanel.ok .mres { color: #8FF0E2 !important; } .mpanel.ng .mres { color: #FF9FB0 !important; }
+    .diff { background: rgba(255,122,149,.25); border-radius: 3px; padding: 0 .1rem; }
+
+    /* 정적 보기(개요·인쇄·모션 줄이기)에서는 최종 상태로 */
+    .reveal.overview .nest .ring, .reveal.overview .lyr, .reveal.overview .hpod, .reveal.overview .gear .teeth,
+    .reveal.overview .mwire, .reveal.overview .rq-track .pk, .reveal.overview .loopfig .runner, .reveal.overview .pods i, .reveal.overview .heal-cap span { animation: none !important; opacity: 1; }
+    .reveal.overview .rq-track .pk { opacity: 0; }
+    @media print {
+      .reveal .nest .ring, .reveal .lyr, .reveal .hpod, .reveal .gear .teeth, .reveal .mwire, .reveal .pods i, .reveal .heal-cap span { animation: none !important; opacity: 1 !important; transform: none !important; }
+      .reveal .rq-track .pk, .reveal .loopfig .runner { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal .nest .ring, .reveal .lyr, .reveal .hpod, .reveal .gear .teeth, .reveal .mwire, .reveal .pods i, .reveal .heal-cap span { animation: none !important; opacity: 1 !important; transform: none !important; }
+      .reveal .rq-track .pk, .reveal .loopfig .runner { display: none; }
+    }
+
+    /* ===== 다음 지도 덱 공통 (v3) ===== */
+    /* diff 보기 */
+    .dv { border-radius: 12px; border: 1px solid rgba(155,130,255,.4); background: #04060C; overflow: hidden; }
+    .dv-h { font: 700 .74rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; padding: .5rem .8rem; border-bottom: 1px solid rgba(155,130,255,.2); }
+    .dv pre { margin: 0; padding: .45rem 0; font: 500 .78rem/1.6 'JetBrains Mono', monospace; color: #D7DCE8 !important; white-space: pre; background: transparent; border: 0; box-shadow: none; }
+    .dv .ln { display: block; padding: 0 .8rem; }
+    .dv .add { background: rgba(43,234,208,.12); color: #C5FFF5 !important; }
+    .dv .del { background: rgba(255,122,149,.13); color: #FFD0DA !important; }
+    .dv .hunk { color: #9B82FF !important; }
+    .dv .flag { outline: 2px solid #FFD46B; outline-offset: -2px; }
+
+    /* 데이터 표 (엑셀 느낌) */
+    .dbt { border-collapse: collapse; font: 500 .92rem/1.4 'JetBrains Mono', monospace; }
+    .dbt th { background: rgba(155,130,255,.2); color: #E2DAFF !important; padding: .32rem .6rem; border: 1px solid rgba(155,130,255,.35); text-align: left; }
+    .dbt td { padding: .3rem .6rem; border: 1px solid rgba(155,130,255,.22); color: #D7DCE8 !important; }
+    .dbt tr.pick td { background: rgba(43,234,208,.13); color: #C5FFF5 !important; }
+    .dbt tr.dim td { opacity: .35; }
+    .dbt td.null { color: #FF9FB0 !important; font-style: italic; }
+    .dbt caption { caption-side: top; text-align: left; font: 800 .72rem/1.6 'JetBrains Mono', monospace; color: #8E96AB; letter-spacing: .05em; }
+
+    /* SVG 차트 공통 */
+    .chart { width: 100%; height: auto; display: block; }
+    .chart text { font-family: 'Pretendard', sans-serif; fill: #B8BFD0; font-size: 12px; }
+    .chart text.t { fill: #E2E6F0; font-size: 14px; font-weight: 700; }
+    .chart .ax { stroke: rgba(190,200,224,.4); stroke-width: 1; }
+    .chart .grid { stroke: rgba(190,200,224,.1); stroke-width: 1; }
+    .chart .b1 { fill: rgba(155,130,255,.65); } .chart .b2 { fill: rgba(43,234,208,.65); } .chart .b3 { fill: rgba(255,212,107,.7); }
+    .chart .lim { stroke: #FF7A95; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .chart .ctr { stroke: rgba(43,234,208,.7); stroke-width: 1.5; }
+    .chart .ln2 { fill: none; stroke: #9B82FF; stroke-width: 2; }
+    .chart .pt { fill: #2BEAD0; } .chart .pt.out { fill: #FF7A95; }
+    section.present .chart .grow { animation: growY .7s cubic-bezier(.2,.7,.3,1) both; transform-box: fill-box; transform-origin: bottom; }
+    section.present .chart .grow:nth-of-type(2n) { animation-delay: .06s; }
+    section.present .chart .grow:nth-of-type(3n) { animation-delay: .12s; }
+    @keyframes growY { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    section.present .chart .draw { stroke-dasharray: 1200; animation: drawLn 1.6s ease-out both; }
+    @keyframes drawLn { from { stroke-dashoffset: 1200; } to { stroke-dashoffset: 0; } }
+    section.present .chart .pop { animation: asZoomIn2 .4s both; animation-delay: 1.3s; transform-box: fill-box; transform-origin: center; }
+
+    /* 콜아웃 번호 */
+    .cn { display: inline-flex; align-items: center; justify-content: center; width: 1.35rem; height: 1.35rem; border-radius: 50%;
+      background: #FFD46B; color: #06080F !important; font: 900 .78rem/1 'JetBrains Mono', monospace; margin-right: .35rem; vertical-align: middle; }
+    pre.term-out .mark { background: rgba(255,212,107,.18); outline: 1.5px solid rgba(255,212,107,.7); border-radius: 3px; }
+
+    /* 파일 크기 막대 (리팩터링) */
+    .fbar { display: grid; grid-template-columns: 150px 1fr 70px; gap: .6rem; align-items: center; font: 600 .82rem/1 'JetBrains Mono', monospace; margin: .25rem 0; }
+    .fbar .track2 { height: 16px; border-radius: 8px; background: rgba(190,200,224,.08); overflow: hidden; }
+    .fbar .fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #9B82FF, #FF7A95); transform-origin: left; }
+    section.present .fbar .fill { animation: wireOn 1.1s cubic-bezier(.2,.7,.3,1) both; }
+    .fbar .fill.ok { background: linear-gradient(90deg, #2BEAD0, #9B82FF); }
+
+    .reveal.overview .chart .grow, .reveal.overview .chart .draw, .reveal.overview .chart .pop, .reveal.overview .fbar .fill { animation: none !important; }
+    @media print { .reveal .chart .grow, .reveal .chart .draw, .reveal .chart .pop, .reveal .fbar .fill { animation: none !important; transform: none !important; stroke-dasharray: none !important; } }
+    @media (prefers-reduced-motion: reduce) { .reveal .chart .grow, .reveal .chart .draw, .reveal .chart .pop, .reveal .fbar .fill { animation: none !important; transform: none !important; stroke-dasharray: none !important; } }
+
+    /* ===== MCP · Skill · .MD 덱 ===== */
+    .trio-c { display: flex; flex-direction: column; gap: .35rem; text-align: center; }
+    .trio-ico { font-size: 2.8rem; line-height: 1.1; }
+    .trio-c h3 { margin: 0; }
+    .trio-real { font-size: .9rem !important; color: #B8BFD0 !important; margin: 0; min-height: 2.6em; }
+    .trio-eq { font-size: 1.25rem; margin-top: .2rem; }
+    .trio-c.md .trio-eq b { color: #2BEAD0 !important; } .trio-c.sk .trio-eq b { color: #CBBDFF !important; } .trio-c.mc .trio-eq b { color: #FFD46B !important; }
+    .trio-when { font-size: .88rem; color: #D7DCE8 !important; display: flex; gap: .45rem; justify-content: center; align-items: center; margin-top: .2rem; }
+    .trio-when .tok { font: 800 .76rem/1 'JetBrains Mono', monospace; padding: .28rem .55rem; border-radius: 999px; }
+    .trio-c.md { border-color: rgba(43,234,208,.55) !important; } .trio-c.sk { border-color: rgba(155,130,255,.6) !important; } .trio-c.mc { border-color: rgba(255,212,107,.55) !important; }
+
+    /* 컨텍스트 막대 */
+    .cbx { margin-top: .3rem; }
+    .cbx-s { display: none; }
+    .cbx-bar { display: flex; height: 54px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(155,130,255,.45); background: rgba(6,8,15,.6); }
+    .cbx-bar .seg { display: grid; place-items: center; font: 800 .78rem/1.1 'JetBrains Mono', monospace; font-style: normal; color: #06080F !important; white-space: nowrap; overflow: hidden;
+      transition: flex-basis .7s cubic-bezier(.2,.7,.2,1), opacity .4s; }
+    .seg.sys { flex: 0 0 9%; background: #5A6072; color: #E8ECF6 !important; }
+    .seg.md { flex: 0 0 9%; background: #2BEAD0; }
+    .seg.skl { flex: 0 0 6%; background: #9B82FF; }
+    .seg.mcp { flex: 0 0 8%; background: #FFD46B; }
+    .seg.chat { flex: 0 0 6%; background: #3A4258; color: #E8ECF6 !important; }
+    .seg.skb { flex: 0 0 0%; background: repeating-linear-gradient(45deg, #9B82FF 0 8px, #B7A4FF 8px 16px); opacity: 0; }
+    .seg.res { flex: 0 0 0%; background: repeating-linear-gradient(45deg, #FFD46B 0 8px, #FFE29A 8px 16px); opacity: 0; }
+    .cbx:has(.cbx-s.s1.visible) .seg.skb { flex-basis: 17%; opacity: 1; }
+    .cbx:has(.cbx-s.s2.visible) .seg.res { flex-basis: 20%; opacity: 1; }
+    .cbx-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-top: .55rem; }
+    .cbx-st { border: 1px solid rgba(155,130,255,.3); border-radius: 12px; padding: .5rem .7rem; opacity: .35; transition: opacity .4s, border-color .4s; }
+    .cbx-st b { display: block; font-size: 1rem; } .cbx-st span { font-size: .86rem; color: #B8BFD0 !important; }
+    .cbx-st.on { opacity: 1; }
+    .cbx:has(.cbx-s.s1.visible) .cbx-st.t1, .cbx:has(.cbx-s.s2.visible) .cbx-st.t2 { opacity: 1; border-color: rgba(43,234,208,.6); }
+    .reveal.overview .seg.skb { flex-basis: 17%; opacity: 1; } .reveal.overview .seg.res { flex-basis: 20%; opacity: 1; } .reveal.overview .cbx-st { opacity: 1; }
+
+    /* 폴더 트리 */
+    pre.ftree { margin: 0; padding: .8rem 1rem; border-radius: 12px; background: #04060C; border: 1px solid rgba(155,130,255,.4);
+      font: 500 .82rem/1.7 'JetBrains Mono', monospace; color: #D7DCE8 !important; white-space: pre; overflow: hidden; }
+    pre.ftree.sm { font-size: .8rem; }
+    pre.ftree b { color: #FFFFFF !important; }
+    pre.ftree .dim { color: #8E96AB !important; }
+    pre.ftree em.t { font-style: normal; font-size: .72rem; padding: .08rem .4rem; border-radius: 999px; font-weight: 700; }
+    pre.ftree em.t.me { background: rgba(155,130,255,.18); color: #CBBDFF !important; }
+    pre.ftree em.t.team { background: rgba(43,234,208,.16); color: #8FF0E2 !important; }
+    pre.ftree em.t.sk { background: rgba(155,130,255,.3); color: #E8E2FF !important; }
+    pre.ftree em.t.mc { background: rgba(255,212,107,.18); color: #FFE29A !important; }
+    pre.ftree .fr.fragment { display: inline; }
+    pre.skmd .hlk { background: rgba(255,212,107,.16); border-radius: 3px; }
+
+    /* MCP 허브 */
+    .hub { display: grid; grid-template-columns: 1fr .9fr 1.3fr; align-items: center; gap: 0; margin-top: .3rem; }
+    .hub-host { text-align: center; border: 1px solid rgba(43,234,208,.7); border-radius: 16px; background: rgba(6,8,15,.7); padding: 1rem .6rem; }
+    .hub-host .ico { font-size: 2.4rem; } .hub-host b { display: block; font-size: 1.3rem; }
+    .hub-host span { display: block; font-size: .88rem; color: #B8BFD0 !important; }
+    .hub-host em { display: inline-block; margin-top: .4rem; font: 700 .74rem/1 'JetBrains Mono', monospace; font-style: normal; color: #8FF0E2 !important;
+      border: 1px solid rgba(43,234,208,.5); border-radius: 999px; padding: .25rem .5rem; }
+    .hub-wires { display: flex; flex-direction: column; justify-content: space-around; height: 100%; padding: .9rem 0; }
+    .hw { position: relative; height: 2px; border-top: 2px dashed rgba(43,234,208,.4); margin: 1.05rem 0; }
+    .hw i { position: absolute; top: -7px; width: 12px; height: 12px; border-radius: 50%; background: #FFD46B; box-shadow: 0 0 10px #FFD46B; opacity: 0; }
+    section.present .hw i { animation: hwPing 3.6s ease-in-out infinite; }
+    section.present .hw:nth-child(2) i { animation-delay: .9s; } section.present .hw:nth-child(3) i { animation-delay: 1.8s; } section.present .hw:nth-child(4) i { animation-delay: 2.7s; }
+    @keyframes hwPing { 0% { left: 0; opacity: 0; } 5% { opacity: 1; } 45% { left: calc(100% - 12px); opacity: 1; background: #FFD46B; } 55% { left: calc(100% - 12px); background: #2BEAD0; box-shadow: 0 0 10px #2BEAD0; } 95% { left: 0; opacity: 1; background: #2BEAD0; } 100% { left: 0; opacity: 0; } }
+    .hub-srv { display: flex; flex-direction: column; gap: .5rem; }
+    .hs { display: grid; grid-template-columns: 2rem 1fr; column-gap: .5rem; align-items: center; border: 1px solid rgba(155,130,255,.45); border-radius: 12px; background: rgba(6,8,15,.6); padding: .45rem .7rem; }
+    .hs .ico { grid-row: span 2; font-size: 1.5rem; } .hs b { font-size: 1rem; }
+    .hs em { font: 600 .74rem/1.2 'JetBrains Mono', monospace; font-style: normal; color: #FFE29A !important; }
+    .reveal.overview .hw i { animation: none; opacity: 0; }
+
+    /* 판단표 알약 */
+    .pill { display: inline-block; white-space: nowrap; font-weight: 800; font-size: .9rem; padding: .22rem .6rem; border-radius: 999px; border: 1px solid; }
+    .pill.md { color: #8FF0E2 !important; border-color: rgba(43,234,208,.6); background: rgba(43,234,208,.12); }
+    .pill.sk { color: #E0D6FF !important; border-color: rgba(155,130,255,.7); background: rgba(155,130,255,.15); }
+    .pill.mc { color: #FFE29A !important; border-color: rgba(255,212,107,.6); background: rgba(255,212,107,.12); }
+    .pill.hk { color: #FFB8C7 !important; border-color: rgba(255,122,149,.6); background: rgba(255,122,149,.12); }
+    .pill.ch { color: #D7DCE8 !important; border-color: rgba(230,236,249,.3); background: rgba(230,236,249,.05); }
+
+    /* 세 상자 레인 */
+    .lanes { display: flex; flex-direction: column; gap: .45rem; margin-top: .4rem; }
+    .ln-h, .ln-row { display: grid; grid-template-columns: 7.5rem repeat(4, 1fr); gap: .45rem; align-items: stretch; }
+    .ln-h span { font: 800 .8rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; text-align: center; padding-bottom: .1rem; }
+    .ln-row > b { display: flex; align-items: center; font-size: 1.05rem; }
+    .lc { display: flex; align-items: center; justify-content: center; text-align: center; min-height: 3.6rem; border-radius: 10px; padding: .4rem .5rem; font-size: .86rem;
+      border: 1px solid rgba(230,236,249,.12); background: rgba(230,236,249,.03); color: #B8BFD0 !important; }
+    .lc.dim { color: #6E7790 !important; border-style: dashed; }
+    .ln-row.md .lc.on { background: rgba(43,234,208,.16); border-color: rgba(43,234,208,.7); color: #DFFFF9 !important; font-weight: 700; }
+    .ln-row.sk .lc.on { background: rgba(155,130,255,.2); border-color: rgba(155,130,255,.8); color: #EEE9FF !important; font-weight: 700; }
+    .ln-row.mc .lc.on { background: rgba(255,212,107,.16); border-color: rgba(255,212,107,.7); color: #FFF1C9 !important; font-weight: 700; }
+
+    /* ===== 입문 · Docker 덱 공용 ===== */
+    .xt tr.bad td { background: rgba(255,122,149,.08); }
+    .tcur { display: inline-block; width: .55em; height: 1em; background: #2BEAD0; vertical-align: -.12em; margin-left: .2em; animation: tmBlink 1s steps(1) infinite; }
+    @keyframes tmBlink { 50% { opacity: 0; } }
+    .tag-in { display: inline-block; font: 800 .72rem/1 'JetBrains Mono', monospace; padding: .2rem .45rem; border-radius: 999px; background: rgba(255,212,107,.2); color: #FFE29A !important; border: 1px solid rgba(255,212,107,.6); }
+
+    /* 프롬프트 해부 */
+    .pa { margin-top: .4rem; }
+    .pa-line { font: 700 1.3rem/1.6 'JetBrains Mono', monospace; background: #04060C; border: 1px solid rgba(155,130,255,.45); border-radius: 14px; padding: .8rem 1rem; white-space: nowrap; overflow: hidden; }
+    .pa-s { border-bottom: 3px solid transparent; padding-bottom: .1rem; }
+    .pa-s.sh { color: #8FB6FF !important; border-color: #5B8CFF; } .pa-s.loc { color: #8FF0E2 !important; border-color: #2BEAD0; }
+    .pa-s.gt { color: #8E96AB !important; } .pa-s.cmd { color: #FFE29A !important; border-color: #FFD46B; } .pa-s.arg { color: #E0D6FF !important; border-color: #9B82FF; }
+    .pa-labels { display: grid; grid-template-columns: .6fr 1.6fr .9fr 1.4fr; gap: .5rem; margin-top: .55rem; }
+    .pa-l { border-radius: 10px; padding: .45rem .6rem; border-top: 3px solid; background: rgba(6,8,15,.55); }
+    .pa-l b { display: block; font-size: .95rem; } .pa-l span { font-size: .82rem; color: #B8BFD0 !important; }
+    .pa-l.sh { border-color: #5B8CFF; } .pa-l.loc { border-color: #2BEAD0; } .pa-l.cmd { border-color: #FFD46B; } .pa-l.arg { border-color: #9B82FF; }
+    .pa-mini { color: #8FB6FF !important; } .pa-mini.loc { color: #8FF0E2 !important; }
+
+    /* cd 지도 */
+    .ptree { position: relative; font: 600 1rem/2.1 'JetBrains Mono', monospace; background: #04060C; border: 1px solid rgba(155,130,255,.45); border-radius: 14px; padding: .7rem 1rem .7rem 2.6rem; }
+    .pt-s { display: none; }
+    .pt-n { white-space: pre; color: #D7DCE8 !important; transition: color .3s; } .pt-n em { font-style: normal; color: #8E96AB !important; margin-left: .4rem; }
+    .pt-pin { position: absolute; left: .7rem; top: .7rem; font-size: 1.2rem; transition: top .5s cubic-bezier(.2,.7,.2,1); line-height: 2.1rem; }
+    .ptree:has(.pt-s.s1.visible) .pt-pin { top: calc(.7rem + 2.1rem); }
+    .ptree:has(.pt-s.s2.visible) .pt-pin { top: calc(.7rem + 4.2rem); }
+    .ptree:has(.pt-s.s3.visible) .pt-pin { top: calc(.7rem + 6.3rem); }
+    .ptree:has(.pt-s.s4.visible) .pt-pin { top: .7rem; }
+    .ptree:not(:has(.pt-s.s1.visible)) .n0, .ptree:has(.pt-s.s1.visible):not(:has(.pt-s.s2.visible)) .n1,
+    .ptree:has(.pt-s.s2.visible):not(:has(.pt-s.s3.visible)) .n2, .ptree:has(.pt-s.s3.visible):not(:has(.pt-s.s4.visible)) .n2b,
+    .ptree:has(.pt-s.s4.visible) .n0 { color: #8FF0E2 !important; font-weight: 800; }
+
+    /* 환경변수 쪽지 */
+    .envb { border: 1px dashed rgba(255,212,107,.55); border-radius: 14px; padding: .6rem .7rem; display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; }
+    .eb-h { grid-column: 1 / -1; font: 700 .78rem/1 'JetBrains Mono', monospace; color: #FFE29A !important; }
+    .eb-n { background: #FFF6CF; border-radius: 4px 4px 10px 4px; padding: .45rem .55rem; transform: rotate(-1deg); box-shadow: 0 6px 14px -8px rgba(0,0,0,.6); }
+    .eb-n:nth-child(odd) { transform: rotate(1.2deg); }
+    .eb-n, .eb-n * { color: #3A2F00 !important; }
+    .eb-n b { display: block; font: 800 .9rem/1.2 'JetBrains Mono', monospace; } .eb-n span { font-size: .8rem; }
+    .eb-n.sec { background: #FFD9E1; } .eb-n.sec, .eb-n.sec * { color: #5A0F22 !important; }
+
+    /* PATH 검색 */
+    .psr { border: 1px solid rgba(155,130,255,.45); border-radius: 14px; background: #04060C; padding: .6rem; display: flex; flex-direction: column; gap: .35rem; }
+    .psr-h { font: 700 .78rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; padding: .2rem .3rem .3rem; }
+    .psr-r { display: flex; justify-content: space-between; align-items: center; gap: .6rem; padding: .5rem .7rem; border-radius: 8px; background: rgba(230,236,249,.04); border: 1px solid transparent; }
+    .psr-r .mono { font-size: .84rem; } .psr-r em { font-style: normal; font: 700 .76rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; opacity: 0; }
+    section.present .psr-r.r1 { animation: psScan 6s infinite; } section.present .psr-r.r2 { animation: psScan 6s infinite .9s; }
+    section.present .psr-r.r3 { animation: psHit 6s infinite 1.8s; }
+    section.present .psr-r em { animation: psEm 6s infinite; } section.present .r2 em { animation-delay: .9s; } section.present .r3 em { animation-delay: 1.8s; }
+    section.present .psr-r.skip em { animation-delay: 2.6s; }
+    @keyframes psScan { 0% { border-color: #FFD46B; background: rgba(255,212,107,.12); } 14%, 100% { border-color: transparent; background: rgba(230,236,249,.04); } }
+    @keyframes psHit { 0% { border-color: #FFD46B; } 8%, 70% { border-color: #2BEAD0; background: rgba(43,234,208,.14); } 80%, 100% { border-color: transparent; background: rgba(230,236,249,.04); } }
+    @keyframes psEm { 0%, 2% { opacity: 0; } 6%, 70% { opacity: 1; } 80%, 100% { opacity: 0; } }
+    .psr-r.hit em { color: #8FF0E2 !important; }
+    .psr-r.skip { opacity: .5; }
+    .reveal.overview .psr-r em, .reveal .psr-r em.static { opacity: 1; }
+    @media print { .psr-r em { opacity: 1 !important; animation: none !important; } }
+
+    /* 공용 공구함 vs venv */
+    .vbox { border: 1px solid rgba(255,122,149,.45); border-radius: 16px; padding: .8rem; background: rgba(255,122,149,.04); }
+    .vbox.good { border-color: rgba(43,234,208,.5); background: rgba(43,234,208,.04); }
+    .vb-h { font-weight: 800; font-size: 1.05rem; margin-bottom: .6rem; }
+    .vb-glob { text-align: center; border: 2px solid rgba(255,212,107,.6); border-radius: 12px; padding: .7rem; margin-bottom: .6rem; background: rgba(255,212,107,.06); }
+    .vb-ver { font: 800 1.3rem/1 'JetBrains Mono', monospace; } .vb-ver b { display: inline-block; margin-left: .3rem; }
+    .vb-ver .v22 { display: none; color: #FF9FB0 !important; }
+    section.present .vb-ver .v15 { animation: vb15 5s infinite; } section.present .vb-ver .v22 { display: inline-block; animation: vb22 5s infinite; }
+    @keyframes vb15 { 0%, 45% { opacity: 1; width: auto; } 50%, 100% { opacity: 0; width: 0; } }
+    @keyframes vb22 { 0%, 45% { opacity: 0; width: 0; } 50%, 100% { opacity: 1; } }
+    .vb-projs { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+    .vb-p { border: 1px solid rgba(230,236,249,.2); border-radius: 10px; padding: .55rem .6rem; text-align: center; background: rgba(6,8,15,.5); }
+    .vb-p b { display: block; font-size: .98rem; } .vb-p span { font-size: .82rem; color: #B8BFD0 !important; }
+    section.present .vb-p.pa { animation: vbBreak 5s infinite; }
+    @keyframes vbBreak { 0%, 50% { border-color: rgba(43,234,208,.6); } 56%, 100% { border-color: #FF4D7A; background: rgba(255,77,122,.15); box-shadow: 0 0 16px rgba(255,77,122,.35); } }
+    .vb-p.ok { border-color: rgba(43,234,208,.6); }
+    .vb-p.ok .mono { color: #8FF0E2 !important; }
+    .reveal.overview .vb-ver .v22 { display: none; }
+
+    /* 버전 해부 */
+    .semver { display: grid; grid-template-columns: repeat(5, auto); justify-content: start; align-items: end; column-gap: .1rem; row-gap: .45rem; }
+    .semver .sv { font: 800 2.6rem/1 'JetBrains Mono', monospace; padding: 0 .3rem; border-bottom: 4px solid; }
+    .semver .dot { font: 800 2.6rem/1 'JetBrains Mono', monospace; color: #8E96AB !important; }
+    .sv.ma { color: #FF9FB0 !important; border-color: #FF7A95; } .sv.mi { color: #FFE29A !important; border-color: #FFD46B; } .sv.pa { color: #8FF0E2 !important; border-color: #2BEAD0; }
+    .sv-l { grid-column: 1 / -1; font-size: .9rem; border-left: 4px solid; padding: .3rem .6rem; border-radius: 4px; background: rgba(6,8,15,.5); }
+    .sv-l b { margin-right: .4rem; } .sv-l.ma { border-color: #FF7A95; } .sv-l.mi { border-color: #FFD46B; } .sv-l.pa { border-color: #2BEAD0; }
+
+    /* VS Code 인터프리터 목업 */
+    .vsc { border-radius: 12px; overflow: hidden; border: 1px solid #3C3C3C; background: #1E1E1E; font-family: 'Pretendard', sans-serif; }
+    .vsc-top { background: #252526; padding: .55rem .7rem; } .vsc-top span { display: block; background: #3C3C3C; border: 1px solid #007ACC; border-radius: 4px; padding: .35rem .5rem; font-size: .85rem; color: #CCCCCC !important; }
+    .vsc-list { padding: .3rem 0; }
+    .vsc-i { padding: .45rem .8rem; } .vsc-i b { display: block; font-size: .92rem; color: #E0E0E0 !important; } .vsc-i span { font-size: .76rem; color: #9D9D9D !important; }
+    .vsc-i em { font-style: normal; color: #4FC1FF !important; }
+    .vsc-i.pick { background: #04395E; outline: 1px solid #007ACC; }
+    .vsc-bar { display: flex; justify-content: space-between; background: #007ACC; padding: .3rem .7rem; font-size: .78rem; } .vsc-bar span { color: #fff !important; }
+    .vsc-py { font-weight: 700; }
+
+    /* 파일 형식 */
+    .mojiflip { position: relative; font: 800 3rem/1.2 'Pretendard', sans-serif; height: 1.3em; min-width: 6em; text-align: center; }
+    .mojiflip span { position: absolute; inset: 0; }
+    .mojiflip .mf-a { color: #FF9FB0 !important; } .mojiflip .mf-b { color: #8FF0E2 !important; opacity: 0; }
+    section.present .mojiflip .mf-a { animation: mfA 5s infinite; } section.present .mojiflip .mf-b { animation: mfB 5s infinite; }
+    @keyframes mfA { 0%, 40% { opacity: 1; filter: none; } 50%, 90% { opacity: 0; filter: blur(6px); } 100% { opacity: 1; } }
+    @keyframes mfB { 0%, 40% { opacity: 0; filter: blur(6px); } 50%, 90% { opacity: 1; filter: none; } 100% { opacity: 0; } }
+    .fmt3 { margin-top: .3rem; }
+    .fm { border: 1px solid rgba(155,130,255,.4); border-radius: 12px; background: rgba(6,8,15,.6); overflow: hidden; display: flex; flex-direction: column; }
+    .fm pre { margin: 0; padding: .55rem .7rem; font: 500 .8rem/1.5 'JetBrains Mono', monospace; color: #D7DCE8 !important; background: #04060C; flex: 1; white-space: pre; overflow: hidden; }
+    .fm p { margin: 0; padding: .45rem .7rem; font-size: .84rem !important; color: #B8BFD0 !important; }
+    .fm-h { font: 800 .82rem/1 'JetBrains Mono', monospace; padding: .45rem .7rem; display: flex; justify-content: space-between; }
+    .fm-h em { font-style: normal; font-weight: 700; opacity: .8; }
+    .fm-h.csv { background: rgba(43,234,208,.18); color: #8FF0E2 !important; } .fm-h.json { background: rgba(155,130,255,.22); color: #E0D6FF !important; } .fm-h.yaml { background: rgba(255,212,107,.18); color: #FFE29A !important; }
+    .fm-h * { color: inherit !important; }
+    .csvsplit { display: flex; flex-direction: column; gap: .35rem; }
+    .cs-raw { font-size: .9rem; background: #04060C; border-radius: 8px; padding: .45rem .6rem; border: 1px solid rgba(43,234,208,.4); }
+    .cs-raw.bad { border-color: rgba(255,122,149,.5); }
+    .cm-hit { background: rgba(43,234,208,.2); border-radius: 3px; } .cm-bad { background: rgba(255,122,149,.22); border-radius: 3px; }
+    .cs-cells { display: flex; gap: 3px; margin-bottom: .35rem; }
+    .cs-cells span { flex: 1; text-align: center; font-size: .84rem; padding: .35rem .2rem; background: rgba(43,234,208,.12); border: 1px solid rgba(43,234,208,.45); border-radius: 4px; }
+    .cs-cells span.w { flex: 2; }
+    .cs-cells.bad span { background: rgba(255,122,149,.1); border-color: rgba(255,122,149,.5); }
+    .enc { display: flex; flex-direction: column; gap: .6rem; margin-top: .4rem; }
+    .enc-row { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
+    .enc-k { width: 5.5rem; font: 800 1rem/1 'JetBrains Mono', monospace; }
+    .enc-k.u8 { color: #8FF0E2 !important; } .enc-k.cp { color: #FFE29A !important; }
+    .by { font: 700 1.05rem/1 'JetBrains Mono', monospace; padding: .55rem .5rem; border-radius: 6px; border: 1px solid; }
+    .by.g1 { background: rgba(43,234,208,.15); border-color: rgba(43,234,208,.55); } .by.g2 { background: rgba(155,130,255,.18); border-color: rgba(155,130,255,.6); } .by.g3 { background: rgba(255,212,107,.15); border-color: rgba(255,212,107,.55); }
+    .by.g1 + .by.g2, .by.g2 + .by.g3 { margin-left: .5rem; }
+    .enc-row em { font-style: normal; font-size: .86rem; color: #B8BFD0 !important; margin-left: .8rem; }
+    section.present .enc-row .by { animation: byIn .5s both; }
+    section.present .enc-row .by:nth-of-type(2) { animation-delay: .08s; } section.present .enc-row .by:nth-of-type(3) { animation-delay: .16s; }
+    section.present .enc-row .by:nth-of-type(4) { animation-delay: .32s; } section.present .enc-row .by:nth-of-type(5) { animation-delay: .4s; }
+    section.present .enc-row .by:nth-of-type(6) { animation-delay: .48s; } section.present .enc-row .by:nth-of-type(7) { animation-delay: .64s; }
+    section.present .enc-row .by:nth-of-type(8) { animation-delay: .72s; } section.present .enc-row .by:nth-of-type(9) { animation-delay: .8s; }
+    @keyframes byIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .eol { display: flex; align-items: center; gap: .3rem; background: #04060C; border-radius: 10px; padding: .55rem .7rem; border: 1px solid rgba(155,130,255,.35); font: 600 .95rem/1 'JetBrains Mono', monospace; }
+    .eol b { padding: .25rem .35rem; border-radius: 4px; font-size: .85rem; } .eol b.cr { background: rgba(255,122,149,.25); color: #FFB8C7 !important; } .eol b.lf { background: rgba(43,234,208,.22); color: #8FF0E2 !important; }
+    .eol em { margin-left: auto; font-style: normal; font-size: .78rem; color: #8E96AB !important; }
+    .esc { background: #04060C; border-radius: 12px; padding: .7rem .8rem; border: 1px solid rgba(255,122,149,.45); }
+    .esc .ec { font: 800 1.5rem/1.2 'JetBrains Mono', monospace; } .esc .ec.bad { color: #FF9FB0 !important; background: rgba(255,122,149,.18); border-radius: 4px; padding: 0 .1rem; }
+    .esc-l { display: flex; gap: 1rem; margin-top: .35rem; font-size: .82rem; } .esc-l .bad { color: #FFB8C7 !important; }
+
+    /* ===== Docker ===== */
+    .envstack { display: flex; flex-direction: column; gap: .35rem; }
+    .es-l { border-radius: 10px; padding: .6rem .9rem; font-weight: 700; border: 1px solid; }
+    .es-l.code { background: rgba(255,212,107,.14); border-color: rgba(255,212,107,.6); }
+    .es-l.pkg { background: rgba(155,130,255,.16); border-color: rgba(155,130,255,.6); }
+    .es-l.py { background: rgba(91,140,255,.16); border-color: rgba(91,140,255,.6); }
+    .es-l.os { background: rgba(43,234,208,.14); border-color: rgba(43,234,208,.6); }
+    .es-cap { text-align: center; font-size: .92rem; color: #D7DCE8 !important; border: 2px dashed rgba(43,234,208,.6); border-radius: 12px; padding: .45rem; margin-top: .2rem; }
+    .foup { display: flex; flex-direction: column; align-items: center; gap: .9rem; }
+    .fo-box { position: relative; width: 260px; border: 3px solid rgba(155,130,255,.8); border-radius: 18px 18px 10px 10px; background: rgba(155,130,255,.08); padding: 2.2rem 1rem 1rem; text-align: center; }
+    .fo-lid { position: absolute; top: .5rem; left: 50%; transform: translateX(-50%); font: 800 .85rem/1 'JetBrains Mono', monospace; color: #E0D6FF !important; letter-spacing: .2em; }
+    .fo-wf { display: flex; flex-direction: column; gap: 6px; }
+    .fo-wf i { display: block; height: 7px; border-radius: 4px; background: linear-gradient(90deg, #5B8CFF, #2BEAD0, #9B82FF); opacity: .85; }
+    .fo-cap { display: block; margin-top: .6rem; font-size: .82rem; color: #B8BFD0 !important; }
+    section.present .fo-box { animation: foMove 4.5s ease-in-out infinite; }
+    @keyframes foMove { 0%, 100% { transform: translateX(-90px); } 30%, 38% { transform: translateX(0); } 66%, 74% { transform: translateX(90px); } }
+    .fo-ports { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; width: 100%; }
+    .fo-p { text-align: center; font-size: .82rem; font-weight: 700; padding: .45rem; border-radius: 8px; border-top: 4px solid #2BEAD0; background: rgba(6,8,15,.6); }
+    .dkflow { display: grid; grid-template-columns: 1fr auto 1fr auto 1.2fr; align-items: center; gap: .6rem; margin-top: .3rem; }
+    .dk-n { text-align: center; border: 1px solid rgba(155,130,255,.5); border-radius: 14px; background: rgba(6,8,15,.6); padding: .7rem .5rem; }
+    .dk-n .ico { font-size: 2rem; } .dk-n b { display: block; font-size: 1.1rem; } .dk-n span { font-size: .82rem; color: #B8BFD0 !important; }
+    .dk-n em { font-style: normal; font-family: 'JetBrains Mono', monospace; color: #8FF0E2 !important; }
+    .dk-n.im { border-color: rgba(91,140,255,.7); } .dk-n.ct { border-color: rgba(255,212,107,.6); padding: .35rem .5rem; display: grid; grid-template-columns: auto 1fr; column-gap: .5rem; text-align: left; align-items: center; }
+    .dk-n.ct .ico { font-size: 1.4rem; grid-row: span 2; }
+    .dk-a { font: 800 .85rem/1 'JetBrains Mono', monospace; color: #8FF0E2 !important; }
+    .dk-ctr { display: flex; flex-direction: column; gap: .4rem; }
+    section.present .dk-n.ct { animation: ctPop .5s both; } section.present .dk-n.c2 { animation-delay: .5s; } section.present .dk-n.c3 { animation-delay: 1s; }
+    @keyframes ctPop { from { opacity: 0; transform: translateX(-20px) scale(.9); } to { opacity: 1; transform: none; } }
+    .vmst { border: 1px solid rgba(255,122,149,.4); border-radius: 14px; padding: .6rem; background: rgba(6,8,15,.5); }
+    .vmst.ctr { border-color: rgba(43,234,208,.5); }
+    .vm-t { font-weight: 800; font-size: 1.05rem; margin-bottom: .4rem; }
+    .vm-row { display: flex; gap: .35rem; } .vm-col { flex: 1; display: flex; flex-direction: column; gap: .3rem; }
+    .ly { border-radius: 6px; padding: .38rem .4rem; text-align: center; font-size: .82rem; font-weight: 700; margin-bottom: .3rem; }
+    .vm-col .ly { margin-bottom: 0; }
+    .ly.app { background: rgba(255,212,107,.2); } .ly.lib { background: rgba(155,130,255,.2); }
+    .ly.gos { background: rgba(255,122,149,.25); padding: 1.3rem .4rem; }
+    .ly.hyp { background: rgba(91,140,255,.2); margin-top: .35rem; } .ly.hyp.dk { background: rgba(43,234,208,.2); }
+    .ly.hos { background: rgba(230,236,249,.08); }
+    .vm-n { margin: .2rem 0 0; font-size: .84rem !important; color: #B8BFD0 !important; text-align: center; }
+    .iso4 { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; }
+    .iso { border: 1px solid rgba(43,234,208,.45); border-radius: 12px; padding: .65rem .75rem; background: rgba(43,234,208,.05); }
+    .iso b { display: block; font-size: 1.05rem; margin-bottom: .2rem; } .iso span { font-size: .86rem; color: #C8CEDC !important; }
+    .pmap { display: grid; grid-template-columns: 1fr 1.1fr 1fr; align-items: center; }
+    .pm-host, .pm-ctr { border-radius: 12px; padding: .6rem; text-align: center; border: 1px solid rgba(91,140,255,.6); background: rgba(6,8,15,.6); }
+    .pm-ctr { border-color: rgba(255,212,107,.6); }
+    .pm-host b, .pm-ctr b { display: block; } .pm-port { display: inline-block; font: 800 .95rem/1 'JetBrains Mono', monospace; color: #8FF0E2 !important; margin: .25rem 0; }
+    .pm-host em, .pm-ctr em { display: block; font-style: normal; font-size: .74rem; color: #8E96AB !important; }
+    .pm-wire { position: relative; height: 2px; border-top: 2px dashed rgba(43,234,208,.5); margin: 0 .3rem; }
+    .pm-wire i { position: absolute; top: -7px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: #FFD46B; box-shadow: 0 0 10px #FFD46B; }
+    section.present .pm-wire i { animation: pmGo 2.2s linear infinite; }
+    @keyframes pmGo { from { left: 0; } to { left: calc(100% - 12px); } }
+    .volv { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+    .vv-ctr, .vv-vol { position: relative; width: 100%; border-radius: 14px; padding: .8rem; text-align: center; }
+    .vv-ctr { border: 2px solid rgba(255,212,107,.7); background: rgba(255,212,107,.07); }
+    .vv-vol { border: 2px solid rgba(43,234,208,.7); background: rgba(43,234,208,.07); }
+    .vv-ctr b, .vv-vol b { display: block; font-size: 1.05rem; margin-bottom: .35rem; }
+    .vv-f { display: inline-block; font: 700 .85rem/1 'JetBrains Mono', monospace; padding: .35rem .55rem; border-radius: 6px; background: rgba(230,236,249,.1); }
+    .vv-vol em { display: block; font-style: normal; font-size: .8rem; color: #8FF0E2 !important; margin-top: .35rem; }
+    .vv-x { position: absolute; right: .6rem; top: .6rem; font: 800 .72rem/1 'JetBrains Mono', monospace; color: #FF9FB0 !important; opacity: 0; }
+    .vv-link span { font: 800 .9rem/1 'JetBrains Mono', monospace; color: #8FF0E2 !important; border: 1px dashed rgba(43,234,208,.6); border-radius: 999px; padding: .2rem .6rem; }
+    section.present .vv-ctr { animation: vvDie 5s infinite; } section.present .vv-x { animation: vvX 5s infinite; }
+    @keyframes vvDie { 0%, 45% { opacity: 1; filter: none; } 55%, 85% { opacity: .2; filter: grayscale(1); } 100% { opacity: 1; } }
+    @keyframes vvX { 0%, 40% { opacity: 0; } 46%, 85% { opacity: 1; } 100% { opacity: 0; } }
+    .rings { position: relative; }
+    .rg { position: relative; border-radius: 22px; padding: 1.9rem 1rem 1rem; }
+    .rg.out { border: 2px solid rgba(91,140,255,.5); background: rgba(91,140,255,.05); }
+    .rg.in { border: 3px solid rgba(43,234,208,.8); background: rgba(43,234,208,.07); padding: 1.9rem 1rem .9rem; box-shadow: inset 0 0 30px rgba(43,234,208,.12); }
+    .rg-l { position: absolute; top: .55rem; left: .9rem; font-weight: 800; font-size: .9rem; }
+    .rg.core { text-align: center; font-size: 2rem; line-height: 1.1; padding: .4rem; } .rg.core b { font-size: 1rem; }
+    .rg-ok { display: block; text-align: center; font-size: .82rem; color: #8FF0E2 !important; }
+    .rg-try { position: absolute; right: -0.4rem; display: flex; flex-direction: column; align-items: flex-end; opacity: 0; }
+    .rg-try span { font: 700 .76rem/1.2 'JetBrains Mono', monospace; background: rgba(255,122,149,.2); border: 1px solid rgba(255,122,149,.6); border-radius: 6px; padding: .2rem .4rem; }
+    .rg-try em { font-style: normal; font-size: .72rem; color: #FFB8C7 !important; margin-top: .1rem; }
+    .rg-try.t1 { top: 3.4rem; } .rg-try.t2 { top: 6.6rem; } .rg-try.t3 { top: 9.8rem; }
+    section.present .rg-try { animation: rgTry 6s infinite; } section.present .rg-try.t2 { animation-delay: 1.2s; } section.present .rg-try.t3 { animation-delay: 2.4s; }
+    @keyframes rgTry { 0% { opacity: 0; transform: translateX(-60px); } 12% { opacity: 1; transform: translateX(-10px); } 16% { transform: translateX(-18px); } 20%, 55% { opacity: 1; transform: translateX(-14px); } 65%, 100% { opacity: 0; } }
+    .reveal.overview .rg-try { opacity: 1; }
+    @media print { .rg-try { opacity: 1 !important; animation: none !important; } }
+    .sbx { border-width: 2px !important; } .sbx.a { border-color: rgba(91,140,255,.6) !important; } .sbx.b { border-color: rgba(43,234,208,.6) !important; }
+    .sbx-l { margin: .3rem 0 0; padding-left: 1.1rem; } .sbx-l li { font-size: .9rem; margin: .25rem 0; }
+    .tries { display: flex; flex-direction: column; gap: .35rem; margin-top: .6rem; }
+    .try { display: grid; grid-template-columns: 11rem 1.6rem 1fr; align-items: center; gap: .4rem; padding: .4rem .6rem; border-radius: 10px; border: 1px solid rgba(255,122,149,.35); background: rgba(255,122,149,.05); }
+    .try .mono { font-size: .82rem; color: #FFB8C7 !important; } .try em { font-style: normal; font-size: .84rem; color: #D7DCE8 !important; }
+    section.present .try { animation: tryHit 6s infinite; } section.present .try.t2 { animation-delay: 2s; } section.present .try.t3 { animation-delay: 4s; }
+    @keyframes tryHit { 0% { border-color: rgba(255,122,149,.35); } 4%, 28% { border-color: #FF4D7A; background: rgba(255,77,122,.16); box-shadow: 0 0 14px rgba(255,77,122,.3); } 34%, 100% { border-color: rgba(255,122,149,.35); background: rgba(255,122,149,.05); box-shadow: none; } }
+  </style>
+  <link rel="stylesheet" href="../assets/core.css">
+</head>
+<body>
+
+<div class="dl-toolbar">
+  <select id="tocSelect" class="transition-select" aria-label="목차 — 슬라이드로 바로 이동" title="목차 — 슬라이드로 바로 이동"></select>
+  <a class="dl-btn" href="../#board" title="시리즈 홈: 막혔을 때 펼쳐 보는 처방전">
+    <span aria-hidden="true">↖</span><span>시리즈 홈</span>
+  </a>
+  <button id="fullscreenBtn" class="dl-btn" title="전체화면 전환 (F)">
+    <span aria-hidden="true">⛶</span><span>FULL</span>
+  </button>
+</div>
+
+<div class="reveal">
+  <div class="slides">
+    <!-- ============= 타이틀 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="grid-2" style="align-items:center;">
+          <div>
+            <div class="chip">SEMINAR · 다음 지도 01 입문 · PYTHON ENV</div>
+            <h1 style="font-size:3.9rem;">어제는 됐는데<br/><span class="grad">오늘은 안 된다</span></h1>
+            <p style="font-size:1.4rem; margin-top:1.1rem; max-width:620px;">
+              파이썬 환경 관리 —<br/><strong class="accent2">프로젝트마다 상자 하나</strong>, 버전은 종이에 적어 둔다.
+            </p>
+            <p class="credit">덱 형식: <a href="https://github.com/geniuskey/vibe-coding" target="_blank" rel="noopener">geniuskey/vibe-coding</a> (CC BY-NC 4.0) · 이 덱은 추가 작성분입니다.</p>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:.7rem;">
+            <div style="font-size:5.6rem; line-height:1;">🐍📦</div>
+            <div class="chip" style="border-color:rgba(43,234,208,.55);">venv · pip · requirements.txt</div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        "어제까지 잘 되던 스크립트가 오늘 ModuleNotFoundError를 낸 적 있으신 분?" 거의 모두 손을 듭니다.
+        코드는 그대로인데 결과가 달라졌다면, 바뀐 것은 코드 밖 — 환경입니다. 오늘은 그 환경을 상자에 넣고 이름표를 붙이는 법입니다.
+      </aside>
+    </section>
+
+    <!-- ============= 3분 요약 ============= -->
+    <section class="tldr" data-depth="summary">
+      <div class="chip">3분 요약 · TL;DR</div>
+      <h2>결론부터 — 이 세 줄이면 됩니다</h2>
+      <p class="tldr-lede">파이썬 문제의 대부분은 코드가 아니라 "어느 파이썬, 어느 패키지 버전"의 문제입니다.</p>
+      <ol class="tldr-points">
+        <li><span class="n">1</span><div><strong>프로젝트마다 가상환경(.venv) 하나</strong><span class="sub">공용 파이썬에 다 깔면 프로젝트끼리 버전이 부딪힙니다.</span></div></li>
+        <li><span class="n">2</span><div><strong>requirements.txt에 버전을 == 로 고정</strong><span class="sub">"pandas"가 아니라 "pandas==2.2.3". 다른 PC에서도 같은 상자가 만들어집니다.</span></div></li>
+        <li><span class="n">3</span><div><strong>안 되면 먼저 "지금 어느 파이썬?"</strong><span class="sub">sys.executable 한 줄이면 상자 밖에서 돌고 있는지 바로 보입니다.</span></div></li>
+      </ol>
+      <div class="tldr-bottom">
+        <div class="tldr-prompt">
+          <div class="tldr-label">지금 바로 써 보는 프롬프트</div>
+          <pre>이 프로젝트에 .venv 가상환경을 만들고, 코드에서 import하는 패키지만
+requirements.txt에 == 버전으로 적어줘. Windows PowerShell 기준 명령으로.
+앞으로 패키지를 새로 설치할 땐 먼저 물어보고, 설치하면 requirements.txt도 같이 고쳐줘.</pre>
+        </div>
+        <div class="tldr-when">
+          <div class="tldr-label">이럴 때 이 덱을 다시 펼치세요</div>
+          <ul>
+            <li>ModuleNotFoundError가 났을 때</li>
+            <li>동료 PC · 서버에선 안 돌 때</li>
+            <li>설치했는데 "없다"고 할 때</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============= PROBLEM ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">PROBLEM · 코드는 그대로인데</div>
+        <h2>같은 코드, <span class="accent3">다른 결과</span> — 바뀐 건 코드 밖입니다</h2>
+        <div class="grid-3" style="margin-top:.4rem;">
+          <div class="tx">
+            <div class="tx-h"><i></i><i></i><i></i>😩 동료 PC</div>
+            <p class="tx-l me"><b class="who">동료</b>python report.py</p>
+            <p class="tx-l bad fragment" data-fragment-index="1">ModuleNotFoundError: No module named 'pandas'</p>
+            <p class="tx-l good fragment" data-fragment-index="4"><b class="who">원인</b>무엇을 깔아야 하는지 적힌 곳이 없음</p>
+          </div>
+          <div class="tx">
+            <div class="tx-h"><i></i><i></i><i></i>😩 내 PC, 다음 주</div>
+            <p class="tx-l me"><b class="who">나</b>(다른 프로젝트 때문에 pandas 업그레이드)</p>
+            <p class="tx-l bad fragment" data-fragment-index="2">AttributeError: 'DataFrame' object has no attribute 'append'</p>
+            <p class="tx-l good fragment" data-fragment-index="4"><b class="who">원인</b>공용 공구함의 버전이 바뀜</p>
+          </div>
+          <div class="tx">
+            <div class="tx-h"><i></i><i></i><i></i>😩 방금 설치했는데</div>
+            <p class="tx-l me"><b class="who">나</b>pip install openpyxl → 성공</p>
+            <p class="tx-l bad fragment" data-fragment-index="3">No module named 'openpyxl'</p>
+            <p class="tx-l good fragment" data-fragment-index="4"><b class="who">원인</b>깐 파이썬 ≠ 실행한 파이썬</p>
+          </div>
+        </div>
+        <p class="center fragment" data-fragment-index="5" style="font-size:1.2rem; margin-top:.9rem;">세 가지 처방: <strong class="accent2">상자(venv)</strong> · <strong class="accent2">목록(requirements.txt)</strong> · <strong class="accent2">확인(sys.executable)</strong></p>
+      </div>
+      <aside class="notes">
+        두 번째 칸의 에러는 실제로 pandas 2.0에서 DataFrame.append가 없어지면서 많이 본 에러입니다.
+        세 칸이 오늘 덱의 세 처방과 하나씩 맞물립니다.
+      </aside>
+    </section>
+
+    <!-- ============= 공용 공구함 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">ANALOGY · 공용 공구함 vs 설비별 키트</div>
+        <h2>한 공구함을 같이 쓰면, <span class="accent3">누군가 바꾼 공구</span>에 다른 일이 멈춥니다</h2>
+        <div class="grid-2" style="gap:1.4rem; align-items:start;">
+          <div class="vbox">
+            <div class="vb-h bad">❌ 공용 파이썬 하나에 전부</div>
+            <div class="vb-glob"><span class="vb-ver">pandas <b class="v15">1.5</b><b class="v22">2.2</b></span></div>
+            <div class="vb-projs">
+              <div class="vb-p pa"><b>주간보고.py</b><span>1.5 기준으로 작성</span></div>
+              <div class="vb-p pb"><b>새 대시보드</b><span>2.2가 필요 → 업그레이드</span></div>
+            </div>
+          </div>
+          <div class="vbox good">
+            <div class="vb-h good">✅ 프로젝트마다 .venv</div>
+            <div class="vb-projs two">
+              <div class="vb-p ok"><b>주간보고/.venv</b><span class="mono">pandas 1.5.3</span></div>
+              <div class="vb-p ok"><b>대시보드/.venv</b><span class="mono">pandas 2.2.3</span></div>
+            </div>
+            <p class="note-line" style="margin-top:.6rem;">서로의 상자를 건드리지 않습니다. 하나를 망가뜨려도 <strong>지우고 다시 만들면</strong> 끝.</p>
+          </div>
+        </div>
+        <p class="note-line autoshow">설비마다 전용 지그 · 키트를 두는 것과 같습니다. 공용 공구함은 편하지만, 누가 바꿨는지 아무도 모릅니다.</p>
+      </div>
+      <aside class="notes">
+        왼쪽 애니메이션: 새 대시보드 때문에 pandas가 2.2로 올라가는 순간, 멀쩡하던 주간보고가 빨갛게 됩니다.
+        가상환경은 프로젝트 폴더 안의 작은 파이썬 복사본 + 그 프로젝트 전용 패키지 폴더입니다. 무겁지 않고, 지워도 됩니다.
+      </aside>
+    </section>
+
+    <!-- ============= venv 만들기 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">① VENV · 만들고 켜기</div>
+        <h2>세 줄이면 상자가 생깁니다 — 켜지면 <span class="accent2">(.venv)</span>가 붙습니다</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <pre class="term-out" style="font-size:.86rem;"><span class="dim">PS C:\…\cmp-report&gt;</span> python -m venv .venv          <span class="dim"># 1. 만들기 (한 번)</span>
+<span class="fragment" data-fragment-index="1"><span class="dim">PS C:\…\cmp-report&gt;</span> .venv\Scripts\Activate.ps1   <span class="dim"># 2. 켜기 (창마다)</span></span>
+<span class="fragment" data-fragment-index="2"><span class="hl-g">(.venv)</span> <span class="dim">PS C:\…\cmp-report&gt;</span> python -m pip install pandas</span>
+<span class="fragment" data-fragment-index="3"><span class="hl-g">(.venv)</span> <span class="dim">PS C:\…\cmp-report&gt;</span> deactivate                 <span class="dim"># 3. 끄기</span></span>
+
+<span class="dim"># macOS · Linux</span>
+python3 -m venv .venv
+source .venv/bin/activate</pre>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card bad fragment" data-fragment-index="4"><h3>⚠️ PowerShell이 막을 때</h3><p class="mono" style="font-size:.78rem;">…Activate.ps1 파일을 로드할 수 없습니다. 이 시스템에서 스크립트를 실행할 수 없으므로…</p></div>
+            <ul class="sim-list fragment" data-fragment-index="5" style="margin:0;">
+              <li class="sim-line"><span><span class="cn">1</span><span class="mono">Set-ExecutionPolicy RemoteSigned -Scope CurrentUser</span></span><span class="tok ok">내 계정만</span></li>
+              <li class="sim-line"><span><span class="cn">2</span>회사 정책으로 막히면 cmd에서 <span class="mono">.venv\Scripts\activate.bat</span></span><span class="tok info">우회</span></li>
+              <li class="sim-line"><span><span class="cn">3</span>켜지 않고 <span class="mono">.venv\Scripts\python.exe app.py</span></span><span class="tok info">직접 지정</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        "켜기"는 창마다 해야 합니다. 새 터미널을 열면 (.venv) 표시가 없는 상태로 돌아갑니다 — 문제 장면 3번의 흔한 원인.
+        회사 PC에서는 실행 정책 변경이 그룹 정책으로 막혀 있을 수 있습니다. 그럴 땐 3번처럼 상자 안 파이썬을 직접 부르는 게 가장 확실합니다.
+      </aside>
+    </section>
+
+    <!-- ============= venv 안쪽 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">① VENV · 상자 안에는</div>
+        <h2>.venv는 <span class="accent2">일회용</span>입니다 — 옮기지 말고, 다시 만드세요</h2>
+        <div class="grid-2" style="gap:1.3rem; align-items:start;">
+          <pre class="ftree">cmp-report/
+├─ <b>.venv/</b>                  <em class="t me">상자 — git에 안 올림</em>
+│  ├─ Scripts/python.exe   <em class="t team">상자 전용 파이썬</em>
+│  ├─ Scripts/pip.exe
+│  └─ Lib/site-packages/   <em class="t sk">설치한 패키지가 여기로</em>
+├─ <b>requirements.txt</b>        <em class="t team">목록 — git에 올림</em>
+├─ .gitignore              <em class="t me">.venv/ 한 줄</em>
+└─ report.py</pre>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card autoshow"><h3>올리는 건 목록, 상자가 아니다</h3><p>.venv는 수백 MB에 PC마다 경로가 박혀 있습니다. 동료는 <strong>목록으로 자기 상자</strong>를 만듭니다.</p></div>
+            <div class="card autoshow"><h3>이상하면 지우고 다시</h3><p>꼬였을 때 고치려 애쓰기보다 <span class="mono">.venv</span> 폴더를 지우고 두 줄 — 만들기 · 목록 설치 — 이 빠릅니다.</p></div>
+            <div class="card autoshow"><h3>폴더 이름은 .venv</h3><p>VS Code · 대부분 도구가 이 이름을 자동으로 알아봅니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        "상자는 일회용, 목록이 진짜"가 이 장의 한 문장입니다. 상자를 zip으로 동료에게 보내면 대개 안 돕니다(경로가 다름).
+      </aside>
+    </section>
+
+    <!-- ============= pip ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">② PIP · 설치는 이렇게</div>
+        <h2><span class="mono">pip</span> 대신 <span class="accent2">python -m pip</span> — "이 파이썬에" 깔라는 뜻</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <table class="xt">
+            <tr><th>명령</th><th>뜻</th></tr>
+            <tr><td><span class="mono">python -m pip install pandas</span></td><td>설치 (최신)</td></tr>
+            <tr><td><span class="mono">python -m pip install "pandas==2.2.3"</span></td><td>정확히 이 버전</td></tr>
+            <tr><td><span class="mono">python -m pip list</span></td><td>이 상자에 뭐가 있나</td></tr>
+            <tr><td><span class="mono">python -m pip show pandas</span></td><td>버전 · 설치 위치</td></tr>
+            <tr><td><span class="mono">python -m pip uninstall pandas</span></td><td>지우기</td></tr>
+            <tr class="hl"><td><span class="mono">python -m pip install -r requirements.txt</span></td><td>목록대로 한 번에</td></tr>
+          </table>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card autoshow"><h3>왜 python -m?</h3><p>그냥 <span class="mono">pip</span>은 PATH에서 먼저 찾은 pip — <strong>다른 파이썬의 pip</strong>일 수 있습니다. <span class="mono">python -m pip</span>은 지금 이 python에 붙은 pip입니다.</p></div>
+            <div class="card bad autoshow"><h3>sudo · --user · 관리자 권한</h3><p>"권한이 없다"고 관리자 권한으로 공용 파이썬에 까는 건 문제를 키웁니다. 상자를 먼저 켜세요.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        터미널 덱의 PATH 이야기와 같습니다. python과 pip이 서로 다른 설치에서 올 수 있습니다.
+        python -m pip는 길지만, 한 번 습관이 되면 "깔았는데 없다"가 사라집니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../terminal/">터미널 — PATH</a>
+      </div>
+    </section>
+
+    <!-- ============= 버전 고정 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">③ PIN · 버전을 종이에 적기</div>
+        <h2>"pandas"가 아니라 <span class="accent4">"pandas==2.2.3"</span></h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.55rem;">
+            <div class="dv">
+              <div class="dv-h">requirements.txt — 고치기 전 → 후</div>
+<pre><span class="ln del">pandas</span><span class="ln del">openpyxl</span><span class="ln del">streamlit</span><span class="ln add">pandas==2.2.3</span><span class="ln add">openpyxl==3.1.5</span><span class="ln add">streamlit==1.39.0</span></pre>
+            </div>
+            <pre class="term-out" style="font-size:.8rem;"><span class="dim"># 지금 상자에 있는 그대로 적기</span>
+python -m pip freeze &gt; requirements.txt
+<span class="dim"># 다른 PC에서 똑같이 만들기</span>
+python -m pip install -r requirements.txt</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="semver">
+              <span class="sv ma">2</span><span class="dot">.</span><span class="sv mi">2</span><span class="dot">.</span><span class="sv pa">3</span>
+              <div class="sv-l ma autoshow"><b>주(major)</b>바뀌면 <strong>기존 코드가 깨질 수</strong> 있음 — 1.5 → 2.0에서 append가 사라짐</div>
+              <div class="sv-l mi autoshow"><b>부(minor)</b>기능 추가 · 대체로 안전</div>
+              <div class="sv-l pa autoshow"><b>수(patch)</b>버그 수정</div>
+            </div>
+            <p class="note-line autoshow">freeze는 딸려 온 패키지까지 수십 줄을 적습니다. 처음엔 그대로 두는 게 안전하고, 정리는 AI에게 "직접 import하는 것만 남겨줘".</p>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        버전을 안 적으면 설치하는 날의 최신이 깔립니다. 그래서 "어제는 됐는데" — 어제와 오늘 최신이 다릅니다.
+        버전 숫자는 세 칸. 첫 칸이 바뀌는 업그레이드는 "깨질 수 있다"는 경고로 읽으면 됩니다.
+      </aside>
+    </section>
+
+    <!-- ============= 원인 다섯 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip warn">⚠️ CAUSES · "어제는 됐는데"의 범인 다섯</div>
+        <h2>대부분 <span class="accent3">다른 상자에서</span> 돌고 있습니다</h2>
+        <ul class="sim-list">
+          <li class="sim-line fragment"><span><span class="cn">1</span><b>새 터미널</b> — 상자를 안 켠 창에서 실행했다</span><span class="tok ask">(.venv) 확인</span></li>
+          <li class="sim-line fragment"><span><span class="cn">2</span><b>VS Code 인터프리터</b> — ▶ 버튼이 다른 파이썬을 쓴다</span><span class="tok ask">오른쪽 아래</span></li>
+          <li class="sim-line fragment"><span><span class="cn">3</span><b>버전 미고정</b> — 다시 설치하는 날 최신이 들어왔다</span><span class="tok info">== 고정</span></li>
+          <li class="sim-line fragment"><span><span class="cn">4</span><b>파이썬 자체 버전</b> — 3.8 서버 vs 3.12 내 PC</span><span class="tok info">py -3.11</span></li>
+          <li class="sim-line fragment"><span><span class="cn">5</span><b>파일 이름 충돌</b> — 내 파일 이름이 <span class="mono">pandas.py</span> · <span class="mono">json.py</span></span><span class="tok no">이름 바꾸기</span></li>
+        </ul>
+        <p class="note-line fragment">5번은 의외로 흔합니다. 파이썬은 <strong>내 폴더의 파일을 먼저</strong> import합니다. 진짜 pandas 대신 내 pandas.py가 불려요.</p>
+      </div>
+      <aside class="notes">
+        클릭할 때마다 하나씩. 1 · 2번이 절반 이상입니다. 다음 장의 진단 세 줄로 1 · 2 · 4번은 바로 가려집니다.
+      </aside>
+    </section>
+
+    <!-- ============= 진단 세 줄 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">④ CHECK · 진단 세 줄</div>
+        <h2>"지금 어느 파이썬?" — <span class="accent2">세 줄</span>이면 보입니다</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <pre class="term-out" style="font-size:.82rem;"><span class="dim">PS&gt;</span> python -c "import sys; print(sys.executable)"
+<span class="hl-r">C:\Users\dongho\AppData\Local\Programs\Python\Python312\python.exe</span>
+<span class="fragment" data-fragment-index="1"><span class="dim">     ↑ .venv가 아니다 → 상자 밖!</span></span>
+
+<span class="dim">PS&gt;</span> python -m pip --version
+pip 24.2 from C:\…\Python312\Lib\site-packages\pip (python 3.12)
+
+<span class="dim">PS&gt;</span> python -m pip show openpyxl
+<span class="hl-r">WARNING: Package(s) not found: openpyxl</span>
+<span class="fragment" data-fragment-index="2"><span class="dim"># 상자를 켠 뒤 다시</span>
+<span class="hl-g">(.venv)</span> <span class="dim">PS&gt;</span> python -c "import sys; print(sys.executable)"
+<span class="hl-g">C:\…\cmp-report\.venv\Scripts\python.exe</span>  ✓</span></pre>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card autoshow"><h3>1. 어느 파이썬이 도나</h3><p>경로에 <span class="mono">.venv</span>가 들어 있으면 상자 안.</p></div>
+            <div class="card autoshow"><h3>2. pip은 어느 파이썬 것인가</h3><p>괄호 속 버전과 경로가 1번과 같아야 합니다.</p></div>
+            <div class="card autoshow"><h3>3. 그 패키지가 여기 있나</h3><p>없으면 "깐 곳 ≠ 실행한 곳"이 확정.</p></div>
+            <div class="card good fragment" data-fragment-index="3"><h3>AI에게 줄 것</h3><p>에러 + 이 세 줄의 결과. 추측 대신 바로 원인을 짚습니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        첫 줄 결과에 .venv가 없으면 상자 밖에서 돌고 있다는 뜻입니다. 이 세 줄을 메모장에 두고 복사해 쓰세요.
+      </aside>
+    </section>
+
+    <!-- ============= VS Code ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">⑤ VS CODE · ▶ 버튼의 파이썬</div>
+        <h2>터미널과 <span class="accent2">▶ 실행 버튼</span>은 다른 파이썬을 쓸 수 있습니다</h2>
+        <div class="grid-2" style="grid-template-columns:1.1fr .9fr; gap:1.2rem; align-items:start;">
+          <div class="vsc">
+            <div class="vsc-top"><span>Python: Select Interpreter</span></div>
+            <div class="vsc-list">
+              <div class="vsc-i"><b>Python 3.12.6</b><span>C:\…\Python312\python.exe · Global</span></div>
+              <div class="vsc-i pick"><b>Python 3.11.9 ('.venv': venv)</b><span>.\.venv\Scripts\python.exe · <em>Recommended</em></span></div>
+              <div class="vsc-i"><b>Python 3.12.6 (Microsoft Store)</b><span>…\WindowsApps\python.exe</span></div>
+            </div>
+            <div class="vsc-bar"><span>⎇ main</span><span class="vsc-py">🐍 3.11.9 ('.venv': venv)</span></div>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="card autoshow"><h3>고르는 법</h3><p><b>Ctrl+Shift+P</b> → "Python: Select Interpreter" → <span class="mono">.venv</span>가 들어간 것.</p></div>
+            <div class="card autoshow"><h3>확인하는 곳</h3><p>오른쪽 아래 상태 표시줄. <span class="mono">'.venv'</span>가 보여야 합니다.</p></div>
+            <div class="card autoshow"><h3>새 터미널도 따라온다</h3><p>고른 뒤 VS Code에서 연 <strong>새</strong> 터미널은 보통 상자가 켜진 채로 열립니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">화면은 예시 목업입니다. 원인 5종 중 2번 — ▶ 버튼만 실패하고 터미널은 되는 경우가 여기입니다.</aside>
+    </section>
+
+    <!-- ============= 사내 미러 · 오프라인 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">INTRANET · 인터넷이 막혀 있을 때</div>
+        <h2>사내 미러를 가리키거나, <span class="accent2">바퀴(wheel) 파일</span>을 들고 들어갑니다</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="stack" style="gap:.55rem;">
+            <div class="card"><h3>A. 사내 PyPI 미러가 있으면</h3></div>
+            <pre class="term-out" style="font-size:.8rem;"><span class="dim"># 한 번 설정 (주소는 인프라 담당에게)</span>
+python -m pip config set global.index-url https://pypi.사내미러/simple
+python -m pip config set global.trusted-host pypi.사내미러
+<span class="dim"># 저장 위치: %APPDATA%\pip\pip.ini</span></pre>
+          </div>
+          <div class="stack" style="gap:.55rem;">
+            <div class="card"><h3>B. 없으면 — 밖에서 받아 들고 오기</h3></div>
+            <pre class="term-out" style="font-size:.8rem;"><span class="dim"># ① 인터넷 되는 PC (같은 OS · 같은 파이썬 버전)</span>
+python -m pip download -r requirements.txt -d wheels
+
+<span class="dim"># ② 승인된 방법으로 wheels 폴더 반입 후, 사내 PC</span>
+python -m pip install --no-index --find-links wheels -r requirements.txt</pre>
+            <p class="note-line autoshow">반입은 반드시 회사 보안 절차대로. 출처 모를 wheel은 설치 자체가 실행입니다.</p>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        주소 "pypi.사내미러"는 자리 표시입니다. 실제 주소와 허용 여부는 인프라·보안 담당과 확인하세요.
+        B 방법은 받는 PC와 설치할 PC의 운영체제와 파이썬 버전이 같아야 합니다. 바퀴 파일이 OS · 버전별로 다르게 만들어지기 때문입니다.
+      </aside>
+    </section>
+
+    <!-- ============= 도구 지도 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">TOOLS · 비슷한 도구들</div>
+        <h2>venv 말고도 있지만, <span class="accent2">개념은 같습니다</span></h2>
+        <table class="xt">
+          <tr><th>도구</th><th>한 줄</th><th>언제 만나나</th></tr>
+          <tr class="hl"><td><span class="mono">venv + pip</span></td><td>파이썬 기본 포함. 오늘 배운 것</td><td>어디서나 — 가장 먼저 익힐 것</td></tr>
+          <tr><td><span class="mono">py</span> 런처</td><td>Windows에서 파이썬 버전 고르기 <span class="mono">py -3.11 -m venv .venv</span></td><td>파이썬이 여러 개 깔린 PC</td></tr>
+          <tr><td><span class="mono">uv</span></td><td>venv · pip 일을 아주 빠르게 하는 새 도구 <span class="mono">uv venv</span> · <span class="mono">uv pip install</span></td><td>최근 프로젝트 · AI가 제안할 때</td></tr>
+          <tr><td><span class="mono">conda</span></td><td>파이썬 밖의 라이브러리까지 함께 관리</td><td>데이터 과학 · 회사 표준이 conda일 때</td></tr>
+          <tr><td>Docker</td><td>파이썬 + OS까지 통째로 상자에</td><td>서버에 올릴 때 → Docker 덱</td></tr>
+        </table>
+        <p class="note-line">어떤 도구든 질문은 같습니다: <strong>상자는 어디 있나 · 목록은 어디 있나 · 지금 어느 상자에서 도나.</strong></p>
+      </div>
+      <aside class="notes">
+        도구를 여러 개 섞지 마세요. 한 프로젝트에 venv와 conda를 섞으면 진단이 훨씬 어려워집니다. 팀이 이미 쓰는 것을 따릅니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../docker/">Docker — 상자에 담기</a>
+      </div>
+    </section>
+
+    <!-- ============= AI와 환경 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip">AI · 환경 규칙을 알려 주기</div>
+        <h2>AI가 <span class="accent3">아무 데나 pip install</span> 하지 않게</h2>
+        <div class="grid-2" style="gap:1.2rem; align-items:start;">
+          <div class="tx">
+            <div class="tx-h"><i></i><i></i><i></i>규칙이 없을 때</div>
+            <p class="tx-l ai"><b class="who">AI</b>엑셀 처리를 위해 설치하겠습니다</p>
+            <p class="tx-l sys">▶ pip install openpyxl xlrd xlsxwriter pyxlsb</p>
+            <p class="tx-l bad fragment">(공용 파이썬에 4개 · requirements.txt 그대로)</p>
+            <p class="tx-l bad fragment"><b class="who">다음 주 동료</b>ModuleNotFoundError: No module named 'xlsxwriter'</p>
+          </div>
+          <div class="stack" style="gap:.55rem;">
+            <pre class="code good sm"><span class="cm"># CLAUDE.md — 환경</span>
+- 가상환경: .venv  (실행: .venv\Scripts\python.exe)
+- 패키지 설치 전 먼저 물어볼 것. 설치하면
+  requirements.txt에 == 버전으로 추가
+- 명령은 Windows PowerShell 기준
+- 파이썬 3.11 (서버와 같게)</pre>
+            <div class="card autoshow"><h3>한 개로 될 걸 네 개 깔지 않게</h3><p>"표준 라이브러리나 이미 있는 패키지로 되면 그걸로"를 덧붙이면 의존성이 줄어듭니다.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        에이전트는 문제를 빨리 풀려고 패키지를 많이 설치하는 경향이 있습니다. 규칙 네 줄이면 대부분 막힙니다.
+        패키지가 늘수록 보안 점검 대상도 늘어납니다.
+      </aside>
+      <div class="slide-refs">
+        <span class="rl">SEE</span>
+        <a href="../mcp-skill-md/">.MD에 규칙 적기</a>
+      </div>
+    </section>
+
+    <!-- ============= 실습 ============= -->
+    <section>
+      <div class="vfill">
+        <div class="chip live">🖐 실습 · 지우고 다시 만들어도 돈다 (20분)</div>
+        <h2>내 프로젝트를 <span class="accent2">상자 + 목록</span>으로</h2>
+        <p class="lab-learn"><b>배우는 것</b> — venv를 만들고, 버전을 고정하고, 상자를 지워도 목록만으로 되살리는 법.</p>
+        <div class="grid-2" style="align-items:start; gap:1.6rem;">
+          <div class="prompt-card">
+            <div class="pc-label">⌨️ 순서대로</div>
+            <pre class="code">python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt   # 없으면 AI에게 만들게
+python 내스크립트.py                         # 돌아가는지
+python -m pip freeze &gt; requirements.txt
+deactivate
+Remove-Item -Recurse .venv                  # 상자 버리기!
+# 처음 세 줄 다시 → 내스크립트 다시 실행</pre>
+          </div>
+          <div class="stack" style="gap:.6rem;">
+            <div class="done-box">
+              <p class="bx-t">✅ 완료 기준</p>
+              <ul>
+                <li>상자를 지웠다 다시 만들어도 <strong>스크립트가 그대로 돈다</strong></li>
+                <li><span class="mono">sys.executable</span>에 <span class="mono">.venv</span>가 보인다</li>
+                <li>requirements.txt의 모든 줄에 <strong>==</strong>가 있다</li>
+              </ul>
+            </div>
+            <div class="stuck-box">
+              <p class="bx-t">🧯 막히면</p>
+              <p>다시 설치 단계에서 실패하면 그게 바로 목록에 빠진 패키지입니다. 에러에 나온 이름을 목록에 추가하고 반복하세요.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">20분. "상자 버리기"가 핵심입니다. 버려도 살아난다는 걸 한 번 겪으면 환경이 무섭지 않습니다. 이 실험은 .venv 폴더만 지웁니다 — 대상 경로를 꼭 확인.</aside>
+    </section>
+
+    <!-- ============= 정리 ============= -->
+    <section>
+      <div class="vfill center">
+        <div class="chip">정리</div>
+        <h2>오늘 가져갈 습관 세 가지</h2>
+        <div style="display:flex; flex-direction:column; gap:1rem; max-width:1000px; margin:.6rem auto 0;">
+          <div class="card" style="text-align:left;"><h3>1. 프로젝트마다 .venv</h3><p>상자는 <strong class="accent2">일회용</strong>, git엔 목록만. 꼬이면 지우고 다시.</p></div>
+          <div class="card" style="text-align:left;"><h3>2. 설치는 python -m pip, 목록은 ==</h3><p>"이 파이썬에" 깔고, <strong class="accent4">버전을 적어 둡니다</strong>. 다른 PC도 같은 상자.</p></div>
+          <div class="card" style="text-align:left;"><h3>3. 안 되면 sys.executable부터</h3><p>코드를 고치기 전에 <strong class="accent2">어느 상자에서 도는지</strong> 확인합니다.</p></div>
+        </div>
+      </div>
+      <aside class="notes">세 습관으로 마무리. 다음은 "파일 형식 기초" — 상자 안에서 도는 코드가 읽는 파일 이야기입니다.</aside>
+    </section>
+
+    <!-- ============= 참고 ============= -->
+    <section data-depth="extra">
+      <div class="vfill">
+        <div class="chip">REFERENCES</div>
+        <h2>더 깊이 보기</h2>
+        <div class="grid-2" style="align-items:stretch; margin-top:.4rem;">
+          <div class="card ref-col">
+            <h3>📘 문서</h3>
+            <ul>
+              <li><a href="https://docs.python.org/3/library/venv.html" target="_blank" rel="noopener">venv — 파이썬 공식</a><span class="rd">만들기 · 켜기</span></li>
+              <li><a href="https://packaging.python.org/en/latest/tutorials/installing-packages/" target="_blank" rel="noopener">Installing Packages</a><span class="rd">pip 기본 · 가상환경</span></li>
+              <li><a href="https://pip.pypa.io/en/stable/topics/configuration/" target="_blank" rel="noopener">pip configuration</a><span class="rd">pip.ini · 미러 주소</span></li>
+              <li><a href="https://code.visualstudio.com/docs/python/environments" target="_blank" rel="noopener">VS Code Python 환경</a><span class="rd">인터프리터 고르기</span></li>
+            </ul>
+          </div>
+          <div class="card ref-col">
+            <h3>🔗 시리즈 안에서</h3>
+            <ul>
+              <li><a href="../terminal/">터미널 생존 키트</a><span class="rd">PATH · 어느 프로그램인가</span></li>
+              <li><a href="../file-formats/">파일 형식 기초</a><span class="rd">다음 단계</span></li>
+              <li><a href="../docker/">Docker</a><span class="rd">OS까지 상자에</span></li>
+              <li><a href="../errors/">에러 메시지 읽는 법</a><span class="rd">ModuleNotFoundError</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">패키지 버전은 예시입니다. 실제 버전은 프로젝트에 맞게 고정하세요.</aside>
+    </section>
+  </div>
+</div>
+
+<!-- reveal.js 5.1.0 — inlined for offline/self-contained deck (MIT, Hakim El Hattab) -->
+<script src="../vendor/reveal/reveal.js"></script>
+<!-- 핵심만 보기: data-depth="extra" 장 접기 + 3분 요약 (Reveal.initialize 보다 먼저) -->
+<script src="../assets/core.js"></script>
+<script src="../vendor/reveal/notes.js"></script>
+<script>
+  Reveal.initialize({
+    plugins: typeof RevealNotes !== 'undefined' ? [RevealNotes] : [],
+    hash: true,
+    hashOneBasedIndex: true,
+    controls: true,
+    controlsLayout: 'edges',
+    progress: true,
+    slideNumber: 'c/t',
+    transition: 'fade',
+    backgroundTransition: 'fade',
+    width: 1280,
+    height: 800,
+    margin: 0.04,
+    minScale: 0.2,
+    maxScale: 2.0,
+    center: false,
+  });
+
+  // ===== 목차 드롭다운 =====
+  (function () {
+    const sel = document.getElementById('tocSelect');
+    if (!sel) return;
+    const slides = Array.from(document.querySelectorAll('.reveal .slides > section'));
+    const clean = (t) => (t || '').replace(/\s+/g, ' ').trim().slice(0, 34);
+    // <br/>는 textContent 에서 사라져 단어가 붙는다 — 공백으로 바꿔 읽는다
+    const brText = (el) => { const c = el.cloneNode(true); c.querySelectorAll('br').forEach((b) => b.replaceWith(' ')); return c.textContent; };
+    slides.forEach((s, i) => {
+      const h = s.querySelector('h1, h2');
+      const label = clean(h ? brText(h) : '') || ('페이지 ' + (i + 1));
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = (i + 1) + '. ' + label;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', () => {
+      const i = Number(sel.value);
+      if (!Number.isNaN(i)) Reveal.slide(i);
+      sel.blur(); // 방향키가 다시 슬라이드 내비게이션으로 가도록
+    });
+    Reveal.on('slidechanged', (e) => { sel.value = String(e.indexh); });
+    Reveal.on('ready', (e) => { sel.value = String(e.indexh); });
+  })();
+
+  // ===== 전체화면 =====
+  (function () {
+    const fsBtn = document.getElementById('fullscreenBtn');
+    if (!fsBtn) return;
+    if (!document.fullscreenEnabled) { document.documentElement.classList.add('no-fullscreen'); return; }
+    fsBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    });
+  })();
+</script>
+
+
+<!-- 통합 발표 플랫폼: 질문·이모지·슬라이드 동기화는 모든 덱이 공유하는 assets/qa.js 하나가 담당한다. -->
+<link rel="stylesheet" href="../assets/qa.css">
+<script src="../assets/qa.js" defer></script>
+
+</body>
+</html>
